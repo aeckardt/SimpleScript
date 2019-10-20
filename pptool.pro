@@ -29,22 +29,26 @@ CONFIG += \
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+        engine/board.cpp \
         image/image.cpp \
         image/matchprofile.cpp \
         script/lexer.cpp \
         script/parser.cpp \
         script/script.cpp \
-        script/treewalker.cpp
+        script/treewalker.cpp \
+        xml/xmlres.cpp
 
 HEADERS += \
         mainwindow.h \
+        engine/board.h \
         image/image.h \
         image/matchprofile.h \
         image/measuretime.h \
         script/lexer.h \
         script/parser.h \
         script/script.h \
-        script/treewalker.h
+        script/treewalker.h \
+        xml/xmlres.h
 
 FORMS += \
         mainwindow.ui

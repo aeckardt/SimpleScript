@@ -11,8 +11,6 @@
 
 #pragma clang diagnostic pop
 
-#include "xmlres.h"
-
 #define MATRIX_TYPE CV_8UC4
 
 // CV_8UC3 is slower at taking screenshots, because the internal format from
@@ -343,44 +341,6 @@ inline ImageArray& ImageArray::operator+=(const ImageArray& src)
     }
 
     return *this;
-}
-    
-/////////////////////////////////////////////////////////////////////////////
-//
-// XMLResource inline methods
-//
-/////////////////////////////////////////////////////////////////////////////
-
-inline void readResource(const TiXmlNode* node, cv::Point& val)
-{
-    readStructInit();
-    readStructMember(x, "x_pos");
-    readStructMember(y, "y_pos");
-}
-
-inline void readResource(const TiXmlNode* node, cv::Rect& val)
-{
-    readStructInit();
-    readStructMember(x, "x_pos");
-    readStructMember(y, "y_pos");
-    readStructMember(width, "width");
-    readStructMember(height, "height");
-}
-
-inline void writeResource(TiXmlNode* node, const cv::Point& val)
-{
-    writeStructInit();
-    writeStructMember(x, "x_pos");
-    writeStructMember(y, "y_pos");
-}
-
-inline void writeResource(TiXmlNode* node, const cv::Rect& val)
-{
-    writeStructInit();
-    writeStructMember(x, "x_pos");
-    writeStructMember(y, "y_pos");
-    writeStructMember(width, "width");
-    writeStructMember(height, "height");
 }
 
 #endif // image_h
