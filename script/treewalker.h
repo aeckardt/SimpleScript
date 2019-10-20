@@ -7,7 +7,7 @@
 
 #include "lexer.h"
 #include "parser.h"
-#include "cv.h"
+#include "image/image.h"
 
 using lx::Lexer;
 using lx::Token;
