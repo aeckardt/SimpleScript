@@ -29,6 +29,7 @@ CONFIG += \
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+        image/image.cpp \
         script/lexer.cpp \
         script/parser.cpp \
         script/script.cpp \
@@ -49,6 +50,7 @@ INCLUDEPATH += \
     /usr/local/include
 
 LIBS += \
+    -framework ApplicationServices \
     -L"/usr/local/lib" \
     -lopencv_calib3d \
     -lopencv_core \
@@ -65,7 +67,7 @@ LIBS += \
     -lopencv_superres \
     -lopencv_video \
     -lopencv_videoio \
-    -lopencv_videostab
+    -lopencv_videostab \
     -ltinyxml
 
 # Default rules for deployment.
