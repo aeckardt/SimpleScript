@@ -13,7 +13,7 @@
 
 #include "xmlres.h"
 
-#define MATRIX_TYPE CV_8UC3
+#define MATRIX_TYPE CV_8UC4
 
 // CV_8UC3 is slower at taking screenshots, because the internal format from
 // the Mac functions is always 32bit and thus has to be converted.
@@ -73,6 +73,8 @@ struct BGRColor
     inline operator uint32_t() const;
 };
 
+#pragma pack(pop)
+
 #if MATRIX_TYPE == CV_8UC3
     #define MATRIX_CHANNELS 3
     #define ColorType BGRColor 
@@ -80,8 +82,6 @@ struct BGRColor
     #define MATRIX_CHANNELS 4
     #define ColorType BGRAColor
 #endif
-
-#pragma pack(pop)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -106,8 +106,8 @@ public:
     void matchTemplate(const Image& templ, cv::Point& pt, double& max_val) const;
     
     // difference between images
-    double match(const Image& img, double min_val, int max_diff) const;
-    double matchAt(int x, int y, const Image& img, double min_val, int max_diff) const;
+    double match(const Image& img, double min_val, uint32_t max_diff) const;
+    double matchAt(int x, int y, const Image& img, double min_val, uint32_t max_diff) const;
     
     // display methods
     static void initWindow(std::string imgwnd);
@@ -146,13 +146,6 @@ private:
 };
 
 bool operator==(const Image& img1, const Image& img2);
-
-#define DISPLAY_IMG(img, ms) { \
-    std::string wnd = "Display Window"; \
-    Image::initWindow(wnd); \
-    img.display(wnd, 40, 50, ms); \
-    Image::destroyWindow(wnd); \
-}
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -223,12 +216,13 @@ inline BGRAColor::operator uint32_t() const
     return *reinterpret_cast<const uint32_t*>(&blue);
 }
 
-inline int operator-(const BGRAColor color1, const BGRAColor color2)
+inline uint32_t operator-(const BGRAColor color1, const BGRAColor color2)
 {
-    return (color1.blue - color2.blue) * (color1.blue - color2.blue)
+    return static_cast<uint32_t>(
+          (color1.blue - color2.blue) * (color1.blue - color2.blue)
         + (color1.green - color2.green) * (color1.green - color2.green)
         + (color1.red - color2.red) * (color1.red - color2.red) +
-        + (color1.alpha - color2.alpha) * (color1.alpha - color2.alpha);
+        + (color1.alpha - color2.alpha) * (color1.alpha - color2.alpha));
 }
 
 inline BGRColor& BGRColor::operator=(uint32_t clr32) 
@@ -256,7 +250,7 @@ inline BGRColor::operator uint32_t() const
         (static_cast<uint32_t>(red) << 16);
 }
 
-inline int operator-(const BGRColor color1, const BGRColor color2)
+inline uint32_t operator-(const BGRColor color1, const BGRColor color2)
 {
     return (color1.blue - color2.blue) * (color1.blue - color2.blue)
         + (color1.green - color2.green) * (color1.green - color2.green)

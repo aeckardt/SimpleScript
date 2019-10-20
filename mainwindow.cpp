@@ -19,9 +19,7 @@ void MainWindow::on_buttonBox_clicked(QAbstractButton *button)
 {
     QPushButton *pbtn = reinterpret_cast<QPushButton *>(button);
     if (pbtn == ui->buttonBox->button(QDialogButtonBox::Ok)) {
-        Image img;
-        img.capture();
-        img.save("screen_capture.png");
+        ;
     } else if (pbtn == ui->buttonBox->button(QDialogButtonBox::Cancel)) {
         ;
     }

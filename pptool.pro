@@ -30,6 +30,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         image/image.cpp \
+        image/matchprofile.cpp \
         script/lexer.cpp \
         script/parser.cpp \
         script/script.cpp \
@@ -38,6 +39,8 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
         image/image.h \
+        image/matchprofile.h \
+        image/measuretime.h \
         script/lexer.h \
         script/parser.h \
         script/script.h \

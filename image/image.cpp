@@ -163,7 +163,7 @@ void Image::matchTemplate(const Image& templ, cv::Point& pt, double& max_val) co
 #endif
 }
 
-double Image::match(const Image& img, double min_val, int max_diff) const
+double Image::match(const Image& img, double min_val, uint32_t max_diff) const
 {
     if (img.width() != width() || img.height() != height())
     {
@@ -173,7 +173,7 @@ double Image::match(const Image& img, double min_val, int max_diff) const
     return matchAt(0, 0, img, min_val, max_diff);
 }
 
-double Image::matchAt(int x, int y, const Image& templ, double min_val, int max_diff) const
+double Image::matchAt(int x, int y, const Image& templ, double min_val, uint32_t max_diff) const
 {
     int pixels = templ.width() * templ.height();
     
