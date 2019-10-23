@@ -27,16 +27,25 @@ void FocusWidget::mouseReleaseEvent(QMouseEvent *event)
 SelectFrameWidget::SelectFrameWidget()
     : QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowSystemMenuHint |
               Qt::WindowTransparentForInput | Qt::WindowStaysOnTopHint | Qt::NoDropShadowWindowHint),
-      focus_widget(this)
+      focus_widget(this), dragMode(NoDrag)
 {
-    focus_widget.show();
-
     setWindowState(Qt::WindowMaximized);
 
     menuPosition = QPoint(0, 22);
     windowRect = QRect(frameGeometry());
     windowRect.translate(menuPosition);
     frame_width = 2;
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    timer->start(100);
+
+    focus_widget.show();
+}
+
+SelectFrameWidget::~SelectFrameWidget()
+{
+    delete timer;
 }
 
 void SelectFrameWidget::parentMousePressEvent(QMouseEvent *event)
@@ -130,22 +139,64 @@ void SelectFrameWidget::parentMouseReleaseEvent(QMouseEvent *event)
         startPosition = topLeft;
         endPosition = bottomRight;
     }
+    dragMode = NoDrag;
     event->accept();
 }
 
 void SelectFrameWidget::paintEvent(QPaintEvent *)
 {
-    QColor mainColor(255, 0, 0);
-    QColor ellipseColor(0, 0, 0, 191);
+    QColor ellipseColor(63, 63, 63);
+
+    QTime time = QTime::currentTime();
+    int xinc = ((time.second() * 1000 + time.msec()) / 100) % 6;
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    int xpos, ypos;
+
     painter.setPen(Qt::NoPen);
-    painter.setBrush(mainColor);
+    painter.setBrush(QColor(255, 255, 255));
 
     painter.save();
-    painter.drawConvexPolygon(mainFramePts);
+    for (xpos = topLeft.x() - xinc; xpos < bottomRight.x(); xpos += 6)
+    {
+        painter.drawRect(xpos, topLeft.y(), 3, 2);
+    }
+    for (xpos = topLeft.x() + xinc; xpos < bottomRight.x(); xpos += 6)
+    {
+        painter.drawRect(xpos, bottomRight.y() - 2, 3, 2);
+    }
+    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
+    {
+        painter.drawRect(topLeft.x(), ypos, 2, 3);
+    }
+    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
+    {
+        painter.drawRect(bottomRight.x() - 2, ypos, 2, 3);
+    }
+    painter.restore();
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(63, 63, 63));
+
+    painter.save();
+    for (xpos = topLeft.x() - xinc; xpos + xinc < bottomRight.x(); xpos += 6)
+    {
+        painter.drawRect(xpos + 2, topLeft.y(), 3, 2);
+    }
+    for (xpos = topLeft.x() + xinc; xpos + xinc < bottomRight.x(); xpos += 6)
+    {
+        painter.drawRect(xpos + 2, bottomRight.y() - 2, 3, 2);
+    }
+    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
+    {
+        painter.drawRect(topLeft.x(), ypos + 2, 2, 3);
+    }
+    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
+    {
+        painter.drawRect(bottomRight.x() - 2, ypos + 2, 2, 3);
+    }
     painter.restore();
 
     painter.setPen(Qt::NoPen);

@@ -25,10 +25,7 @@ class SelectFrameWidget : public QWidget
     Q_OBJECT
 public:
     SelectFrameWidget();
-
-    void parentMousePressEvent(QMouseEvent *);
-    void parentMouseMoveEvent(QMouseEvent *);
-    void parentMouseReleaseEvent(QMouseEvent *);
+    ~SelectFrameWidget() override;
 
     QRect frameRect;
 
@@ -38,10 +35,17 @@ protected:
 
 private:
     FocusWidget focus_widget;
+
+    void parentMousePressEvent(QMouseEvent *);
+    void parentMouseMoveEvent(QMouseEvent *);
+    void parentMouseReleaseEvent(QMouseEvent *);
+
     QPoint startPosition;
     QPoint endPosition;
     QPoint menuPosition;
     QRect windowRect;
+
+    QTimer *timer;
 
     int frame_width;
     QPoint topLeft;
@@ -49,6 +53,7 @@ private:
 
     enum DragMode
     {
+        NoDrag,
         CreateFrame,
         MoveFrame,
         ResizeFrame
@@ -65,6 +70,8 @@ private:
     QRegion ellipseFrame[4];
 
     void recalcDim();
+
+    friend FocusWidget;
 };
 // QWindow interface
 
