@@ -4,9 +4,15 @@
 #include <QMainWindow>
 #include <QAbstractButton>
 
+#include <vector>
+
+#include "script/engine.h"
+
 namespace Ui {
 class MainWindow;
 }
+
+class SyntaxHighlighter;
 
 class MainWindow : public QMainWindow
 {
@@ -14,13 +20,20 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
+
+protected:
+    void keyPressEvent(QKeyEvent *) override;
 
 private slots:
-    void on_buttonBox_clicked(QAbstractButton *button);
+    void run();
+    void clearLog();
 
 private:
     Ui::MainWindow *ui;
+    SyntaxHighlighter *highlighter;
+
+    ScriptEngine se;
 };
 
 #endif // MAINWINDOW_H

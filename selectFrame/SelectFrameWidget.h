@@ -2,14 +2,15 @@
 #define SELECTFRAMEWIDGET_H
 
 #include <QWidget>
+#include <QDialog>
 
 class SelectFrameWidget;
 
-class FocusWidget : public QWidget
+class FocusDialog : public QDialog
 {
     Q_OBJECT
 public:
-    FocusWidget(SelectFrameWidget *_parent);
+    FocusDialog(SelectFrameWidget *_parent);
 
 protected:
     void mousePressEvent(QMouseEvent *) override;
@@ -27,18 +28,27 @@ public:
     SelectFrameWidget();
     ~SelectFrameWidget() override;
 
-    QRect frameRect;
+    QRect selectRect();
 
 protected:
     void paintEvent(QPaintEvent *) override;
     void resizeEvent(QResizeEvent *) override;
 
 private:
-    FocusWidget focus_widget;
+    FocusDialog focus_dialog;
 
     void parentMousePressEvent(QMouseEvent *);
     void parentMouseMoveEvent(QMouseEvent *);
     void parentMouseReleaseEvent(QMouseEvent *);
+
+    QRect frameRect;
+
+    enum SelectMode
+    {
+        SelectRect
+    };
+
+    SelectMode mode;
 
     QPoint startPosition;
     QPoint endPosition;
@@ -71,8 +81,7 @@ private:
 
     void recalcDim();
 
-    friend FocusWidget;
+    friend FocusDialog;
 };
-// QWindow interface
 
 #endif // SELECTFRAMEWIDGET_H

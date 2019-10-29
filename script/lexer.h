@@ -28,8 +28,6 @@ enum TokenId : uint32_t
     StarEqual,
     Slash,
     SlashEqual,
-    CircumFlex,
-    CircumFlexEqual,
 
     Comma,
     Colon,

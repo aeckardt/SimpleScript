@@ -20,7 +20,7 @@ static TokenId char_def[UCHAR_MAX + 1] = {
     Other, Term,  Term,  Term,  Term,  Term,  Term,  Term,
     Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
     Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Other, Other, Other, CircumFlex, Term,
+    Term,  Term,  Term,  Other, Other, Other, Other, Term,
     Other, Term,  Term,  Term,  Term,  Term,  Term,  Term,
     Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
     Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
@@ -205,7 +205,6 @@ void Lexer::lex(const std::string &context, TokenList &tokens)
             case Slash:      // Slash or SlashEqual
             case Plus:       // Plus or PlusEqual
             case Minus:      // Minus or MinusEqual
-            case CircumFlex: // CircumFlex or CircumFlexEqual
             {
                 line->tokens.push_back(Token());
                 readOperator(it, end, *line->tokens.rbegin());

@@ -1,51 +1,63 @@
 #include <QtWidgets>
 
-#include "selectframewidget.h"
+#include "SelectFrameWidget.h"
 
-FocusWidget::FocusWidget(SelectFrameWidget *_parent)
-    : QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::NoDropShadowWindowHint),
+FocusDialog::FocusDialog(SelectFrameWidget *_parent)
+    : QDialog(_parent, Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint),
     parent(_parent)
 {
     setWindowState(Qt::WindowMaximized);
     setWindowOpacity(0.05);
 }
 
-void FocusWidget::mousePressEvent(QMouseEvent *event)
+void FocusDialog::mousePressEvent(QMouseEvent *event)
 {
     parent->parentMousePressEvent(event);
 }
-void FocusWidget::mouseMoveEvent(QMouseEvent *event)
+
+void FocusDialog::mouseMoveEvent(QMouseEvent *event)
 {
     parent->parentMouseMoveEvent(event);
 }
 
-void FocusWidget::mouseReleaseEvent(QMouseEvent *event)
+void FocusDialog::mouseReleaseEvent(QMouseEvent *event)
 {
     parent->parentMouseReleaseEvent(event);
 }
 
 SelectFrameWidget::SelectFrameWidget()
     : QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowSystemMenuHint |
-              Qt::WindowTransparentForInput | Qt::WindowStaysOnTopHint | Qt::NoDropShadowWindowHint),
-      focus_widget(this), dragMode(NoDrag)
+              Qt::WindowTransparentForInput | Qt::NoDropShadowWindowHint),
+      focus_dialog(this), dragMode(NoDrag)
 {
     setWindowState(Qt::WindowMaximized);
+    setAttribute(Qt::WA_DeleteOnClose);
 
-    menuPosition = QPoint(0, 22);
+    menuPosition = QPoint(0, 23);
     windowRect = QRect(frameGeometry());
     windowRect.translate(menuPosition);
-    frame_width = 2;
+    frame_width = 1;
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    timer->start(100);
-
-    focus_widget.show();
+    timer->start(5);
 }
 
 SelectFrameWidget::~SelectFrameWidget()
 {
     delete timer;
+}
+
+QRect SelectFrameWidget::selectRect()
+{
+    mode = SelectRect;
+
+    show();
+    focus_dialog.exec();
+
+    return QRect(
+        frameRect.topLeft()     + menuPosition,
+        frameRect.bottomRight() + menuPosition - QPoint(1, 1));
 }
 
 void SelectFrameWidget::parentMousePressEvent(QMouseEvent *event)
@@ -104,6 +116,14 @@ void SelectFrameWidget::parentMouseMoveEvent(QMouseEvent *event)
         if (dragMode == CreateFrame)
         {
             endPosition = event->globalPos() - menuPosition;
+            if (endPosition.y() < 0)
+            {
+                endPosition.setY(0);
+            }
+            else if (endPosition.y() > frameGeometry().height())
+            {
+                endPosition.setY(frameGeometry().height());
+            }
         }
         else if (dragMode == MoveFrame)
         {
@@ -141,6 +161,12 @@ void SelectFrameWidget::parentMouseReleaseEvent(QMouseEvent *event)
     }
     dragMode = NoDrag;
     event->accept();
+
+    if (mode == SelectRect)
+    {
+        focus_dialog.close();
+        close();
+    }
 }
 
 void SelectFrameWidget::paintEvent(QPaintEvent *)
@@ -161,19 +187,19 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
     painter.save();
     for (xpos = topLeft.x() - xinc; xpos < bottomRight.x(); xpos += 6)
     {
-        painter.drawRect(xpos, topLeft.y(), 3, 2);
+        painter.drawRect(xpos, topLeft.y(), 3, frame_width);
     }
     for (xpos = topLeft.x() + xinc; xpos < bottomRight.x(); xpos += 6)
     {
-        painter.drawRect(xpos, bottomRight.y() - 2, 3, 2);
+        painter.drawRect(xpos, bottomRight.y() - frame_width, 3, frame_width);
     }
     for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
     {
-        painter.drawRect(topLeft.x(), ypos, 2, 3);
+        painter.drawRect(topLeft.x(), ypos, frame_width, 3);
     }
     for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
     {
-        painter.drawRect(bottomRight.x() - 2, ypos, 2, 3);
+        painter.drawRect(bottomRight.x() - frame_width, ypos, frame_width, 3);
     }
     painter.restore();
 
@@ -183,19 +209,19 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
     painter.save();
     for (xpos = topLeft.x() - xinc; xpos + xinc < bottomRight.x(); xpos += 6)
     {
-        painter.drawRect(xpos + 2, topLeft.y(), 3, 2);
+        painter.drawRect(xpos + 2, topLeft.y(), 3, frame_width);
     }
     for (xpos = topLeft.x() + xinc; xpos + xinc < bottomRight.x(); xpos += 6)
     {
-        painter.drawRect(xpos + 2, bottomRight.y() - 2, 3, 2);
+        painter.drawRect(xpos + 2, bottomRight.y() - frame_width, 3, frame_width);
     }
     for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
     {
-        painter.drawRect(topLeft.x(), ypos + 2, 2, 3);
+        painter.drawRect(topLeft.x(), ypos + 2, frame_width, 3);
     }
     for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
     {
-        painter.drawRect(bottomRight.x() - 2, ypos + 2, 2, 3);
+        painter.drawRect(bottomRight.x() - frame_width, ypos + 2, frame_width, 3);
     }
     painter.restore();
 
@@ -212,7 +238,6 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
 
 void SelectFrameWidget::recalcDim()
 {
-
     QPoint size = QPoint(
                 std::abs(startPosition.x() - endPosition.x()),
                 std::abs(startPosition.y() - endPosition.y()));
@@ -223,15 +248,19 @@ void SelectFrameWidget::recalcDim()
 
     bottomRight = topLeft + size;
 
-    QRect screen = frameGeometry();
-    if (screen.width() < bottomRight.x()) {
-        QPoint diff = QPoint(bottomRight.x() - screen.width(), 0);
-        topLeft -= diff;
+    QRect frame = frameGeometry();
+    if (frame.width() < bottomRight.x()) {
+        QPoint diff = QPoint(bottomRight.x() - frame.width(), 0);
+        topLeft = QPoint(
+                    std::max(0, topLeft.x() - diff.x()),
+                    std::max(0, topLeft.y() - diff.y()));
         bottomRight -= diff;
     }
-    if (screen.height() < bottomRight.y()) {
-        QPoint diff = QPoint(0, bottomRight.y() - screen.height());
-        topLeft -= diff;
+    if (frame.height() < bottomRight.y()) {
+        QPoint diff = QPoint(0, bottomRight.y() - frame.height());
+        topLeft = QPoint(
+                    std::max(0, topLeft.x() - diff.x()),
+                    std::max(0, topLeft.y() - diff.y()));
         bottomRight -= diff;
     }
 
@@ -257,10 +286,10 @@ void SelectFrameWidget::recalcDim()
     ellipseCenter[2] = QPoint(bottomRight.x() - 4 - frame_width, topLeft.y() - 4);
     ellipseCenter[3] = QPoint(bottomRight.x() - 4 - frame_width, bottomRight.y() - 4 - frame_width);
 
-    ellipseRect[0] = QRect(ellipseCenter[0].x(), ellipseCenter[0].y(), 8 + frame_width, 8 + frame_width);
-    ellipseRect[1] = QRect(ellipseCenter[1].x(), ellipseCenter[1].y(), 8 + frame_width, 8 + frame_width);
-    ellipseRect[2] = QRect(ellipseCenter[2].x(), ellipseCenter[2].y(), 8 + frame_width, 8 + frame_width);
-    ellipseRect[3] = QRect(ellipseCenter[3].x(), ellipseCenter[3].y(), 8 + frame_width, 8 + frame_width);
+    ellipseRect[0] = QRect(ellipseCenter[0].x(), ellipseCenter[0].y(), 10, 10);
+    ellipseRect[1] = QRect(ellipseCenter[1].x(), ellipseCenter[1].y(), 10, 10);
+    ellipseRect[2] = QRect(ellipseCenter[2].x(), ellipseCenter[2].y(), 10, 10);
+    ellipseRect[3] = QRect(ellipseCenter[3].x(), ellipseCenter[3].y(), 10, 10);
 
     ellipseFrame[0] = QRegion(ellipseRect[0], QRegion::Ellipse);
     ellipseFrame[1] = QRegion(ellipseRect[1], QRegion::Ellipse);
@@ -268,7 +297,7 @@ void SelectFrameWidget::recalcDim()
     ellipseFrame[3] = QRegion(ellipseRect[3], QRegion::Ellipse);
 }
 
-void SelectFrameWidget::resizeEvent(QResizeEvent * /* event */)
+void SelectFrameWidget::resizeEvent(QResizeEvent *)
 {
     recalcDim();
 

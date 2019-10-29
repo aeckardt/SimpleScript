@@ -65,7 +65,7 @@ inline void Parser::readOperator(Node &node)
 
 inline void Parser::readParam(Node &node)
 {
-    ASSERT(expectToken({Term, Integer, Float, String}));
+    ASSERT(expectToken({Term, Integer, Float, String}))
 
     if (cur_token.getId() != Term)
     {
@@ -103,13 +103,13 @@ void Parser::parse(const TokenList &tokens, Node &root)
 void Parser::parseAssignment(Node &node)
 {
     // add parameter node
-    ASSERT(readParam(addNode(node, Variable)));
+    ASSERT(readParam(addNode(node, Variable)))
 
     // expression is assignment
-    ASSERT(expectToken({Equal}));
+    ASSERT(expectToken({Equal}))
     ++cur_token;
 
-    ASSERT(parseExpr(node));
+    ASSERT(parseExpr(node))
 }
 
 void Parser::parseExpr(Node &node)
@@ -145,7 +145,7 @@ void Parser::parseExpr(Node &node)
         if (cur_token.getId() == Term  || cur_token.getId() == Integer ||
             cur_token.getId() == Float || cur_token.getId() == String)
         {
-            ASSERT(readParam(it_node));
+            ASSERT(readParam(it_node))
             temp_node.children.push_back(it_node);
             ++nparams;
             if (nparams > 1)
@@ -227,11 +227,11 @@ void Parser::parseFunction(Node &node)
     node.param = cur_token++;
 
     // skip left parenthesis
-    ASSERT(expectToken({LeftParen}));
+    ASSERT(expectToken({LeftParen}))
     ++cur_token;
 
     // check next token
-    ASSERT(expectToken({Term, Integer, Float, String, LeftParen, RightParen}));
+    ASSERT(expectToken({Term, Integer, Float, String, LeftParen, RightParen}))
 
     if (cur_token.getId() != RightParen)
         ASSERT(parseExpr(node)) // add next parameter
@@ -243,7 +243,7 @@ void Parser::parseFunction(Node &node)
 
     while (true)
     {
-        ASSERT(expectToken({Comma, RightParen}));
+        ASSERT(expectToken({Comma, RightParen}))
         if ((cur_token++).getId() != RightParen)
             ASSERT(parseExpr(node)) // add next parameter
         else
@@ -257,16 +257,16 @@ void Parser::parseIfStatement(Node &node)
     ++cur_token;
 
     // parse expression (which is evaluated as true / false at runtime)
-    ASSERT(parseExpr(node));
+    ASSERT(parseExpr(node))
 
-    ASSERT(expectToken({Colon}));
+    ASSERT(expectToken({Colon}))
     ++cur_token;
 
     if (cur_token != lineEnd())
         return pushError("Invalid token, expected end of line");
 
     uint32_t if_indent = (cur_line++)->indent_level;
-    ASSERT(parseSection(addNode(node, Section), if_indent + 1, false));
+    ASSERT(parseSection(addNode(node, Section), if_indent + 1, false))
 
     if (cur_line == ptokens->end())
     {
@@ -276,19 +276,19 @@ void Parser::parseIfStatement(Node &node)
     }
     cur_token = lineBegin();
 
-    ASSERT(expectToken({Term}));
+    ASSERT(expectToken({Term}))
     const std::string &name = (cur_token++).getText();
 
     if (name == "else")
     {
-        ASSERT(expectToken({Colon}));
+        ASSERT(expectToken({Colon}))
         ++cur_token;
 
         if (cur_token != lineEnd())
             return pushError("Invalid token, expected end of line");
 
         ++cur_line;
-        ASSERT(parseSection(addNode(node, Section), if_indent + 1, false));
+        ASSERT(parseSection(addNode(node, Section), if_indent + 1, false))
     }
 
     --cur_line;
@@ -299,7 +299,7 @@ void Parser::parseLine(Node &parent)
 {
     cur_token = lineBegin();
 
-    ASSERT(expectToken({Term}));
+    ASSERT(expectToken({Term}))
     const std::string &name = cur_token.getText();
 
     if (name == "if")
@@ -307,17 +307,17 @@ void Parser::parseLine(Node &parent)
     else
     {
         ++cur_token;
-        ASSERT(expectToken({LeftParen, Equal}));
+        ASSERT(expectToken({LeftParen, Equal}))
         if (cur_token.getId() == LeftParen)
         {
             Node &func_node = addNode(parent, Function);
             --cur_token;
-            ASSERT(parseFunction(func_node));
+            ASSERT(parseFunction(func_node))
         }
         else
         {
             --cur_token;
-            ASSERT(parseAssignment(addNode(parent, Assignment)));
+            ASSERT(parseAssignment(addNode(parent, Assignment)))
         }
     }
 
@@ -329,7 +329,7 @@ void Parser::parseSection(Node &node, uint32_t lvl, bool may_be_empty)
 {
     while (cur_line != ptokens->end() && cur_line->indent_level == lvl)
     {
-        ASSERT(parseLine(node));
+        ASSERT(parseLine(node))
         if (cur_line != ptokens->end())
             ++cur_line;
     }

@@ -25,14 +25,14 @@
     gettimeofday(&end, NULL); \
     seconds  = end.tv_sec  - start.tv_sec; \
     useconds = end.tv_usec - start.tv_usec; \
-    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    mtime = static_cast<long>((static_cast<double>(seconds) * 1000 + static_cast<double>(useconds) / 1000.0) + 0.5);
     
 #define StopEvaluateMeasurement(cycles, it_name) \
     StopMeasurement(); \
     if (mtime / cycles < 2) \
-    printf("%s: %4.2f ms\n", it_name, (double)mtime / (double)cycles); \
+    printf("%s: %4.2f ms\n", it_name, static_cast<double>(mtime) / static_cast<double>(cycles)); \
     else \
-    printf("%s: %ld ms\n", it_name, mtime / cycles);
+    printf("%s: %d ms\n", it_name, static_cast<int>(mtime) / static_cast<int>(cycles));
     
 #define Iterate(fnc_call, cycles, it_name) \
     StartMeasurement(); \

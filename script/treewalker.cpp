@@ -1,8 +1,5 @@
-#include <iostream>
-#include <fstream>
 #include <math.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <sys/time.h>
 
 #include "treewalker.h"
 
@@ -17,8 +14,9 @@ using namespace tw;
 //*************************************************************************//
 
 const std::map<Parameter::Type, std::string> type_names = {
-    {Empty,    "Empty"}, {String,   "String"}, {Int,         "Int"},
-    {Float,    "Float"}, {Point,     "Point"}, {Boolean, "Boolean"}};
+    {Empty,     "Empty"}, {String,    "String"},  {Int,         "Int"},
+    {Float,     "Float"}, {Boolean,  "Boolean"},  {Point,     "Point"},
+    {Rect,       "Rect"}, {DateTime, "DateTime"}, {Object,   "Object"}};
 
 ParameterType tw::getParameterType(const TokenId &token_id)
 {
@@ -53,11 +51,20 @@ void Parameter::clear()
     case Float:
         delete static_cast<double*>(value);
         break;
-    case Point:
-        delete static_cast<cv::Point*>(value);
-        break;
     case Boolean:
         delete static_cast<bool*>(value);
+        break;
+    case Point:
+        delete static_cast<QPoint*>(value);
+        break;
+    case Rect:
+        delete static_cast<QRect*>(value);
+        break;
+    case DateTime:
+        delete static_cast<QDateTime*>(value);
+        break;
+    case Object:
+        delete static_cast<ParameterObject*>(value);
         break;
     }
     type = Empty;
@@ -75,7 +82,7 @@ void Parameter::assign(const int32_t &i)
 {
     clear();
     value = new int32_t;
-    *static_cast<int*>(value) = i;
+    *static_cast<int32_t*>(value) = i;
     type = Int;
 }
 
@@ -87,20 +94,33 @@ void Parameter::assign(const double &f)
     type = Float;
 }
 
-void Parameter::assign(const cv::Point &pt)
-{
-    clear();
-    value = new cv::Point;
-    *static_cast<cv::Point*>(value) = pt;
-    type = Point;
-}
-
 void Parameter::assign(const bool &b)
 {
     clear();
     value = new bool;
     *static_cast<bool*>(value) = b;
     type = Boolean;
+}
+
+void Parameter::assign(const QPoint &pt)
+{
+    clear();
+    value = new QPoint(pt);
+    type = Point;
+}
+
+void Parameter::assign(const QRect &rect)
+{
+    clear();
+    value = new QRect(rect);
+    type = Rect;
+}
+
+void Parameter::assign(const QDateTime &dt)
+{
+    clear();
+    value = new QDateTime(dt);
+    type = DateTime;
 }
 
 double Parameter::asFloat() const
@@ -144,11 +164,21 @@ Parameter &Parameter::operator=(const Parameter &src)
     case Float:
         assign(src.asFloat());
         break;
+    case Boolean:
+        assign(src.asBoolean());
+        break;
     case Point:
         assign(src.asPoint());
         break;
-    case Boolean:
-        assign(src.asBoolean());
+    case Rect:
+        assign(src.asRect());
+        break;
+    case DateTime:
+        assign(src.asDateTime());
+        break;
+    case Object:
+        static_cast<ParameterObject*>(src.value)->copyTo(value);
+        type = Object;
         break;
     }
     return *this;
@@ -159,19 +189,36 @@ std::ostream &tw::operator<<(std::ostream &os, const Parameter &param)
     switch (param.getType())
     {
     case Empty:
-        return os << "None";
+        return os;
     case String:
         return os << param.asString();
     case Int:
         return os << param.asInt();
     case Float:
         return os << param.asFloat();
-    case Point:
-        return os << param.asPoint();
     case Boolean:
         return os << (param.asBoolean() ? "true" : "false");
+    case Point: {
+        const QPoint &pt = param.asPoint();
+        return os << "(" << pt.x() << ", " << pt.y() << ")";
+    }
+    case Rect: {
+        const QRect &rect = param.asRect();
+        return os << "(" << rect.x() << ", " << rect.y() << ", " << rect.width() << ", " << rect.height() << ")";
+    }
+    case DateTime: {
+        const QDateTime &dt = param.asDateTime();
+        return os << dt.toString("yyyy-MM-dd HH:mm:ss").toStdString();
+    }
+    default:
+        return os;
     }
 }
+
+ParameterObject::~ParameterObject()
+{
+}
+
 //*************************************************************************//
 //
 // TreeWalker class implementation
@@ -186,11 +233,28 @@ bool floatEqual(const double &f1, const double &f2)
     return fabs(f1 - f2) < FLOAT_CMP_EPSILON;
 }
 
+TreeWalker::TreeWalker()
+{
+    output_fnc = nullptr;
+}
+
 inline Parameter &TreeWalker::addParam(ParameterList &params) const
 {
     params.push_back(Parameter());
     return *params.rbegin();
 }
+
+inline void TreeWalker::errorMsg(const char *msg) const
+{
+    if (output_fnc != nullptr)
+    {
+        Parameter param;
+        param.assign(std::string(msg));
+        output_fnc(param);
+    }
+}
+
+#define ERROR_MSG(...) { std::stringstream ss; ss << __VA_ARGS__; errorMsg(ss.str().c_str()); }
 
 bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, const Parameter &p2)
 {
@@ -221,11 +285,11 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         case Float:
             return_value.assign(p1.asFloat() + p2.asFloat());
             break;
-        case Point:
-            return_value.assign(p1.asPoint() + p2.asPoint());
-            break;
         case Boolean:
             return_value.assign(p1.asBoolean() + p2.asBoolean());
+            break;
+        case Point:
+            return_value.assign(p1.asPoint() + p2.asPoint());
             break;
         default:
             return false;
@@ -254,11 +318,11 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         case Float:
             return_value.assign(p1.asFloat() - p2.asFloat());
             break;
-        case Point:
-            return_value.assign(p1.asPoint() - p2.asPoint());
-            break;
         case Boolean:
             return_value.assign(p1.asBoolean() - p2.asBoolean());
+            break;
+        case Point:
+            return_value.assign(p1.asPoint() - p2.asPoint());
             break;
         default:
             return false;
@@ -310,7 +374,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         {
             if (p2.asInt() == 0)
             {
-                std::cerr << "Division by zero not allowed" << std::endl;
+                errorMsg("Division by zero not allowed");
                 return false;
             }
         }
@@ -318,7 +382,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         {
             if (fabs(p2.asFloat()) == 0)
             {
-                std::cerr << "Division by zero not allowed" << std::endl;
+                errorMsg("Division by zero not allowed");
                 return false;
             }
         }
@@ -378,11 +442,17 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         case Float:
             return_value.assign(floatEqual(p1.asFloat(), p2.asFloat()));
             return true;
+        case Boolean:
+            return_value.assign(p1.asBoolean() == p2.asBoolean());
+            return true;
         case Point:
             return_value.assign(p1.asPoint() == p2.asPoint());
             return true;
-        case Boolean:
-            return_value.assign(p1.asBoolean() == p2.asBoolean());
+        case Rect:
+            return_value.assign(p1.asRect() == p2.asRect());
+            return true;
+        case DateTime:
+            return_value.assign(p1.asDateTime() == p2.asDateTime());
             return true;
         default:
             return false;
@@ -413,11 +483,17 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         case Float:
             return_value.assign(!floatEqual(p1.asFloat(), p2.asFloat()));
             return true;
+        case Boolean:
+            return_value.assign(p1.asBoolean() != p2.asBoolean());
+            return true;
         case Point:
             return_value.assign(p1.asPoint() != p2.asPoint());
             return true;
-        case Boolean:
-            return_value.assign(p1.asBoolean() != p2.asBoolean());
+        case Rect:
+            return_value.assign(p1.asRect() != p2.asRect());
+            return true;
+        case DateTime:
+            return_value.assign(p1.asDateTime() != p2.asDateTime());
             return true;
         default:
             return false;
@@ -447,7 +523,7 @@ void TreeWalker::getParam(const Node &node, Parameter &param)
         param.assign(std::string(content.begin() + 1, content.end() - 1));
         break;
     default:
-        std::cerr << "param_token.id out of range" << std::endl;
+        errorMsg("param_token.id out of range");
         break;
     }
 }
@@ -471,7 +547,7 @@ void TreeWalker::getParamType(const Node &node, ParameterType &param_type)
         param_type = Parameter::Type::String;
         return;
     default:
-        std::cerr << "param_token.id out of range" << std::endl;
+        errorMsg("param_token.id out of range");
         break;
     }
 }
@@ -484,8 +560,8 @@ bool TreeWalker::run(const std::string &str)
 
     if (!lexer.getLastError().empty())
     {
-        std::cerr << "Error lexing:" << std::endl;
-        std::cerr << lexer.getLastError() << std::endl;
+        errorMsg("Error lexing:");
+        errorMsg(lexer.getLastError().c_str());
         return false;
     }
 
@@ -494,8 +570,8 @@ bool TreeWalker::run(const std::string &str)
     parser.parse(tokens, ast_root);
     if (!parser.getLastError().empty())
     {
-        std::cerr << "Error parsing:" << std::endl;
-        std::cerr << parser.getLastError() << std::endl;
+        errorMsg("Error parsing:");
+        errorMsg(parser.getLastError().c_str());
         return false;
     }
 
@@ -503,33 +579,17 @@ bool TreeWalker::run(const std::string &str)
     {
         if (!traverse(ast_root))
         {
-            std::cerr << "Error running script" << std::endl;
+            errorMsg("Error running script");
             return false;
         }
     }
     else
     {
-        std::cerr << "Error validating syntax" << std::endl;
+        errorMsg("Error validating syntax");
         return false;
     }
 
     return true;
-}
-
-bool TreeWalker::run(const char *filename)
-{
-    std::ifstream file(filename);
-
-    std::string str;
-    file.seekg(0, std::ios::end);
-    str.reserve(static_cast<size_t>(file.tellg()));
-    file.seekg(0, std::ios::beg);
-
-    str.assign((
-        std::istreambuf_iterator<char>(file)),
-        std::istreambuf_iterator<char>());
-
-    return run(str);
 }
 
 bool TreeWalker::traverse(const Node &node)
@@ -578,6 +638,8 @@ bool TreeWalker::traverseAssignment(const Node &node)
 
     vars[var_name] = return_value;
 
+    return_value.clear();
+
     return true;
 }
 
@@ -609,6 +671,7 @@ bool TreeWalker::traverseExpr(const Node &node)
         case ps::Expr:
             if (!traverse(child))
                 return false;
+            stack.push_back(return_value);
             break;
         case ps::Variable:
         {
@@ -627,7 +690,7 @@ bool TreeWalker::traverseExpr(const Node &node)
 
     if (stack.size() != 1)
     {
-        std::cerr << "Unable to evaluate expression" << std::endl;
+        errorMsg("Unable to evaluate expression");
         return false;
     }
 
@@ -656,6 +719,8 @@ bool TreeWalker::traverseFunction(const Node &node)
     }
 
     const std::string &cmd_name = node.param.getText();
+
+    return_value.clear();
 
     // existance of the command is already proven in validityCheck
     if (!commands[cmd_name].callback_fnc(params, return_value))
@@ -686,6 +751,8 @@ bool TreeWalker::traverseIfStatement(const Node &node)
         exprIsTrue = true;
     else
         exprIsTrue = return_value.asBoolean();
+
+    return_value.clear();
 
     if (exprIsTrue)
     {
@@ -726,7 +793,7 @@ bool TreeWalker::validate(const Node &node)
     case ps::Param:
         return validateParamType(node);
     default:
-        std::cerr << "Unspecified rule" << std::endl;
+        errorMsg("Unspecified rule");
         return false;
     }
 
@@ -737,14 +804,14 @@ bool TreeWalker::validateAssignment(const Node &node)
 {
     if (node.children.size() < 2)
     {
-        std::cerr << "Invalid assignment" << std::endl;
+        errorMsg("Invalid assignment");
         return false;
     }
 
     const Node &var_node = *node.children.begin();
     if (var_node.rule != ps::Variable)
     {
-        std::cerr << "Expression is not assignable, lvalue needs to be variable" << std::endl;
+        errorMsg("Expression is not assignable, lvalue needs to be variable");
         return false;
     }
 
@@ -752,7 +819,7 @@ bool TreeWalker::validateAssignment(const Node &node)
     if (src_node.rule != ps::Variable && src_node.rule != ps::Param &&
         src_node.rule != ps::Function && src_node.rule != ps::Expr)
     {
-        std::cerr << "Invalid rvalue for assignment" << std::endl;
+        errorMsg("Invalid rvalue for assignment");
         return false;
     }
 
@@ -766,7 +833,7 @@ bool TreeWalker::validateAssignment(const Node &node)
         const std::string &var_name = src_node.param.getText();
         if (var_types.find(var_name) == var_types.end())
         {
-            std::cerr << "Variable '" << var_name << "' not found" << std::endl;
+            ERROR_MSG("Variable '" << var_name << "' not found")
             return false;
         }
         return_value_type = var_types[var_name];
@@ -785,7 +852,7 @@ bool TreeWalker::validateCommand(const std::string &command, const ParameterType
     // check if function with that name exists
     if (commands.find(command) == commands.end())
     {
-        std::cerr << "Unknown function '" << command << "'" << std::endl;
+        ERROR_MSG("Unknown function '" << command << "'")
         return false;
     }
 
@@ -793,7 +860,7 @@ bool TreeWalker::validateCommand(const std::string &command, const ParameterType
 
     if (cmd.param_types.size() < param_types.size())
     {
-        std::cerr << "Too many arguments passed to function '" << command << "', expected " << cmd.param_types.size() << std::endl;
+        ERROR_MSG("Too many arguments passed to function '" << command << "', expected " << cmd.param_types.size())
         return false;
     }
 
@@ -812,7 +879,7 @@ bool TreeWalker::validateCommand(const std::string &command, const ParameterType
             }
             else if (param_types.size() <= index)
             {
-                std::cerr << "Error: Wrong number of arguments passed to function '" << command << "', expected " << cmd.param_types.size() << std::endl;
+                ERROR_MSG("Error: Wrong number of arguments passed to function '" << command << "', expected " << cmd.param_types.size())
                 return false;
             }
             else if (param_types[index] == type)
@@ -823,20 +890,21 @@ bool TreeWalker::validateCommand(const std::string &command, const ParameterType
         }
         if (!validParam)
         {
-            std::cerr << "Error: Wrong type of argument passed to function '" << command <<
-                "', expected ";
+            std::stringstream ss;
+            ss << "Error: Wrong type of argument passed to function '" << command << "', expected ";
             if (cmd.param_types[index].size() > 1)
-                std::cerr << "{";
+                ss << "{";
             bool first = true;
             for (const Parameter::Type &type : cmd.param_types[index])
             {
-                if (!first) std::cerr << ", ";
-                std::cerr << type_names.at(type);
+                if (!first) ss << ", ";
+                ss << type_names.at(type);
                 first = false;
             }
             if (cmd.param_types[index].size() > 1)
-                std::cerr << "}";
-            std::cerr << " at position " << (index + 1) << std::endl;
+                ss << "}";
+            ss << " at position " << (index + 1);
+            errorMsg(ss.str().c_str());
             return false;
         }
     }
@@ -850,7 +918,7 @@ bool TreeWalker::validateExpr(const Node &node)
 {
     if (node.children.size() < 2)
     {
-        std::cerr << "Invalid expression, needs to have at least two operands" << std::endl;
+        errorMsg("Invalid expression, needs to have at least two operands");
         return false;
     }
 
@@ -858,7 +926,7 @@ bool TreeWalker::validateExpr(const Node &node)
     {
         if (!child.param.hasValue())
         {
-            std::cerr << "Invalid expression statement, needs to have a value" << std::endl;
+            errorMsg("Invalid expression statement, needs to have a value");
             return false;
         }
     }
@@ -888,8 +956,9 @@ bool TreeWalker::validateExpr(const Node &node)
         {
         case ps::Function:
         case ps::Expr:
-            if (!validateExpr(child))
+            if (!validate(child))
                 return false;
+            stack.push_back(return_value_type);
             break;
         case ps::Variable:
         {
@@ -909,7 +978,7 @@ bool TreeWalker::validateExpr(const Node &node)
 
     if (stack.size() != 1)
     {
-        std::cerr << "Unable to validate expression" << std::endl;
+        errorMsg("Unable to validate expression");
         return false;
     }
 
@@ -926,7 +995,7 @@ bool TreeWalker::validateFunction(const Node &node)
         if (child.rule != ps::Function && child.rule != ps::Param &&
             child.rule != ps::Variable && child.rule != ps::Expr)
         {
-            std::cerr << "Invalid function parameter" << std::endl;
+            errorMsg("Invalid function parameter");
             return false;
         }
         else if (child.rule == ps::Function || child.rule == ps::Expr)
@@ -943,7 +1012,7 @@ bool TreeWalker::validateFunction(const Node &node)
         }
         else
         {
-            std::cerr << "Invalid function parameter" << std::endl;
+            errorMsg("Invalid function parameter");
             return false;
         }
     }
@@ -957,7 +1026,7 @@ bool TreeWalker::validateIfStatement(const Node &node)
 {
     if (node.children.size() < 2 || node.children.size() > 3)
     {
-        std::cerr << "Invalid if-statement" << std::endl;
+        errorMsg("Invalid if-statement");
         return false;
     }
 
@@ -996,9 +1065,14 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             }
             else
             {
-                std::cerr << "Parameter types in operation do not match" << std::endl;
+                errorMsg("Parameter types in operation do not match");
                 return false;
             }
+        }
+        else if (pt1 == Rect || pt1 == Object)
+        {
+            ERROR_MSG("Operator '+' not applicable for parameter type: " << type_names.at(pt1))
+            return false;
         }
 
         return_value_type = pt1;
@@ -1015,7 +1089,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             }
             else
             {
-                std::cerr << "Parameter types in operation do not match" << std::endl;
+                errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
@@ -1027,7 +1101,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
         }
         else
         {
-            std::cerr << "Operator '-' not applicable for parameter type: " << type_names.at(pt1) << std::endl;
+            ERROR_MSG("Operator '-' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
@@ -1051,7 +1125,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             }
             else
             {
-                std::cerr << "Parameter types in operation do not match" << std::endl;
+                errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
@@ -1063,7 +1137,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
         }
         else
         {
-            std::cerr << "Operator '*' not applicable for parameter type: " << type_names.at(pt1) << std::endl;
+            ERROR_MSG("Operator '*' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
@@ -1085,7 +1159,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             }
             else
             {
-                std::cerr << "Parameter types in operation do not match" << std::endl;
+                errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
@@ -1097,7 +1171,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
         }
         else
         {
-            std::cerr << "Operator '/' not applicable for parameter type: " << type_names.at(pt1) << std::endl;
+            ERROR_MSG("Operator '/' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
@@ -1114,7 +1188,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             }
             else
             {
-                std::cerr << "Parameter types in operation do not match" << std::endl;
+                errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
@@ -1131,7 +1205,7 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
 {
     if (!node.param.hasValue())
     {
-        std::cerr << "No parameter found" << std::endl;
+        errorMsg("No parameter found");
         return false;
     }
 
@@ -1141,13 +1215,13 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
     {
         if (node.rule == ps::Param)
         {
-            std::cerr << "Token name cannot be used as parameter";
+            errorMsg("Token name cannot be used as parameter");
             return false;
         }
         const std::string &content = node.param.getText();
         if (var_types.find(content) == var_types.end())
         {
-            std::cerr << "Variable '" << content << "' not found" << std::endl;
+            ERROR_MSG("Variable '" << content << "' not found")
             return false;
         }
         if (param_types)
@@ -1167,7 +1241,7 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
         // check string length >= 2 (for the quotes)
         if (node.param.getText().size() < 2)
         {
-            std::cerr << "String does not have quotes" << std::endl;
+            errorMsg("String does not have quotes");
             return false;
         }
         if (param_types)
@@ -1175,7 +1249,7 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
         break;
     }
     default:
-        std::cerr << "Invalid parameter" << std::endl;
+        errorMsg("Invalid parameter");
         return false;
     }
 

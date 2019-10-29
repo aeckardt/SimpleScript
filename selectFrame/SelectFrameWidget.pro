@@ -2,7 +2,7 @@ QT += widgets
 
 SOURCES += \
     main.cpp \
-    selectframewidget.cpp
+    SelectFrameWidget.cpp
 
 HEADERS += \
-    selectframewidget.h
+    SelectFrameWidget.h
