@@ -87,7 +87,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         else if (event->key() == Qt::Key_1)
         {
             ui->textEdit->setText(
-                "print(str(\"Hallo\") + str(\" Welt!\"))\n"
+                "print(str(\"Hallo \") + str(\"Welt!\"))\n"
                 "\n"
                 "# Das ist ein Kommentar\n"
                 "# Damit du weisst, wie sie aussehen");
