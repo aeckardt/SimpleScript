@@ -7,85 +7,35 @@
 
 #include <sstream>
 
-struct LogLine {
-    QString style;
-    QString text;
-};
-
-class LogLines
-{
-public:
-    void newLine(QString color, QString text);
-    void printLine(size_t index, QString &html) const;
-
-    void clear() { lines.clear(); }
-    size_t size() const { return lines.size(); }
-
-private:
-    std::vector<LogLine> lines;
-};
-
 static Ui::MainWindow *main_ui;
-static LogLines *lines;
 
-void LogLines::newLine(QString color, QString text)
-{
-    lines.push_back(LogLine());
-    lines.rbegin()->style = "color: " + color + ";";
-    lines.rbegin()->text = text;
-}
-
-void LogLines::printLine(size_t index, QString &html) const
-{
-    const LogLine &line = lines[index];
-    html += "<span style=\"margin-top:0px;margin-bottom:0px;;" + line.style + "\">";
-    if (line.text.length() > 0)
-    {
-        html += line.text;
-    }
-    else
-    {
-        html += "&nbsp;";
-    }
-    html += "</span>";
-}
-
-void __WindowPrint(const Parameter &param, const char *font_color)
+void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
 {
     std::stringstream ss;
     ss << param;
 
-    if (lines->size() > 0) {
-        main_ui->textBrowser->insertHtml("<br>");
+    QTextCharFormat format;
+    format.setForeground(brush);
+
+    const bool atBottom = main_ui->textBrowser->verticalScrollBar()->value() ==
+        main_ui->textBrowser->verticalScrollBar()->maximum();
+    QTextDocument* doc = main_ui->textBrowser->document();
+    QTextCursor cursor(doc);
+    cursor.movePosition(QTextCursor::End);
+    cursor.beginEditBlock();
+    if (!doc->isEmpty())
+        cursor.insertBlock();
+    cursor.setCharFormat(format);
+    cursor.insertText(ss.str().c_str());
+    cursor.endEditBlock();
+
+    //scroll scrollarea to bottom if it was at bottom when we started
+    //(we don't want to force scrolling to bottom if user is looking at a
+    //higher position)
+    if (atBottom) {
+        QScrollBar* bar = main_ui->textBrowser->verticalScrollBar();
+        bar->setValue(bar->maximum());
     }
-
-    lines->newLine(font_color, ss.str().c_str());
-
-    QString qstr;
-    QString qstr_last;
-    qstr = "<html><head></head><body>";
-
-    size_t i;
-    for (i = 0; i < lines->size(); ++i)
-    {
-        lines->printLine(i, qstr);
-    }
-
-    qstr += "</body></html>";
-
-    lines->printLine(lines->size() - 1, qstr_last);
-
-    main_ui->textBrowser->insertHtml(qstr_last);
-}
-
-void WindowPrint(const Parameter &param)
-{
-    __WindowPrint(param, "#111");
-}
-
-void WindowPrintError(const Parameter &param)
-{
-    __WindowPrint(param, "darkred");
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -94,13 +44,9 @@ MainWindow::MainWindow(QWidget *parent) :
     se(this)
 {
     ui->setupUi(this);
-    ui->textEdit->setTabChangesFocus(true);
 
-    se.setOutput(WindowPrint);
-    se.setErrorOutput(WindowPrintError);
+    se.setOutput(BrowserFormattedPrint);
     main_ui = ui;
-
-    lines = new LogLines();
 
     highlighter = new SyntaxHighlighter(main_ui->textEdit->document());
 
@@ -110,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete lines;
     delete highlighter;
 }
 
@@ -125,7 +70,6 @@ void MainWindow::run()
 void MainWindow::clearLog()
 {
     ui->textBrowser->setText(nullptr);
-    lines->clear();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -156,11 +100,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             ui->textEdit->setText(
                 "fullscreen = 0\n"
                 "if fullscreen == 0:\n"
-                "    rect=select()\n"
-                "    print(rect)\n"
-                "    image=capture(rect)\n"
+                "\trect=select()\n"
+                "\tprint(rect)\n"
+                "\timage=capture(rect)\n"
                 "else:\n"
-                "    image=capture()\n"
+                "\timage=capture()\n"
                 "display(image)");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);

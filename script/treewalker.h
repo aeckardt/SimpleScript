@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QDateTime>
+#include <QBrush>
 
 #include "lexer.h"
 #include "parser.h"
@@ -94,7 +95,7 @@ std::ostream &operator <<(std::ostream &os, const Parameter &param);
 
 typedef std::vector<Parameter> ParameterList;
 
-typedef void(* OutputFnc)(const Parameter &);
+typedef void(* OutputFnc)(const Parameter &, const QBrush &brush);
 typedef bool(* CommandFnc)(const ParameterList &, Parameter &);
 
 struct Command

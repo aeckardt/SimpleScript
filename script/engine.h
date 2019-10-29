@@ -23,20 +23,17 @@ class ScriptEngine
 public:
     ScriptEngine(QMainWindow *parent);
 
-    inline void run(const std::string &str) { tw.run(str); }
-
-    inline void setOutput(const OutputFnc &output) { this->output = output; }
-    inline void setErrorOutput(const OutputFnc &fnc) { tw.setErrorOutput(fnc); }
-
-    inline void print(const Parameter &param) { if (output != nullptr) { output(param); } }
-    inline void print(std::string &str) { Parameter param; param.assign(str); print(param); }
+    void run(const std::string &str) { tw.run(str); }
+    void setOutput(const OutputFnc &output) { this->output = output; tw.setErrorOutput(output); }
 
 private:
     TreeWalker tw;
     OutputFnc output;
     QMainWindow *mainWindow;
 
-    friend bool cmdRegister(const ParameterList &, Parameter &);
+    inline void print(const Parameter &param) { if (output != nullptr) { output(param, QColor(17, 17, 17)); } }
+
+    friend bool cmdPrint(const ParameterList &, Parameter &);
     friend bool cmdSelect(const ParameterList &, Parameter &);
 };
 

@@ -250,7 +250,7 @@ inline void TreeWalker::errorMsg(const char *msg) const
     {
         Parameter param;
         param.assign(std::string(msg));
-        output_fnc(param);
+        output_fnc(param, Qt::darkRed);
     }
 }
 

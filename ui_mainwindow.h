@@ -16,6 +16,7 @@
 #include <QtWidgets/QTextBrowser>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QWidget>
+#include <QKeyEvent>
 
 QT_BEGIN_NAMESPACE
 
@@ -85,6 +86,9 @@ public:
         textEdit->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
         textEdit->setLineWrapColumnOrWidth(0);
         textEdit->setTabChangesFocus(false);
+
+        QFontMetrics metrics(textEdit->font());
+        textEdit->setTabStopDistance(4 * metrics.width(' '));
 
         gridLayout->addWidget(textEdit, 1, 0, 1, 1);
 
