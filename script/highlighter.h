@@ -1,5 +1,5 @@
-#ifndef SYNTAXHIGHLIGHTER_H
-#define SYNTAXHIGHLIGHTER_H
+#ifndef HIGHLIGHTER_H
+#define HIGHLIGHTER_H
 
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
@@ -34,4 +34,4 @@ private:
     QTextCharFormat numberFormat;
 };
 
-#endif // SYNTAXHIGHLIGHTER_H
+#endif // HIGHLIGHTER_H

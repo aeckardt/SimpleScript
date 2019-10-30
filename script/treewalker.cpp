@@ -3,7 +3,7 @@
 
 #include "treewalker.h"
 
-using lx::TokenList;
+using tn::TokenList;
 
 using namespace tw;
 
@@ -22,11 +22,11 @@ ParameterType tw::getParameterType(const TokenId &token_id)
 {
     switch (token_id)
     {
-    case lx::Integer:
+    case tn::Integer:
         return Int;
-    case lx::Float:
+    case tn::Float:
         return Float;
-    case lx::String:
+    case tn::String:
         return String;
     default:
         return Empty;
@@ -256,11 +256,11 @@ inline void TreeWalker::errorMsg(const char *msg) const
 
 #define ERROR_MSG(...) { std::stringstream ss; ss << __VA_ARGS__; errorMsg(ss.str().c_str()); }
 
-bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, const Parameter &p2)
+bool TreeWalker::executeOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
 {
     switch (op)
     {
-    case lx::Plus:
+    case tn::Plus:
     {
         if (p1.getType() != p2.getType())
         {
@@ -296,7 +296,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case lx::Minus:
+    case tn::Minus:
     {
         if (p1.getType() != p2.getType())
         {
@@ -329,7 +329,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case lx::Star:
+    case tn::Star:
     {
         if (p1.getType() != p2.getType())
         {
@@ -368,7 +368,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case lx::Slash:
+    case tn::Slash:
     {
         if (p2.getType() == Int)
         {
@@ -417,7 +417,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case lx::EqualEqual:
+    case tn::EqualEqual:
     {
         if (p1.getType() != p2.getType())
         {
@@ -458,7 +458,7 @@ bool TreeWalker::executeOperation(const lx::TokenId &op, const Parameter &p1, co
             return false;
         }
     }
-    case lx::NotEqual:
+    case tn::NotEqual:
     {
         if (p1.getType() != p2.getType())
         {
@@ -510,16 +510,16 @@ void TreeWalker::getParam(const Node &node, Parameter &param)
 
     switch (node.param.getId())
     {
-    case lx::Term:
+    case tn::Term:
         param = vars.find(content)->second;
         break;
-    case lx::Integer:
+    case tn::Integer:
         param.assign(atoi(content.c_str()));
         break;
-    case lx::Float:
+    case tn::Float:
         param.assign(atof(content.c_str()));
         break;
-    case lx::String:
+    case tn::String:
         param.assign(std::string(content.begin() + 1, content.end() - 1));
         break;
     default:
@@ -534,16 +534,16 @@ void TreeWalker::getParamType(const Node &node, ParameterType &param_type)
 
     switch (node.param.getId())
     {
-    case lx::Term:
+    case tn::Term:
         param_type = vars.find(content)->second.getType();
         return;
-    case lx::Integer:
+    case tn::Integer:
         param_type = Parameter::Type::Int;
         return;
-    case lx::Float:
+    case tn::Float:
         param_type = Parameter::Type::Float;
         return;
-    case lx::String:
+    case tn::String:
         param_type = Parameter::Type::String;
         return;
     default:
@@ -555,8 +555,8 @@ void TreeWalker::getParamType(const Node &node, ParameterType &param_type)
 bool TreeWalker::run(const std::string &str)
 {
     TokenList tokens;
-    Lexer lexer;
-    lexer.lex(str, tokens);
+    Tokenizer lexer;
+    lexer.run(str, tokens);
 
     if (!lexer.getLastError().empty())
     {
@@ -650,7 +650,7 @@ bool TreeWalker::traverseExpr(const Node &node)
     std::vector<Parameter> stack;
     for (const Node &child : node.children)
     {
-        if (lx::isOperator(child.param.getId()))
+        if (tn::isOperator(child.param.getId()))
         {
             Parameter p2 = *stack.rbegin();
             stack.pop_back();
@@ -937,7 +937,7 @@ bool TreeWalker::validateExpr(const Node &node)
     std::vector<ParameterType> stack;
     for (const Node &child : node.children)
     {
-        if (lx::isOperator(child.param.getId()))
+        if (tn::isOperator(child.param.getId()))
         {
             ParameterType p2 = *stack.rbegin();
             stack.pop_back();
@@ -1050,11 +1050,11 @@ bool TreeWalker::validateIfStatement(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &pt1, const ParameterType &pt2)
+bool TreeWalker::validateOperation(const tn::TokenId &op, const ParameterType &pt1, const ParameterType &pt2)
 {
     switch (op)
     {
-    case lx::Plus:
+    case tn::Plus:
     {
         if (pt1 != pt2)
         {
@@ -1078,7 +1078,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
         return_value_type = pt1;
         return true;
     }
-    case lx::Minus:
+    case tn::Minus:
     {
         if (pt1 != pt2)
         {
@@ -1105,7 +1105,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             return false;
         }
     }
-    case lx::Star:
+    case tn::Star:
     {
         if (pt1 != pt2)
         {
@@ -1141,7 +1141,7 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             return false;
         }
     }
-    case lx::Slash:
+    case tn::Slash:
     {
         if (pt1 != pt2)
         {
@@ -1175,8 +1175,8 @@ bool TreeWalker::validateOperation(const lx::TokenId &op, const ParameterType &p
             return false;
         }
     }
-    case lx::EqualEqual:
-    case lx::NotEqual:
+    case tn::EqualEqual:
+    case tn::NotEqual:
     {
         if (pt1 != pt2)
         {
@@ -1211,7 +1211,7 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
 
     switch (node.param.getId())
     {
-    case lx::Term:
+    case tn::Term:
     {
         if (node.rule == ps::Param)
         {
@@ -1228,15 +1228,15 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
             param_types->push_back(var_types.find(content)->second);
         break;
     }
-    case lx::Integer:
+    case tn::Integer:
         if (param_types)
             param_types->push_back(Int);
         break;
-    case lx::Float:
+    case tn::Float:
         if (param_types)
             param_types->push_back(Float);
         break;
-    case lx::String:
+    case tn::String:
     {
         // check string length >= 2 (for the quotes)
         if (node.param.getText().size() < 2)

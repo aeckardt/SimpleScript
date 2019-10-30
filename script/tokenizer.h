@@ -1,10 +1,10 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef TOKENIZER_H
+#define TOKENIZER_H
 
 #include <list>
 #include <string>
 
-namespace lx
+namespace tn
 {
 
 enum TokenId : uint32_t
@@ -65,10 +65,10 @@ struct Line
 typedef std::list<Line> TokenList;
 typedef TokenList::const_iterator line_pos;
 
-class Lexer
+class Tokenizer
 {
 public:
-    void lex(const std::string &context, TokenList &tokens);
+    void run(const std::string &context, TokenList &tokens);
 
     const std::string &getLastError() const { return error_msg; }
 
@@ -87,6 +87,6 @@ private:
     void readComment(token_pos &it, const token_pos &end);
 };
 
-} // namespace lexer
+} // namespace tn
 
-#endif // LEXER_H
+#endif // TOKENIZER_H
