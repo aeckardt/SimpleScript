@@ -10,12 +10,12 @@
 #include <QDateTime>
 #include <QBrush>
 
-#include "lexer.h"
+#include "tokenizer.h"
 #include "parser.h"
 
-using lx::Lexer;
-using lx::Token;
-using lx::TokenId;
+using tn::Tokenizer;
+using tn::Token;
+using tn::TokenId;
 
 using ps::Parser;
 using ps::Node;
@@ -118,7 +118,7 @@ public:
     void setErrorOutput(const OutputFnc &fnc) { output_fnc = fnc; }
 
 private:
-    Lexer lexer;
+    Tokenizer lexer;
     Parser parser;
 
     std::map<std::string, Parameter> vars;
@@ -133,7 +133,7 @@ private:
     Parameter& addParam(ParameterList &params) const;
     void getParam(const Node &node, Parameter &param);
 
-    bool executeOperation(const lx::TokenId &op, const Parameter &p1, const Parameter &p2);
+    bool executeOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2);
 
     bool traverse(const Node &node);
     bool traverseAssignment(const Node &node);
@@ -141,7 +141,7 @@ private:
     bool traverseFunction(const Node &node);
     bool traverseIfStatement(const Node &node);
 
-    // the following types, variables and functions are solely used for validating the syntax
+    // the following types, variables and functions are only used for validating the syntax
     typedef std::vector<ParameterType> ParameterTypeList;
 
     std::map<std::string, ParameterType> var_types;
@@ -156,7 +156,7 @@ private:
     bool validateExpr(const Node &node);
     bool validateFunction(const Node &node);
     bool validateIfStatement(const Node &node);
-    bool validateOperation(const lx::TokenId &op, const ParameterType &pt1, const ParameterType &pt2);
+    bool validateOperation(const tn::TokenId &op, const ParameterType &pt1, const ParameterType &pt2);
     bool validateParamType(const Node &node, ParameterTypeList *param_types = nullptr);
 };
 

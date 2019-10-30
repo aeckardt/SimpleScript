@@ -1,4 +1,7 @@
 #include "engine.h"
+#include "objecttypes.h"
+
+using namespace tw;
 
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
@@ -10,12 +13,6 @@
 #include <QScrollArea>
 
 static ScriptEngine *pengine;
-
-void ImageObject::copyTo(void *&value) const
-{
-    value = new ImageObject();
-    static_cast<ImageObject*>(value)->image = image;
-}
 
 bool cmdPrint(const ParameterList &params, Parameter &)
 {
@@ -93,6 +90,22 @@ bool cmdStr(const ParameterList &params, Parameter &param)
     return true;
 }
 
+bool cmdRecord(const ParameterList &params, Parameter &param)
+{
+    int frame_rate = params[params.size() - 1].asInt();
+    if (frame_rate < 1)
+    {
+        return false;
+    }
+
+    int usec_interval = static_cast<int>(10000000.0 * (1.0 / static_cast<double>(frame_rate)) + 0.5);
+
+    timeval start, last;
+    gettimeofday(&start, nullptr);
+
+    return true;
+}
+
 ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
@@ -123,6 +136,10 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
     tw.registerCommand("str",
         {{String, Int, Float, Boolean, Point, Rect, DateTime}}, String,
         cmdStr);
+
+    tw.registerCommand("record",
+        {{Empty, Rect}, {Int}}, Object,
+        cmdRecord);
 
     pengine = this;
 }

@@ -7,34 +7,23 @@
 
 #include "treewalker.h"
 
-using namespace tw;
-
-class ImageObject : public tw::ParameterObject
-{
-public:
-    ~ImageObject() override {}
-    void copyTo(void *&) const override;
-
-    QImage image;
-};
-
 class ScriptEngine
 {
 public:
     ScriptEngine(QMainWindow *parent);
 
     void run(const std::string &str) { tw.run(str); }
-    void setOutput(const OutputFnc &output) { this->output = output; tw.setErrorOutput(output); }
+    void setOutput(const tw::OutputFnc &output) { this->output = output; tw.setErrorOutput(output); }
 
 private:
-    TreeWalker tw;
-    OutputFnc output;
+    tw::TreeWalker tw;
+    tw::OutputFnc output;
     QMainWindow *mainWindow;
 
-    inline void print(const Parameter &param) { if (output != nullptr) { output(param, QColor(17, 17, 17)); } }
+    inline void print(const tw::Parameter &param) { if (output != nullptr) { output(param, QColor(17, 17, 17)); } }
 
-    friend bool cmdPrint(const ParameterList &, Parameter &);
-    friend bool cmdSelect(const ParameterList &, Parameter &);
+    friend bool cmdPrint(const tw::ParameterList &, tw::Parameter &);
+    friend bool cmdSelect(const tw::ParameterList &, tw::Parameter &);
 };
 
 #endif // ENGINE_H

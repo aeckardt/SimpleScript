@@ -27,26 +27,30 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
+    image/video.cpp \
     main.cpp \
     mainwindow.cpp \
     image/screenshot.cpp \
     imageView/ImageView.cpp \
     script/engine.cpp \
-    script/lexer.cpp \
+    script/highlighter.cpp \
+    script/objecttypes.cpp \
     script/parser.cpp \
-    script/syntaxhighlighter.cpp \
+    script/tokenizer.cpp \
     script/treewalker.cpp \
     selectFrame/SelectFrameWidget.cpp
 
 HEADERS += \
+    image/video.h \
     mainwindow.h \
+    script/highlighter.h \
+    script/objecttypes.h \
+    script/tokenizer.h \
     ui_mainwindow.h \
     image/screenshot.h \
     imageView/ImageView.h \
     script/engine.h \
-    script/lexer.h \
     script/parser.h \
-    script/syntaxhighlighter.h \
     script/treewalker.h \
     selectFrame/SelectFrameWidget.h \
     utils/measuretime.h

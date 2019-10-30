@@ -4,9 +4,9 @@
 #include <map>
 #include <string>
 
-#include "lexer.h"
+#include "tokenizer.h"
 
-using namespace lx;
+using namespace tn;
 
 static TokenId char_def[UCHAR_MAX + 1] = {
     Other, Other, Other, Other, Other, Other, Other, Other,
@@ -47,7 +47,7 @@ inline TokenId token_at(const token_pos it)
     return char_def[static_cast<unsigned char>(*it)];
 }
 
-inline void Lexer::pushError(const std::string &msg)
+inline void Tokenizer::pushError(const std::string &msg)
 {
     if (error_msg.empty())
     {
@@ -57,7 +57,7 @@ inline void Lexer::pushError(const std::string &msg)
     }
 }
 
-inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs)
+inline void Tokenizer::readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs)
 {
     while (it != end && token_at(it) == Whitespace)
     {
@@ -69,7 +69,7 @@ inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spa
     }
 }
 
-inline void Lexer::readName(token_pos &it, const token_pos &end, Token &token)
+inline void Tokenizer::readName(token_pos &it, const token_pos &end, Token &token)
 {
     // *it is in [A-Za-z_]
     token.begin = it++;
@@ -79,7 +79,7 @@ inline void Lexer::readName(token_pos &it, const token_pos &end, Token &token)
     token.end = it;
 }
 
-inline void Lexer::readNumber(token_pos &it, const token_pos &end, Token &token)
+inline void Tokenizer::readNumber(token_pos &it, const token_pos &end, Token &token)
 {
     // *it is in [0-9.]
     bool contains_dot = *it == '.';
@@ -102,7 +102,7 @@ inline void Lexer::readNumber(token_pos &it, const token_pos &end, Token &token)
     token.end = it;
 }
 
-inline void Lexer::readString(token_pos &it, const token_pos &end, Token &token)
+inline void Tokenizer::readString(token_pos &it, const token_pos &end, Token &token)
 {
     // *it is '"'
     token.begin = it++;
@@ -115,14 +115,14 @@ inline void Lexer::readString(token_pos &it, const token_pos &end, Token &token)
     token.end = it;
 }
 
-inline void Lexer::readSingleChar(token_pos &it, Token &token)
+inline void Tokenizer::readSingleChar(token_pos &it, Token &token)
 {
     token.begin = it;
     token.id = token_at(it);
     token.end = ++it;
 }
 
-inline void Lexer::readOperator(token_pos &it, const token_pos &end, Token &token)
+inline void Tokenizer::readOperator(token_pos &it, const token_pos &end, Token &token)
 {
     token.begin = it;
     token.id = token_at(it);
@@ -135,7 +135,7 @@ inline void Lexer::readOperator(token_pos &it, const token_pos &end, Token &toke
     }
 }
 
-inline void Lexer::readComment(token_pos &it, const token_pos &end)
+inline void Tokenizer::readComment(token_pos &it, const token_pos &end)
 {
     // *it is '#'
     ++it;
@@ -143,7 +143,7 @@ inline void Lexer::readComment(token_pos &it, const token_pos &end)
         ++it;
 }
 
-void Lexer::lex(const std::string &context, TokenList &tokens)
+void Tokenizer::run(const std::string &context, TokenList &tokens)
 {
     error_msg.clear();
 

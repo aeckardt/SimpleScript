@@ -3,13 +3,13 @@
 #include "qscrollbar.h"
 
 #include <QtWidgets>
-#include "script/syntaxhighlighter.h"
+#include "script/highlighter.h"
 
 #include <sstream>
 
 static Ui::MainWindow *main_ui;
 
-void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
+void BrowserFormattedPrint(const tw::Parameter &param, const QBrush &brush)
 {
     std::stringstream ss;
     ss << param;
