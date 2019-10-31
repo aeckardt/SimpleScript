@@ -2,7 +2,7 @@
 
 #include "screenshot.h"
 
-bool captureDesktop(QImage &img)
+QImage captureDesktop()
 {
     CGDirectDisplayID main_display = CGMainDisplayID();
 
@@ -14,7 +14,7 @@ bool captureDesktop(QImage &img)
     size_t height = CGImageGetHeight(image_ref);
 
     if (width == 0 || height == 0)
-        return false;
+        return QImage();
 
     size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
     size_t bpr = CGImageGetBytesPerRow(image_ref);
@@ -27,10 +27,10 @@ bool captureDesktop(QImage &img)
     {
         CFRelease(dataref);
         CGImageRelease(image_ref);
-        return false;
+        return QImage();
     }
 
-    img = QImage(static_cast<int>(width), static_cast<int>(height), format);
+    QImage img(static_cast<int>(width), static_cast<int>(height), format);
 
     const UInt8 *bits = CFDataGetBytePtr(dataref);
 
@@ -41,10 +41,10 @@ bool captureDesktop(QImage &img)
     CFRelease(dataref);
     CGImageRelease(image_ref);
 
-    return true;
+    return img;
 }
 
-bool captureRect(QImage &img, const QRect &rect)
+QImage captureRect(const QRect &rect)
 {
     CGDirectDisplayID main_display = CGMainDisplayID();
     CGImageRef image_ref = CGDisplayCreateImageForRect(main_display, CGRectMake(rect.x(), rect.y(), rect.width(), rect.height()));
@@ -53,7 +53,7 @@ bool captureRect(QImage &img, const QRect &rect)
     size_t height = CGImageGetHeight(image_ref);
 
     if (width == 0 || height == 0)
-        return false;
+        return QImage();
 
     CGDataProviderRef provider = CGImageGetDataProvider(image_ref);
     CFDataRef dataref = CGDataProviderCopyData(provider);
@@ -69,10 +69,10 @@ bool captureRect(QImage &img, const QRect &rect)
     {
         CFRelease(dataref);
         CGImageRelease(image_ref);
-        return false;
+        return QImage();
     }
 
-    img = QImage(static_cast<int>(width), static_cast<int>(height), format);
+    QImage img(static_cast<int>(width), static_cast<int>(height), format);
 
     const UInt8 *bits = CFDataGetBytePtr(dataref);
 
@@ -83,5 +83,5 @@ bool captureRect(QImage &img, const QRect &rect)
     CFRelease(dataref);
     CGImageRelease(image_ref);
 
-    return true;
+    return img;
 }

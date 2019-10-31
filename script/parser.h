@@ -17,7 +17,7 @@ enum ParserRule : uint32_t
     IfStatement,
     Assignment,
     Variable,
-    Param,
+    ConstValue,
     Function,
     Operator,
     Expr,
@@ -32,7 +32,7 @@ public:
     inline Token(const token_index &v) { isValid = true; val = v; }
 
     inline bool hasValue() const { return isValid; }
-    inline const tn::TokenId &getId() const { return val->id; }
+    inline const tn::TokenId &id() const { return val->id; }
 
     inline Token &operator++() { ++val; return *this; }
     inline Token operator++(int) { return val++; }

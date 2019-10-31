@@ -41,8 +41,31 @@ ParameterType getParameterType(const TokenId &token_id);
 class ParameterObject
 {
 public:
-    virtual ~ParameterObject();
+    virtual ~ParameterObject() {}
     virtual void copyTo(void *&) const = 0;
+    virtual void moveTo(void *&) = 0;
+};
+
+template<class T>
+class ParameterObjectBase : public ParameterObject
+{
+public:
+    ParameterObjectBase() {}
+    ParameterObjectBase(const ParameterObjectBase &src) { obj = src.obj; }
+    ParameterObjectBase(ParameterObjectBase &&src) { obj = std::move(src.obj); }
+    ParameterObjectBase(const T &src) { obj = src; }
+    ParameterObjectBase(T &&src) { obj = std::move(src); }
+    virtual ~ParameterObjectBase() override {}
+
+    ParameterObjectBase &operator=(const ParameterObjectBase &src) { obj = src.obj; return *this; }
+    ParameterObjectBase &operator=(ParameterObjectBase &&src) { obj = std::move(src.obj); return *this; }
+    ParameterObjectBase &operator=(const T &src) { obj = src; return *this; }
+    ParameterObjectBase &operator=(T &&src) { obj = std::move(src); return *this; }
+
+    void copyTo(void *&ptr) const override { ptr = new ParameterObjectBase(*this); }
+    void moveTo(void *&ptr) override { ptr = new ParameterObjectBase(std::move(*this)); }
+
+    T obj;
 };
 
 class Parameter
@@ -50,14 +73,15 @@ class Parameter
 public:
     typedef ParameterType Type;
 
-    Parameter() { value = nullptr; type = Empty; }
-    Parameter(const Parameter &src) : Parameter() { operator=(src); }
-    ~Parameter() { clear(); }
+    inline Parameter() { value = nullptr; type_ = Empty; isReference = false; }
+    inline Parameter(const Parameter &src) : Parameter() { operator=(src); }
+    inline Parameter(Parameter &&src) : Parameter() { operator=(std::move(src)); }
+    inline ~Parameter() { clear(); }
 
     void clear();
     bool empty() const { return value == nullptr; }
 
-    const Type &getType() const { return type; }
+    const Type &type() const { return type_; }
 
     void assign(const std::string &str);
     void assign(const int32_t     &i);
@@ -67,8 +91,8 @@ public:
     void assign(const QRect       &rect);
     void assign(const QDateTime &dt);
 
-    template<typename T>
-    void assignObject(const T     &);
+    void assignObject(const ParameterObject &);
+    void assignObject(ParameterObject &&);
 
     const std::string &asString() const   { return *static_cast<std::string*>(value); }
     int32_t            asInt() const;
@@ -80,18 +104,23 @@ public:
 
     template<typename T>
     T                 &asObject()         { return *static_cast<T*>(value); }
-
     template<typename T>
     const T           &asObject() const   { return *static_cast<T*>(value); }
 
+    void copyReference(Parameter &dest) const;
+
     Parameter &operator=(const Parameter &src);
+    Parameter &operator=(Parameter &&src);
 
 private:
-    Type type;
+    Type type_;
     void *value;
+    bool isReference;
 };
 
 std::ostream &operator <<(std::ostream &os, const Parameter &param);
+
+inline Parameter referenceTo(const Parameter &src) { Parameter param; src.copyReference(param); return param; }
 
 typedef std::vector<Parameter> ParameterList;
 
@@ -118,9 +147,6 @@ public:
     void setErrorOutput(const OutputFnc &fnc) { output_fnc = fnc; }
 
 private:
-    Tokenizer lexer;
-    Parser parser;
-
     std::map<std::string, Parameter> vars;
     std::map<std::string, Command> commands;
 
@@ -130,8 +156,7 @@ private:
 
     void errorMsg(const char *) const;
 
-    Parameter& addParam(ParameterList &params) const;
-    void getParam(const Node &node, Parameter &param);
+    Parameter getConstValue(const Node &node);
 
     bool executeOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2);
 
@@ -159,14 +184,6 @@ private:
     bool validateOperation(const tn::TokenId &op, const ParameterType &pt1, const ParameterType &pt2);
     bool validateParamType(const Node &node, ParameterTypeList *param_types = nullptr);
 };
-
-template<typename T>
-void Parameter::assignObject(const T &o)
-{
-    clear();
-    o.copyTo(value);
-    type = Object;
-}
 
 } // namespace tw
 

@@ -4,7 +4,7 @@
 #include <QImage>
 #include <QRect>
 
-bool captureDesktop(QImage &);
-bool captureRect(QImage &, const QRect &);
+QImage captureDesktop();
+QImage captureRect(const QRect &);
 
 #endif // SCREENSHOT_H

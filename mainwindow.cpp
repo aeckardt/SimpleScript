@@ -90,7 +90,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 "print(str(\"Hallo \") + str(\"Welt!\"))\n"
                 "\n"
                 "# Das ist ein Kommentar\n"
-                "# Damit du weisst, wie sie aussehen");
+                "\t  # Damit du weisst, wie sie aussehen");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
+        }
+        else if (event->key() == Qt::Key_2)
+        {
+            ui->textEdit->setText(
+                "rect=select()\n"
+                "video=record(rect, 1)\n"
+                "showvid(video)");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
@@ -105,7 +115,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 "\timage=capture(rect)\n"
                 "else:\n"
                 "\timage=capture()\n"
-                "display(image)");
+                "view(image)");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);

@@ -28,7 +28,7 @@ inline void Parser::expectToken(const std::vector<TokenId> &ids)
     {
         for (const TokenId &id : ids)
         {
-            if (cur_token.getId() == id)
+            if (cur_token.id() == id)
                 return;
         }
 
@@ -51,7 +51,7 @@ inline void Parser::expectToken(const std::vector<TokenId> &ids)
     }
     err_msg_ss << "}";
     if (cur_token != lineEnd())
-        err_msg_ss << ", found " << token_desc.at(cur_token.getId());
+        err_msg_ss << ", found " << token_desc.at(cur_token.id());
 
     return pushError(err_msg_ss.str());
 }
@@ -67,15 +67,15 @@ inline void Parser::readParam(Node &node)
 {
     ASSERT(expectToken({Term, Integer, Float, String}))
 
-    if (cur_token.getId() != Term)
+    if (cur_token.id() != Term)
     {
-        node.rule = Param;
+        node.rule = ConstValue;
         node.param = cur_token++;
         return;
     }
     else
     {
-        if (++cur_token != lineEnd() && cur_token.getId() == LeftParen)
+        if (++cur_token != lineEnd() && cur_token.id() == LeftParen)
         {
             node.rule = Function;
             --cur_token;
@@ -138,12 +138,12 @@ void Parser::parseExpr(Node &node)
     std::vector<Node> stack;
     uint32_t lvl = 0;
     int32_t nparams = 0;
-    while (cur_token != lineEnd() && tn::isExprToken(cur_token.getId()))
+    while (cur_token != lineEnd() && tn::isExprToken(cur_token.id()))
     {
         Node it_node;
         it_node.param = cur_token;
-        if (cur_token.getId() == Term  || cur_token.getId() == Integer ||
-            cur_token.getId() == Float || cur_token.getId() == String)
+        if (cur_token.id() == Term  || cur_token.id() == Integer ||
+            cur_token.id() == Float || cur_token.id() == String)
         {
             ASSERT(readParam(it_node))
             temp_node.children.push_back(it_node);
@@ -152,7 +152,7 @@ void Parser::parseExpr(Node &node)
                 return pushError("Invalid expression, expected operator");
             --cur_token;
         }
-        else if (tn::isOperator(cur_token.getId()))
+        else if (tn::isOperator(cur_token.id()))
         {
             --nparams;
             if (nparams < 0)
@@ -160,9 +160,9 @@ void Parser::parseExpr(Node &node)
             isExpression = true;
             if (stack.size() > 0)
             {
-                while (stack.size() > 0 && ((stack.rbegin()->param.getId() != LeftParen) &&
-                       (precedence.at(stack.rbegin()->param.getId())  > precedence.at(it_node.param.getId()) ||
-                       (precedence.at(stack.rbegin()->param.getId()) == precedence.at(it_node.param.getId()) && assoc_left.at(it_node.param.getId())))))
+                while (stack.size() > 0 && ((stack.rbegin()->param.id() != LeftParen) &&
+                       (precedence.at(stack.rbegin()->param.id())  > precedence.at(it_node.param.id()) ||
+                       (precedence.at(stack.rbegin()->param.id()) == precedence.at(it_node.param.id()) && assoc_left.at(it_node.param.id())))))
                 {
                     temp_node.children.push_back(*stack.rbegin());
                     stack.pop_back();
@@ -172,22 +172,22 @@ void Parser::parseExpr(Node &node)
             it_node.rule = Operator;
             stack.push_back(it_node);
         }
-        else if (cur_token.getId() == LeftParen)
+        else if (cur_token.id() == LeftParen)
         {
             stack.push_back(it_node);
             ++lvl;
         }
-        else if (cur_token.getId() == RightParen)
+        else if (cur_token.id() == RightParen)
         {
             if (lvl == 0)
                 break;
-            while (stack.size() > 0 && stack.rbegin()->param.getId() != LeftParen)
+            while (stack.size() > 0 && stack.rbegin()->param.id() != LeftParen)
             {
                 temp_node.children.push_back(*stack.rbegin());
                 stack.pop_back();
             }
 
-            if (stack.size() > 0 && stack.rbegin()->param.getId() == LeftParen)
+            if (stack.size() > 0 && stack.rbegin()->param.id() == LeftParen)
             {
                 stack.pop_back();
                 --lvl;
@@ -233,7 +233,7 @@ void Parser::parseFunction(Node &node)
     // check next token
     ASSERT(expectToken({Term, Integer, Float, String, LeftParen, RightParen}))
 
-    if (cur_token.getId() != RightParen)
+    if (cur_token.id() != RightParen)
         ASSERT(parseExpr(node)) // add next parameter
     else
     {
@@ -244,7 +244,7 @@ void Parser::parseFunction(Node &node)
     while (true)
     {
         ASSERT(expectToken({Comma, RightParen}))
-        if ((cur_token++).getId() != RightParen)
+        if ((cur_token++).id() != RightParen)
             ASSERT(parseExpr(node)) // add next parameter
         else
             return;
@@ -308,7 +308,7 @@ void Parser::parseLine(Node &parent)
     {
         ++cur_token;
         ASSERT(expectToken({LeftParen, Equal}))
-        if (cur_token.getId() == LeftParen)
+        if (cur_token.id() == LeftParen)
         {
             Node &func_node = addNode(parent, Function);
             --cur_token;
@@ -322,7 +322,7 @@ void Parser::parseLine(Node &parent)
     }
 
     if (cur_token != lineEnd())
-        pushError("Unexpected token " + token_desc.at(cur_token.getId()) + ", expected end of line");
+        pushError("Unexpected token " + token_desc.at(cur_token.id()) + ", expected end of line");
 }
 
 void Parser::parseSection(Node &node, uint32_t lvl, bool may_be_empty)

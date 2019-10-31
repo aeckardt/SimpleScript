@@ -1,10 +1,11 @@
 #include "engine.h"
-#include "objecttypes.h"
 
+using namespace std;
 using namespace tw;
 
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
+#include "image/video.h"
 #include "imageView/ImageView.h"
 
 #include <sys/time.h>
@@ -13,6 +14,9 @@ using namespace tw;
 #include <QScrollArea>
 
 static ScriptEngine *pengine;
+
+typedef ParameterObjectBase<QImage> ImageObject;
+typedef ParameterObjectBase<Video> VideoObject;
 
 bool cmdPrint(const ParameterList &params, Parameter &)
 {
@@ -38,19 +42,24 @@ bool cmdSelect(const ParameterList &, Parameter &param)
 
 bool cmdCapture(const ParameterList &params, Parameter &param)
 {
-    param.assignObject<ImageObject>(ImageObject());
-    if (params.empty())
-        return captureDesktop(param.asObject<ImageObject>().image);
-    else
-    {
-        const QRect &rect = params[0].asRect();
-        return captureRect(param.asObject<ImageObject>().image, rect);
-    }
+//    ImageObject *imgObj;
+//    if (params.empty())
+//    {
+//        imgObj = new ImageObject(captureDesktop());
+//        return param.asObject<ImageObject>().image.size() != QSize(0, 0);
+//    }
+//    else
+//    {
+//        const QRect &rect = params[0].asRect();
+//        param.asObject<ImageObject>().image = captureRect(rect);
+//        return captureRect(rect);
+//    }
+//    param.assignObject<ImageObject>(imgObj);
 }
 
-bool cmdDisplay(const ParameterList &params, Parameter &)
+bool cmdView(const ParameterList &params, Parameter &)
 {
-    const QImage &image = params[0].asObject<ImageObject>().image;
+    const QImage &image = params[0].asObject<ImageObject>().obj;
 
     ImageView imageView;
     imageView.showImage(image);
@@ -92,16 +101,32 @@ bool cmdStr(const ParameterList &params, Parameter &param)
 
 bool cmdRecord(const ParameterList &params, Parameter &param)
 {
-    int frame_rate = params[params.size() - 1].asInt();
-    if (frame_rate < 1)
-    {
-        return false;
-    }
+    const QRect &rect    = params[0].asRect();
+//    const int frame_rate = params[1].asInt();
+//    if (frame_rate < 1)
+//    {
+//        return false;
+//    }
 
-    int usec_interval = static_cast<int>(10000000.0 * (1.0 / static_cast<double>(frame_rate)) + 0.5);
+//    int usec_interval = static_cast<int>(10000000.0 * (1.0 / static_cast<double>(frame_rate)) + 0.5);
 
-    timeval start, last;
-    gettimeofday(&start, nullptr);
+//    timeval start, last;
+//    gettimeofday(&start, nullptr);
+
+    VideoObject video;
+    video.obj.addFrame(VideoFrame(captureRect(rect)));
+
+    param.assignObject(move(video));
+
+    return true;
+}
+
+bool cmdShowVid(const ParameterList &params, Parameter &)
+{
+    const Video &video = params[0].asObject<VideoObject>().obj;
+
+    ImageView imageView;
+    imageView.showImage(video.frame(0).image());
 
     return true;
 }
@@ -121,9 +146,9 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
         {{Empty, Rect}}, Object,
         cmdCapture);
 
-    tw.registerCommand("display",
+    tw.registerCommand("view",
         {{Object}}, Empty,
-        cmdDisplay);
+        cmdView);
 
     tw.registerCommand("now",
         {}, DateTime,
@@ -140,6 +165,10 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
     tw.registerCommand("record",
         {{Empty, Rect}, {Int}}, Object,
         cmdRecord);
+
+    tw.registerCommand("showvid",
+        {{Object}}, Empty,
+        cmdShowVid);
 
     pengine = this;
 }

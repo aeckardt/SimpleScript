@@ -34,7 +34,6 @@ SOURCES += \
     imageView/ImageView.cpp \
     script/engine.cpp \
     script/highlighter.cpp \
-    script/objecttypes.cpp \
     script/parser.cpp \
     script/tokenizer.cpp \
     script/treewalker.cpp \
@@ -44,7 +43,6 @@ HEADERS += \
     image/video.h \
     mainwindow.h \
     script/highlighter.h \
-    script/objecttypes.h \
     script/tokenizer.h \
     ui_mainwindow.h \
     image/screenshot.h \
