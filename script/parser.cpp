@@ -138,7 +138,7 @@ void Parser::parseExpr(Node &node)
     std::vector<Node> stack;
     uint32_t lvl = 0;
     int32_t nparams = 0;
-    while (cur_token != lineEnd() && tn::isExprToken(cur_token.id()))
+    while (cur_token != lineEnd() && isExprToken(cur_token.id()))
     {
         Node it_node;
         it_node.param = cur_token;
@@ -152,7 +152,7 @@ void Parser::parseExpr(Node &node)
                 return pushError("Invalid expression, expected operator");
             --cur_token;
         }
-        else if (tn::isOperator(cur_token.id()))
+        else if (isOperator(cur_token.id()))
         {
             --nparams;
             if (nparams < 0)

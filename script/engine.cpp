@@ -16,7 +16,9 @@ using namespace tw;
 static ScriptEngine *pengine;
 
 typedef ParameterObjectBase<QImage> ImageObject;
+template<> ObjectReference ImageObject::ref = -1;
 typedef ParameterObjectBase<Video> VideoObject;
+template<> ObjectReference VideoObject::ref = -1;
 
 bool cmdPrint(const ParameterList &params, Parameter &)
 {
@@ -43,12 +45,12 @@ bool cmdCapture(const ParameterList &params, Parameter &param)
 {
     if (params.empty())
     {
-        param.assignObject(ImageObject(captureDesktop()));
+        param.assign(ImageObject(captureDesktop()));
     }
     else
     {
         const QRect &rect = params[0].asRect();
-        param.assignObject(ImageObject(captureRect(rect)));
+        param.assign(ImageObject(captureRect(rect)));
     }
     return param.asObject<ImageObject>().obj.size() != QSize(0, 0);
 }
@@ -112,17 +114,7 @@ bool cmdRecord(const ParameterList &params, Parameter &param)
     VideoObject video;
     video.obj.addFrame(VideoFrame(captureRect(rect)));
 
-    param.assignObject(move(video));
-
-    return true;
-}
-
-bool cmdShowVid(const ParameterList &params, Parameter &)
-{
-    const Video &video = params[0].asObject<VideoObject>().obj;
-
-    ImageView imageView;
-    imageView.showImage(video.frame(0).image());
+    param.assign(move(video));
 
     return true;
 }
@@ -130,41 +122,32 @@ bool cmdShowVid(const ParameterList &params, Parameter &)
 ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
-    tw.registerCommand("print",
-        {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty,
-        cmdPrint);
+//    ImageObject::ref = tw.createObjectReference();
+//    VideoObject::ref = tw.createObjectReference();
 
-    tw.registerCommand("select",
-        {}, Rect,
-        cmdSelect);
+    tw.registerCommand("print", cmdPrint,
+        {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
 
-    tw.registerCommand("capture",
-        {{Empty, Rect}}, Object,
-        cmdCapture);
+    tw.registerCommand("select", cmdSelect,
+        {}, Rect);
 
-    tw.registerCommand("view",
-        {{Object}}, Empty,
-        cmdView);
+    tw.registerCommand("capture", cmdCapture,
+        {{Empty, Rect}}, {Object, ImageObject::ref});
 
-    tw.registerCommand("now",
-        {}, DateTime,
-        cmdNow);
+    tw.registerCommand("view", cmdView,
+        {{{Object, ImageObject::ref}}}, Empty);
 
-    tw.registerCommand("msecsbetween",
-        {{DateTime}, {DateTime}}, Int,
-        cmdMsecsBetween);
+    tw.registerCommand("now", cmdNow,
+        {}, DateTime);
 
-    tw.registerCommand("str",
-        {{String, Int, Float, Boolean, Point, Rect, DateTime}}, String,
-        cmdStr);
+    tw.registerCommand("msecsbetween", cmdMsecsBetween,
+        {{DateTime}, {DateTime}}, Int);
 
-    tw.registerCommand("record",
-        {{Empty, Rect}, {Int}}, Object,
-        cmdRecord);
+    tw.registerCommand("str", cmdStr,
+        {{String, Int, Float, Boolean, Point, Rect, DateTime}}, String);
 
-    tw.registerCommand("showvid",
-        {{Object}}, Empty,
-        cmdShowVid);
+    tw.registerCommand("record", cmdRecord,
+        {{Empty, Rect}, {Int}}, {Object, VideoObject::ref});
 
     pengine = this;
 }

@@ -11,6 +11,11 @@
 namespace ps
 {
 
+using std::list;
+using std::string;
+using std::stringstream;
+using std::vector;
+
 enum ParserRule : uint32_t
 {
     Section,
@@ -23,7 +28,7 @@ enum ParserRule : uint32_t
     Expr,
 };
 
-typedef std::list<tn::Token>::const_iterator token_index;
+typedef list<tn::Token>::const_iterator token_index;
 
 class Token
 {
@@ -39,7 +44,7 @@ public:
     inline Token &operator--() { --val; return *this; }
     inline Token operator--(int) { return val--; }
     inline Token &operator=(const token_index &val) { this->val = val; isValid = true; return *this; }
-    inline const std::string getText() const { return std::string(val->begin, val->end); }
+    inline const string getText() const { return string(val->begin, val->end); }
 
 private:
     token_index val;
@@ -55,34 +60,34 @@ inline bool operator!=(const Token &np1, const Token &np2) { return np1.val != n
 struct Node
 {
     ParserRule rule;
-    std::list<Node> children;
+    list<Node> children;
 
     // parameter token, can be empty
     Token param;
 };
 
-typedef std::list<Node>::const_iterator tree_pos;
+typedef list<Node>::const_iterator tree_pos;
 
 class Parser
 {
 public:
     void parse(const tn::TokenList &tokens, Node &root);
 
-    const std::string &getLastError() const { return error_msg; }
+    const string &getLastError() const { return error_msg; }
 
 private:
-    std::string error_msg;
-    std::stringstream err_msg_ss;
+    string error_msg;
+    stringstream err_msg_ss;
     const tn::TokenList *ptokens;
 
     // current position
     tn::line_pos cur_line;
     Token cur_token;
 
-    void pushError(const std::string &msg);
+    void pushError(const string &msg);
 
     Node &addNode(Node &parent, ParserRule rule);
-    void expectToken(const std::vector<tn::TokenId> &ids);
+    void expectToken(const vector<tn::TokenId> &ids);
     void readParam(Node &node);
     void readOperator(Node &node);
 

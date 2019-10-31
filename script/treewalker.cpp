@@ -19,7 +19,7 @@ const map<Parameter::Type, string> type_names = {
     {Float,     "Float"}, {Boolean,  "Boolean"},  {Point,     "Point"},
     {Rect,       "Rect"}, {DateTime, "DateTime"}, {Object,   "Object"}};
 
-ParameterType tw::getParameterType(const TokenId &token_id)
+Parameter::Type getParameterType(const TokenId &token_id)
 {
     switch (token_id)
     {
@@ -87,21 +87,21 @@ void Parameter::assign(const string &str)
     type_ = String;
 }
 
-void Parameter::assign(const int32_t &i)
+void Parameter::assign(int32_t i)
 {
     clear();
     value = new int32_t(i);
     type_ = Int;
 }
 
-void Parameter::assign(const double &f)
+void Parameter::assign(double f)
 {
     clear();
     value = new double(f);
     type_ = Float;
 }
 
-void Parameter::assign(const bool &b)
+void Parameter::assign(bool b)
 {
     clear();
     value = new bool(b);
@@ -129,14 +129,14 @@ void Parameter::assign(const QDateTime &dt)
     type_ = DateTime;
 }
 
-void Parameter::assignObject(const ParameterObject &o)
+void Parameter::assign(const ParameterObject &o)
 {
     clear();
     o.copyTo(value);
     type_ = Object;
 }
 
-void Parameter::assignObject(ParameterObject &&o)
+void Parameter::assign(ParameterObject &&o)
 {
     clear();
     o.moveTo(value);
@@ -278,11 +278,6 @@ bool floatEqual(const double &f1, const double &f2)
     return fabs(f1 - f2) < FLOAT_CMP_EPSILON;
 }
 
-TreeWalker::TreeWalker()
-{
-    output_fnc = nullptr;
-}
-
 inline void TreeWalker::errorMsg(const char *msg) const
 {
     if (output_fnc != nullptr)
@@ -295,7 +290,275 @@ inline void TreeWalker::errorMsg(const char *msg) const
 
 #define ERROR_MSG(...) { stringstream ss; ss << __VA_ARGS__; errorMsg(ss.str().c_str()); }
 
-bool TreeWalker::executeOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
+Parameter TreeWalker::getConstValue(const Node &node)
+{
+    const string &content = node.param.getText();
+    Parameter param;
+
+    switch (node.param.id())
+    {
+    case tn::Integer:
+        param.assign(atoi(content.c_str()));
+        break;
+    case tn::Float:
+        param.assign(atof(content.c_str()));
+        break;
+    case tn::String:
+        param.assign(string(content.begin() + 1, content.end() - 1));
+        break;
+    default:
+        // This should not happen, because the parser delivers only
+        // the above three tokens to the ConstValue rule
+        errorMsg("param_token.id out of range");
+        break;
+    }
+
+    return param;
+}
+
+Parameter::Type TreeWalker::getParamType(const Node &node)
+{
+    switch (node.param.id())
+    {
+    case tn::Integer:
+        return Int;
+    case tn::Float:
+        return Float;
+    case tn::String:
+        return String;
+    default:
+        errorMsg("param_token.id out of range");
+        return Empty;
+    }
+}
+
+bool TreeWalker::run(const string &str)
+{
+    TokenList tokens;
+    Tokenizer tokenizer;
+    tokenizer.run(str, tokens);
+
+    if (!tokenizer.getLastError().empty())
+    {
+        errorMsg("Error tokenizing:");
+        errorMsg(tokenizer.getLastError().c_str());
+        return false;
+    }
+
+    Node ast_root;
+    Parser parser;
+    parser.parse(tokens, ast_root);
+    if (!parser.getLastError().empty())
+    {
+        errorMsg("Error parsing:");
+        errorMsg(parser.getLastError().c_str());
+        return false;
+    }
+
+    if (!validate(ast_root))
+    {
+        errorMsg("Error validating syntax");
+        return false;
+    }
+    else
+    {
+        if (!traverse(ast_root))
+        {
+            errorMsg("Error running script");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool TreeWalker::traverse(const Node &node)
+{
+    switch (node.rule)
+    {
+    case ps::Section:
+        for (auto const &child : node.children)
+            if (!traverse(child))
+                return false;
+        return true;
+    case ps::IfStatement:
+        return traverseIfStatement(node);
+    case ps::Assignment:
+        return traverseAssignment(node);
+    case ps::Function:
+        return traverseFunction(node);
+    case ps::Expr:
+        return traverseExpr(node);
+    default:
+        return false;
+    }
+}
+
+bool TreeWalker::traverseAssignment(const Node &node)
+{
+    const Node &var_node = *node.children.begin();
+    const string &var_name = var_node.param.getText();
+
+    const Node &src_node = *node.children.rbegin();
+    if (src_node.rule == ps::Function || src_node.rule == ps::Expr)
+    {
+        if (!traverse(src_node))
+            return false;
+    }
+    else if (src_node.rule == ps::Variable)
+    {
+        // create new variable as copy of rvalue variable
+        return_value = vars[src_node.param.getText()];
+    }
+    else if (src_node.rule == ps::ConstValue)
+    {
+        // create new parameter containing the given value
+        return_value = getConstValue(src_node);
+    }
+
+    vars[var_name] = move(return_value);
+
+    return true;
+}
+
+bool TreeWalker::traverseExpr(const Node &node)
+{
+    return_value.clear();
+
+    ParameterList stack;
+    for (const Node &child : node.children)
+    {
+        if (tn::isOperator(child.param.id()))
+        {
+            const Parameter p2 = stack.back();
+            stack.pop_back();
+
+            const Parameter p1 = stack.back();
+            stack.pop_back();
+
+            if (!traverseOperation(child.param.id(), p1, p2))
+                return false;
+            stack.push_back(move(return_value));
+
+            continue;
+        }
+
+        switch (child.rule)
+        {
+        case ps::Function:
+        case ps::Expr:
+            if (!traverse(child))
+                return false;
+            stack.push_back(move(return_value));
+            break;
+        case ps::Variable:
+        {
+            const string &var_name = child.param.getText();
+            stack.push_back(referenceTo(vars[var_name]));
+            break;
+        }
+        case ps::ConstValue: {
+            stack.push_back(getConstValue(child));
+            break;
+        }
+        default:
+            return false;
+        }
+    }
+
+    if (stack.size() != 1)
+    {
+        errorMsg("Unable to evaluate expression");
+        return false;
+    }
+
+    return_value = move(stack[0]);
+    return true;
+}
+
+bool TreeWalker::traverseFunction(const Node &node)
+{
+    const string &cmd_name_debug = node.param.getText();
+    cmd_name_debug.empty();
+
+    ParameterList params;
+    for (const Node &child : node.children)
+    {
+        if (child.rule == ps::Function || child.rule == ps::Expr)
+        {
+            if (!traverse(child))
+                return false;
+            params.push_back(move(return_value));
+        }
+        else if (child.rule == ps::Variable)
+        {
+            params.emplace_back(referenceTo(vars[child.param.getText()]));
+        }
+        else if (child.rule == ps::ConstValue)
+        {
+            params.emplace_back(getConstValue(child));
+        }
+    }
+
+    const string &cmd_name = node.param.getText();
+
+    // existance of the command is already proven in validityCheck
+    if (!commands[cmd_name].callback_fnc(params, return_value))
+        return false;
+
+    return true;
+}
+
+bool TreeWalker::traverseIfStatement(const Node &node)
+{
+    // Check expression in if-statement
+    ps::tree_pos tp = node.children.begin();
+
+    const Node &expr_node = *tp;
+    if (expr_node.rule == ps::Function || expr_node.rule == ps::Expr)
+    {
+        if (!traverse(expr_node))
+            return false;
+    }
+    else if (expr_node.rule == ps::Variable)
+    {
+        vars[expr_node.param.getText()].copyReference(return_value);
+    }
+    else if (expr_node.rule == ps::ConstValue)
+    {
+        return_value = getConstValue(expr_node);
+    }
+
+    // evaluate expression
+    bool exprIsTrue;
+    if (return_value.empty())
+        exprIsTrue = false;
+    else if (return_value.type() != Boolean)
+        exprIsTrue = true;
+    else
+        exprIsTrue = return_value.asBoolean();
+
+    return_value.clear();
+
+    if (exprIsTrue)
+    {
+        // execute if-section
+        const Node &section_node = *(++tp);
+        if (!traverse(section_node))
+            return false;
+    }
+    else if (node.children.size() == 3)
+    {
+        // an else-section exists
+        const Node &else_section_node = *(++++tp);
+        if (!traverse(else_section_node))
+            return false;
+    }
+
+    return true;
+}
+
+bool TreeWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
 {
     switch (op)
     {
@@ -543,274 +806,6 @@ bool TreeWalker::executeOperation(const tn::TokenId &op, const Parameter &p1, co
     }
 }
 
-ParameterType TreeWalker::readParamType(const Node &node)
-{
-    switch (node.param.id())
-    {
-    case tn::Integer:
-        return Parameter::Type::Int;
-    case tn::Float:
-        return Parameter::Type::Float;
-    case tn::String:
-        return Parameter::Type::String;
-    default:
-        errorMsg("param_token.id out of range");
-        return Parameter::Type::Empty;
-    }
-}
-
-Parameter TreeWalker::getConstValue(const Node &node)
-{
-    const string &content = node.param.getText();
-    Parameter param;
-
-    switch (node.param.id())
-    {
-    case tn::Integer:
-        param.assign(atoi(content.c_str()));
-        break;
-    case tn::Float:
-        param.assign(atof(content.c_str()));
-        break;
-    case tn::String:
-        param.assign(string(content.begin() + 1, content.end() - 1));
-        break;
-    default:
-        // This should not happen, because the parser delivers only
-        // the above three tokens to the ConstValue rule
-        errorMsg("param_token.id out of range");
-        break;
-    }
-
-    return param;
-}
-
-bool TreeWalker::run(const string &str)
-{
-    TokenList tokens;
-    Tokenizer tokenizer;
-    tokenizer.run(str, tokens);
-
-    if (!tokenizer.getLastError().empty())
-    {
-        errorMsg("Error tokenizing:");
-        errorMsg(tokenizer.getLastError().c_str());
-        return false;
-    }
-
-    Node ast_root;
-    Parser parser;
-    parser.parse(tokens, ast_root);
-    if (!parser.getLastError().empty())
-    {
-        errorMsg("Error parsing:");
-        errorMsg(parser.getLastError().c_str());
-        return false;
-    }
-
-    if (!validate(ast_root))
-    {
-        errorMsg("Error validating syntax");
-        return false;
-    }
-    else
-    {
-        if (!traverse(ast_root))
-        {
-            errorMsg("Error running script");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool TreeWalker::traverse(const Node &node)
-{
-    switch (node.rule)
-    {
-    case ps::Section:
-        for (auto const &child : node.children)
-            if (!traverse(child))
-                return false;
-        return true;
-    case ps::IfStatement:
-        return traverseIfStatement(node);
-    case ps::Assignment:
-        return traverseAssignment(node);
-    case ps::Function:
-        return traverseFunction(node);
-    case ps::Expr:
-        return traverseExpr(node);
-    default:
-        return false;
-    }
-}
-
-bool TreeWalker::traverseAssignment(const Node &node)
-{
-    const Node &var_node = *node.children.begin();
-    const string &var_name = var_node.param.getText();
-
-    const Node &src_node = *node.children.rbegin();
-    if (src_node.rule == ps::Function || src_node.rule == ps::Expr)
-    {
-        if (!traverse(src_node))
-            return false;
-    }
-    else if (src_node.rule == ps::Variable)
-    {
-        // create new variable as copy of rvalue variable
-        return_value = vars[src_node.param.getText()];
-    }
-    else if (src_node.rule == ps::ConstValue)
-    {
-        // create new parameter containing the given value
-        return_value = getConstValue(src_node);
-    }
-
-    vars[var_name] = move(return_value);
-
-    return true;
-}
-
-bool TreeWalker::traverseExpr(const Node &node)
-{
-    return_value.clear();
-
-    ParameterList stack;
-    for (const Node &child : node.children)
-    {
-        if (tn::isOperator(child.param.id()))
-        {
-            const Parameter p2 = stack.back();
-            stack.pop_back();
-
-            const Parameter p1 = stack.back();
-            stack.pop_back();
-
-            if (!executeOperation(child.param.id(), p1, p2))
-                return false;
-            stack.push_back(move(return_value));
-
-            continue;
-        }
-
-        switch (child.rule)
-        {
-        case ps::Function:
-        case ps::Expr:
-            if (!traverse(child))
-                return false;
-            stack.push_back(move(return_value));
-            break;
-        case ps::Variable:
-        {
-            const string &var_name = child.param.getText();
-            stack.push_back(referenceTo(vars[var_name]));
-            break;
-        }
-        case ps::ConstValue: {
-            stack.push_back(getConstValue(child));
-            break;
-        }
-        default:
-            return false;
-        }
-    }
-
-    if (stack.size() != 1)
-    {
-        errorMsg("Unable to evaluate expression");
-        return false;
-    }
-
-    return_value = move(stack[0]);
-    return true;
-}
-
-bool TreeWalker::traverseFunction(const Node &node)
-{
-    const string &cmd_name_debug = node.param.getText();
-    cmd_name_debug.empty();
-
-    ParameterList params;
-    for (const Node &child : node.children)
-    {
-        if (child.rule == ps::Function || child.rule == ps::Expr)
-        {
-            if (!traverse(child))
-                return false;
-            params.push_back(move(return_value));
-        }
-        else if (child.rule == ps::Variable)
-        {
-            params.emplace_back(referenceTo(vars[child.param.getText()]));
-        }
-        else if (child.rule == ps::ConstValue)
-        {
-            params.emplace_back(getConstValue(child));
-        }
-    }
-
-    const string &cmd_name = node.param.getText();
-
-    // existance of the command is already proven in validityCheck
-    if (!commands[cmd_name].callback_fnc(params, return_value))
-        return false;
-
-    return true;
-}
-
-bool TreeWalker::traverseIfStatement(const Node &node)
-{
-    // Check expression in if-statement
-    ps::tree_pos tp = node.children.begin();
-
-    const Node &expr_node = *tp;
-    if (expr_node.rule == ps::Function || expr_node.rule == ps::Expr)
-    {
-        if (!traverse(expr_node))
-            return false;
-    }
-    else if (expr_node.rule == ps::Variable)
-    {
-        vars[expr_node.param.getText()].copyReference(return_value);
-    }
-    else if (expr_node.rule == ps::ConstValue)
-    {
-        return_value = getConstValue(expr_node);
-    }
-
-    // evaluate expression
-    bool exprIsTrue;
-    if (return_value.empty())
-        exprIsTrue = false;
-    else if (return_value.type() != Boolean)
-        exprIsTrue = true;
-    else
-        exprIsTrue = return_value.asBoolean();
-
-    return_value.clear();
-
-    if (exprIsTrue)
-    {
-        // execute if-section
-        const Node &section_node = *(++tp);
-        if (!traverse(section_node))
-            return false;
-    }
-    else if (node.children.size() == 3)
-    {
-        // an else-section exists
-        const Node &else_section_node = *(++++tp);
-        if (!traverse(else_section_node))
-            return false;
-    }
-
-    return true;
-}
-
 bool TreeWalker::validate(const Node &node)
 {
     switch (node.rule)
@@ -878,7 +873,7 @@ bool TreeWalker::validateAssignment(const Node &node)
         return_value_type = var_types[var_name];
     }
     else // rule is Int, Float or String
-        return_value_type = getParameterType(src_node.param.id());
+        return_value_type = getParamType(src_node);
 
     const string &var_name = var_node.param.getText();
     var_types[var_name] = return_value_type;
@@ -911,7 +906,7 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
         validParam = false;
         for (const ParameterType &type : cmd.param_types[index])
         {
-            if (param_types.size() <= index && type == Empty)
+            if (param_types.size() <= index && type.basic_type == Empty)
             {
                 validParam = true;
                 break;
@@ -934,10 +929,10 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
             if (cmd.param_types[index].size() > 1)
                 ss << "{";
             bool first = true;
-            for (const Parameter::Type &type : cmd.param_types[index])
+            for (const ParameterType &type : cmd.param_types[index])
             {
                 if (!first) ss << ", ";
-                ss << type_names.at(type);
+                ss << type_names.at(type.basic_type);
                 first = false;
             }
             if (cmd.param_types[index].size() > 1)
@@ -948,7 +943,7 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
         }
     }
 
-    return_value_type = cmd.return_type;
+    return_value_type = cmd.return_type.basic_type;
 
     return true;
 }
@@ -973,15 +968,15 @@ bool TreeWalker::validateExpr(const Node &node)
     // evaluating RPN (reverse polish notation)
     return_value_type = Empty;
 
-    vector<ParameterType> stack;
+    vector<Parameter::Type> stack;
     for (const Node &child : node.children)
     {
         if (tn::isOperator(child.param.id()))
         {
-            ParameterType p2 = *stack.rbegin();
+            Parameter::Type p2 = *stack.rbegin();
             stack.pop_back();
 
-            ParameterType p1 = *stack.rbegin();
+            Parameter::Type p1 = *stack.rbegin();
             stack.pop_back();
 
             if (!validateOperation(child.param.id(), p1, p2))
@@ -1006,7 +1001,7 @@ bool TreeWalker::validateExpr(const Node &node)
             break;
         }
         case ps::ConstValue: {
-            stack.push_back(readParamType(child));
+            stack.push_back(getParamType(child));
             break;
         }
         default:
@@ -1088,7 +1083,7 @@ bool TreeWalker::validateIfStatement(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateOperation(const tn::TokenId &op, const ParameterType &pt1, const ParameterType &pt2)
+bool TreeWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &pt1, const Parameter::Type &pt2)
 {
     switch (op)
     {

@@ -13,6 +13,9 @@
 #include "tokenizer.h"
 #include "parser.h"
 
+namespace tw
+{
+
 using tn::Tokenizer;
 using tn::Token;
 using tn::TokenId;
@@ -20,10 +23,13 @@ using tn::TokenId;
 using ps::Parser;
 using ps::Node;
 
-namespace tw
-{
+using std::map;
+using std::move;
+using std::ostream;
+using std::string;
+using std::vector;
 
-enum ParameterType
+enum BasicParameterType : int16_t
 {
     Empty,
     String,
@@ -36,7 +42,20 @@ enum ParameterType
     Object
 };
 
-ParameterType getParameterType(const TokenId &token_id);
+typedef int16_t ObjectReference;
+
+class ParameterType {
+public:
+    ParameterType() : basic_type(Empty), obj_ref(-1) {}
+    ParameterType(BasicParameterType basic_type) : basic_type(basic_type), obj_ref(-1) {}
+    ParameterType(BasicParameterType basic_type, ObjectReference obj_ref) : basic_type(basic_type), obj_ref(obj_ref) {}
+
+    BasicParameterType basic_type;
+    ObjectReference    obj_ref;
+};
+
+inline bool operator==(const ParameterType &pt1, const ParameterType &pt2) { return pt1.basic_type == pt2.basic_type && pt1.obj_ref == pt2.obj_ref; }
+inline bool operator!=(const ParameterType &pt1, const ParameterType &pt2) { return pt1.basic_type != pt2.basic_type || pt1.obj_ref != pt2.obj_ref; }
 
 class ParameterObject
 {
@@ -52,56 +71,55 @@ class ParameterObjectBase : public ParameterObject
 public:
     ParameterObjectBase() {}
     ParameterObjectBase(const ParameterObjectBase &src) { obj = src.obj; }
-    ParameterObjectBase(ParameterObjectBase &&src) { obj = std::move(src.obj); }
+    ParameterObjectBase(ParameterObjectBase &&src) { obj = move(src.obj); }
     ParameterObjectBase(const T &src) { obj = src; }
-    ParameterObjectBase(T &&src) { obj = std::move(src); }
+    ParameterObjectBase(T &&src) { obj = move(src); }
     virtual ~ParameterObjectBase() override {}
 
     ParameterObjectBase &operator=(const ParameterObjectBase &src) { obj = src.obj; return *this; }
-    ParameterObjectBase &operator=(ParameterObjectBase &&src) { obj = std::move(src.obj); return *this; }
+    ParameterObjectBase &operator=(ParameterObjectBase &&src) { obj = move(src.obj); return *this; }
     ParameterObjectBase &operator=(const T &src) { obj = src; return *this; }
-    ParameterObjectBase &operator=(T &&src) { obj = std::move(src); return *this; }
+    ParameterObjectBase &operator=(T &&src) { obj = move(src); return *this; }
 
     void copyTo(void *&ptr) const override { ptr = new ParameterObjectBase(*this); }
-    void moveTo(void *&ptr) override { ptr = new ParameterObjectBase(std::move(*this)); }
+    void moveTo(void *&ptr) override { ptr = new ParameterObjectBase(move(*this)); }
 
     T obj;
+    static ObjectReference ref;
 };
 
 class Parameter
 {
 public:
-    typedef ParameterType Type;
+    typedef BasicParameterType Type;
 
     inline Parameter() { value = nullptr; type_ = Empty; isReference = false; }
     inline Parameter(const Parameter &src) : Parameter() { operator=(src); }
-    inline Parameter(Parameter &&src) : Parameter() { operator=(std::move(src)); }
+    inline Parameter(Parameter &&src) : Parameter() { operator=(move(src)); }
     inline ~Parameter() { clear(); }
 
     void clear();
     bool empty() const { return value == nullptr; }
 
-    const Type &type() const { return type_; }
+    Type type() const { return type_; }
 
-    void assign(const std::string &str);
-    void assign(const int32_t     &i);
-    void assign(const double      &f);
-    void assign(const bool        &b);
-    void assign(const QPoint      &pt);
-    void assign(const QRect       &rect);
+    void assign(const string &str);
+    void assign(int32_t i);
+    void assign(double f);
+    void assign(bool b);
+    void assign(const QPoint &pt);
+    void assign(const QRect &rect);
     void assign(const QDateTime &dt);
+    void assign(const ParameterObject &);
+    void assign(ParameterObject &&);
 
-    void assignObject(const ParameterObject &);
-    void assignObject(ParameterObject &&);
-
-    const std::string &asString() const   { return *static_cast<std::string*>(value); }
+    const string      &asString() const   { return *static_cast<string*>(value); }
     int32_t            asInt() const;
     double             asFloat() const;
     const QPoint      &asPoint() const    { return *static_cast<QPoint*>(value); }
     const QRect       &asRect() const     { return *static_cast<QRect*>(value); }
     bool               asBoolean() const  { return *static_cast<bool*>(value); }
     const QDateTime   &asDateTime() const { return *static_cast<QDateTime*>(value); }
-
     template<typename T>
     T                 &asObject()         { return *static_cast<T*>(value); }
     template<typename T>
@@ -118,70 +136,70 @@ private:
     bool isReference;
 };
 
-std::ostream &operator <<(std::ostream &os, const Parameter &param);
+ostream &operator <<(ostream &os, const Parameter &param);
 
 inline Parameter referenceTo(const Parameter &src) { Parameter param; src.copyReference(param); return param; }
 
-typedef std::vector<Parameter> ParameterList;
+typedef vector<Parameter> ParameterList;
 
 typedef void(* OutputFnc)(const Parameter &, const QBrush &brush);
 typedef bool(* CommandFnc)(const ParameterList &, Parameter &);
 
 struct Command
 {
-    std::vector<std::vector<Parameter::Type>> param_types;
-    Parameter::Type return_type;
+    vector<vector<ParameterType>> param_types;
+    ParameterType return_type;
     CommandFnc callback_fnc;
 };
 
 class TreeWalker
 {
 public:
-    TreeWalker();
+    TreeWalker() : obj_refs(0), output_fnc(nullptr) {}
 
-    bool run(const std::string &str);
+    bool run(const string &str);
 
-    inline void registerCommand(const std::string &name, const std::vector<std::vector<Parameter::Type>> &param_types,
-        const Parameter::Type &return_type, const CommandFnc &callback_fnc) { commands[name] = {param_types, return_type, callback_fnc}; }
+    inline void registerCommand(const string &name, const CommandFnc &callback_fnc,
+        const vector<vector<ParameterType>> &param_types, const ParameterType &return_type)
+        { commands[name] = {param_types, return_type, callback_fnc}; }
+
+    inline ObjectReference createObjectReference() { return obj_refs++; }
 
     void setErrorOutput(const OutputFnc &fnc) { output_fnc = fnc; }
 
 private:
-    std::map<std::string, Parameter> vars;
-    std::map<std::string, Command> commands;
-
-    Parameter return_value;
+    ObjectReference obj_refs;
 
     OutputFnc output_fnc;
-
     void errorMsg(const char *) const;
 
+    map<string, Command> commands;
+
+    map<string, Parameter> vars;
+    Parameter return_value;
+
     Parameter getConstValue(const Node &node);
-
-    bool executeOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2);
-
     bool traverse(const Node &node);
     bool traverseAssignment(const Node &node);
     bool traverseExpr(const Node &node);
     bool traverseFunction(const Node &node);
     bool traverseIfStatement(const Node &node);
+    bool traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2);
 
     // the following types, variables and functions are only used for validating the syntax
-    typedef std::vector<ParameterType> ParameterTypeList;
+    typedef vector<Parameter::Type> ParameterTypeList;
 
-    std::map<std::string, ParameterType> var_types;
+    map<string, Parameter::Type> var_types;
+    Parameter::Type return_value_type;
 
-    ParameterType return_value_type;
-
-    ParameterType readParamType(const Node &node);
-
+    Parameter::Type getParamType(const Node &node);
     bool validate(const Node &node);
     bool validateAssignment(const Node &node);
-    bool validateCommand(const std::string &command, const ParameterTypeList &param_types);
+    bool validateCommand(const string &command, const ParameterTypeList &param_types);
     bool validateExpr(const Node &node);
     bool validateFunction(const Node &node);
     bool validateIfStatement(const Node &node);
-    bool validateOperation(const tn::TokenId &op, const ParameterType &pt1, const ParameterType &pt2);
+    bool validateOperation(const tn::TokenId &op, const Parameter::Type &pt1, const Parameter::Type &pt2);
     bool validateParamType(const Node &node, ParameterTypeList *param_types = nullptr);
 };
 

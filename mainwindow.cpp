@@ -7,11 +7,14 @@
 
 #include <sstream>
 
+using namespace std;
+using namespace tw;
+
 static Ui::MainWindow *main_ui;
 
-void BrowserFormattedPrint(const tw::Parameter &param, const QBrush &brush)
+void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
 {
-    std::stringstream ss;
+    stringstream ss;
     ss << param;
 
     QTextCharFormat format;
@@ -62,9 +65,6 @@ MainWindow::~MainWindow()
 void MainWindow::run()
 {
     se.run(ui->textEdit->toPlainText().toStdString());
-
-    QScrollBar *sb = ui->textBrowser->verticalScrollBar();
-    sb->setValue(INT_MAX);
 }
 
 void MainWindow::clearLog()
@@ -87,10 +87,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         else if (event->key() == Qt::Key_1)
         {
             ui->textEdit->setText(
-                "print(str(\"Hallo \") + str(\"Welt!\"))\n"
+                "print(str(\"Hello \") + str(\"world!\"))\n"
                 "\n"
-                "# Das ist ein Kommentar\n"
-                "\t  # Damit du weisst, wie sie aussehen");
+                "# This is a comment\n"
+                "\t  # You stupid banana!");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
@@ -98,9 +98,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         else if (event->key() == Qt::Key_2)
         {
             ui->textEdit->setText(
-                "rect=select()\n"
-                "video=record(rect, 1)\n"
-                "showvid(video)");
+                "# Expression calculation\n"
+                "\n"
+                "value = 1+(2+3+9-10/2)*5-31\n"
+                "print(\"The sum of numbers from one to five is: \" + str(value))");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
@@ -108,6 +109,20 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         else if (event->key() == Qt::Key_3)
         {
             ui->textEdit->setText(
+                "# Screenshot time measurement\n"
+                "\n"
+                "start=now()\n"
+                "image=capture()\n"
+                "print(\"It took \" + str(msecsbetween(start, now())) + \"ms to take a screenshot.\")");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
+        }
+        else if (event->key() == Qt::Key_4)
+        {
+            ui->textEdit->setText(
+                "# View screenshot of selected region\n"
+                "\n"
                 "fullscreen = 0\n"
                 "if fullscreen == 0:\n"
                 "\trect=select()\n"
@@ -120,12 +135,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
         }
-        else if (event->key() == Qt::Key_4)
+        else if (event->key() == Qt::Key_5)
         {
             ui->textEdit->setText(
-                "start=now()\n"
-                "image=capture()\n"
-                "print(\"It took \" + str(msecsbetween(start, now())) + \"ms to make a screenshot.\")");
+                "# Record selected region\n"
+                "\n"
+                "rect=select()\n"
+                "video=record(rect, 1)\n"
+                "showvid(video)");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
