@@ -27,7 +27,6 @@ bool cmdPrint(const ParameterList &params, Parameter &)
     }
 
     pengine->print(params[0]);
-
     return true;
 }
 
@@ -42,19 +41,16 @@ bool cmdSelect(const ParameterList &, Parameter &param)
 
 bool cmdCapture(const ParameterList &params, Parameter &param)
 {
-//    ImageObject *imgObj;
-//    if (params.empty())
-//    {
-//        imgObj = new ImageObject(captureDesktop());
-//        return param.asObject<ImageObject>().image.size() != QSize(0, 0);
-//    }
-//    else
-//    {
-//        const QRect &rect = params[0].asRect();
-//        param.asObject<ImageObject>().image = captureRect(rect);
-//        return captureRect(rect);
-//    }
-//    param.assignObject<ImageObject>(imgObj);
+    if (params.empty())
+    {
+        param.assignObject(ImageObject(captureDesktop()));
+    }
+    else
+    {
+        const QRect &rect = params[0].asRect();
+        param.assignObject(ImageObject(captureRect(rect)));
+    }
+    return param.asObject<ImageObject>().obj.size() != QSize(0, 0);
 }
 
 bool cmdView(const ParameterList &params, Parameter &)

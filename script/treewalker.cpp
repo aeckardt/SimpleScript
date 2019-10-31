@@ -543,22 +543,19 @@ bool TreeWalker::executeOperation(const tn::TokenId &op, const Parameter &p1, co
     }
 }
 
-void TreeWalker::getParamType(const Node &node, ParameterType &param_type)
+ParameterType TreeWalker::readParamType(const Node &node)
 {
     switch (node.param.id())
     {
     case tn::Integer:
-        param_type = Parameter::Type::Int;
-        return;
+        return Parameter::Type::Int;
     case tn::Float:
-        param_type = Parameter::Type::Float;
-        return;
+        return Parameter::Type::Float;
     case tn::String:
-        param_type = Parameter::Type::String;
-        return;
+        return Parameter::Type::String;
     default:
         errorMsg("param_token.id out of range");
-        break;
+        return Parameter::Type::Empty;
     }
 }
 
@@ -636,7 +633,7 @@ bool TreeWalker::traverse(const Node &node)
         for (auto const &child : node.children)
             if (!traverse(child))
                 return false;
-        break;
+        return true;
     case ps::IfStatement:
         return traverseIfStatement(node);
     case ps::Assignment:
@@ -648,8 +645,6 @@ bool TreeWalker::traverse(const Node &node)
     default:
         return false;
     }
-
-    return true;
 }
 
 bool TreeWalker::traverseAssignment(const Node &node)
@@ -666,8 +661,7 @@ bool TreeWalker::traverseAssignment(const Node &node)
     else if (src_node.rule == ps::Variable)
     {
         // create new variable as copy of rvalue variable
-        const string &src_name = src_node.param.getText();
-        return_value = vars[src_name];
+        return_value = vars[src_node.param.getText()];
     }
     else if (src_node.rule == ps::ConstValue)
     {
@@ -1012,8 +1006,7 @@ bool TreeWalker::validateExpr(const Node &node)
             break;
         }
         case ps::ConstValue: {
-            stack.push_back(ParameterType());
-            getParamType(child, *stack.rbegin());
+            stack.push_back(readParamType(child));
             break;
         }
         default:
@@ -1282,17 +1275,9 @@ inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *p
             param_types->push_back(Float);
         break;
     case tn::String:
-    {
-        // check string length >= 2 (for the quotes)
-        if (node.param.getText().size() < 2)
-        {
-            errorMsg("String does not have quotes");
-            return false;
-        }
         if (param_types)
             param_types->push_back(String);
         break;
-    }
     default:
         errorMsg("Invalid parameter");
         return false;

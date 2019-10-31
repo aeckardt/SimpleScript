@@ -120,6 +120,16 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
         }
+        else if (event->key() == Qt::Key_4)
+        {
+            ui->textEdit->setText(
+                "start=now()\n"
+                "image=capture()\n"
+                "print(\"It took \" + str(msecsbetween(start, now())) + \"ms to make a screenshot.\")");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
+        }
     }
 }
 

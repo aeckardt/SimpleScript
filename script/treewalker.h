@@ -173,7 +173,7 @@ private:
 
     ParameterType return_value_type;
 
-    void getParamType(const Node &node, ParameterType &param_type);
+    ParameterType readParamType(const Node &node);
 
     bool validate(const Node &node);
     bool validateAssignment(const Node &node);
