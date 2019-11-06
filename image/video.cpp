@@ -5,6 +5,113 @@
 #include <QBuffer>
 #include <QFile>
 
+VideoFrame::VideoFrame(const VideoFrame &src)
+{
+    if (src.img != nullptr) {
+        img = new QImage(*src.img);
+        byte_array = nullptr;
+        _size = nullptr;
+    } else if (src.byte_array != nullptr && src._size != nullptr) {
+        img = nullptr;
+        byte_array = new QByteArray(*src.byte_array);
+        _size = new QSize(*src._size);
+    } else {
+        img = nullptr;
+        byte_array = nullptr;
+        _size = nullptr;
+    }
+    ms = src.ms;
+}
+
+VideoFrame::VideoFrame(VideoFrame &&src)
+{
+    if (src.img != nullptr) {
+        img = new QImage(std::move(*src.img));
+        byte_array = nullptr;
+        _size = nullptr;
+    } else if (src.byte_array != nullptr && src._size != nullptr) {
+        img = nullptr;
+        byte_array = new QByteArray(std::move(*src.byte_array));
+        _size = new QSize(std::move(*src._size));
+    } else {
+        img = nullptr;
+        byte_array = nullptr;
+        _size = nullptr;
+    }
+    ms = src.ms;
+}
+
+void VideoFrame::clear()
+{
+    if (img != nullptr) {
+        delete img;
+    }
+    if (byte_array != nullptr) {
+        delete byte_array;
+    }
+    if (_size != nullptr)
+    {
+        delete _size;
+    }
+}
+
+VideoFrame &VideoFrame::operator=(const VideoFrame &src)
+{
+    clear();
+
+    if (src.img != nullptr) {
+        img = new QImage(*src.img);
+    }
+    else if (src.byte_array != nullptr)
+    {
+        byte_array = new QByteArray(*src.byte_array);
+        _size = new QSize(*src._size);
+    }
+    ms = src.ms;
+
+    return *this;
+}
+
+void VideoFrame::compress()
+{
+    if (img == nullptr) {
+        return;
+    }
+
+    int byte_size = img->size().width() * img->size().height() * 4;
+
+    if (byte_array != nullptr) {
+        delete byte_array;
+    }
+    byte_array = new QByteArray(qCompress(img->bits(), byte_size, 1));
+
+    if (_size != nullptr) {
+        delete _size;
+    }
+    _size = new QSize(img->size());
+
+    delete img;
+    img = nullptr;
+}
+
+void VideoFrame::decompress()
+{
+    if (byte_array == nullptr) {
+        return;
+    }
+
+    if (img != nullptr) {
+        delete img;
+    }
+    img = new QImage(*_size, QImage::Format_RGB32);
+    img->loadFromData(qUncompress(*byte_array));
+
+    delete byte_array;
+    byte_array = nullptr;
+    delete _size;
+    _size = nullptr;
+}
+
 bool Video::load(const QString &str)
 {
     frames.clear();
@@ -28,8 +135,6 @@ bool Video::load(const QString &str)
             qint64 bytes;
             file.read(reinterpret_cast<char *>(&bytes), sizeof(bytes));
             ba += file.read(bytes);
-
-            png_size = bytes;
 
             QImage img;
             img.loadFromData(ba, "PNG");
@@ -83,27 +188,6 @@ bool Video::save(const QString &str) const
     file.close();
 
     return true;
-}
-
-void Video::compress()
-{
-    size_t size = this->size();
-    if (size > 0)
-    {
-        const QImage &first_img = frame(0).image();
-        QSize image_size = first_img.size();
-
-        int buffer_size = image_size.width() * image_size.height() * 4;
-
-        if (first_img.format() == QImage::Format_RGB32)
-        {
-            for (const VideoFrame &videoFrame : frames)
-            {
-                compressed_frames.push_back(qCompress(videoFrame.image().bits(), buffer_size, 1));
-                compressed_size = compressed_frames.back().size();
-            }
-        }
-    }
 }
 
 Recorder::Recorder(const QRect &rect, Video &video_ref, int frame_rate)

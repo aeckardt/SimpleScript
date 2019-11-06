@@ -15,20 +15,44 @@
 class VideoFrame
 {
 public:
-    VideoFrame() : img(nullptr), ms(0) {}
-    VideoFrame(const VideoFrame &src) { img = new QImage(*src.img); ms = src.ms; }
-    VideoFrame(VideoFrame &&src) { img = src.img; src.img = nullptr; ms = src.ms; }
-    VideoFrame(const QImage &img, qint64 ms) { this->img = new QImage(img); this->ms = ms; }
-    VideoFrame(QImage &&img, qint64 ms) { this->img = new QImage(std::move(img)); this->ms = ms; }
-    ~VideoFrame() { if (img != nullptr) { delete img; } }
+    VideoFrame() : img(nullptr), byte_array(nullptr), _size(nullptr), ms(0) {}
+    VideoFrame(const VideoFrame &src);
+    VideoFrame(VideoFrame &&src);
+
+    VideoFrame(const QImage &img, qint64 ms) : byte_array(nullptr), _size(nullptr)
+    { this->img = new QImage(img); this->ms = ms; }
+
+    VideoFrame(QImage &&img, qint64 ms) : byte_array(nullptr), _size(nullptr)
+    { this->img = new QImage(std::move(img)); this->ms = ms; }
+
+    VideoFrame(const QByteArray &byte_array, const QSize &size, qint64 ms) : img(nullptr)
+    { this->byte_array = new QByteArray(byte_array); this->_size = new QSize(size); this->ms = ms;}
+
+    VideoFrame(QByteArray &&byte_array, const QSize &size, qint64 ms) : img(nullptr)
+    { this->byte_array = new QByteArray(std::move(byte_array)); this->_size = new QSize(size); this->ms = ms;}
+
+    ~VideoFrame() { clear(); }
+
+    void clear();
 
     const QImage &image() const { return *img; }
+    const QByteArray &byteArray() const { return *byte_array; }
+    const QSize &size() const { return *_size; }
+
     qint64 msFromStart() const { return ms; }
 
-    VideoFrame &operator=(const VideoFrame& src) { img = new QImage(*src.img); return *this; }
+    bool isEmpty() const { return img == nullptr && byte_array == nullptr; }
+
+    void compress();
+    void decompress();
+
+    VideoFrame &operator=(const VideoFrame& src);
 
 private:
     QImage *img;
+
+    QByteArray *byte_array;
+    QSize *_size;
 
     qint64 ms;
 };
@@ -44,6 +68,7 @@ public:
     void addFrame(const VideoFrame &frame) { frames.push_back(frame); }
     void addFrame(VideoFrame &&frame) { frames.push_back(std::move(frame)); }
 
+    VideoFrame &frame(size_t index) { return frames[index]; }
     const VideoFrame &frame(size_t index) const { return frames[index]; }
 
     size_t size() const { return frames.size(); }
@@ -51,18 +76,11 @@ public:
     bool load(const QString &str);
     bool save(const QString &str) const;
 
-    void compress();
-
     Video &operator=(const Video &src) { frames = src.frames; return *this; }
     Video &operator=(Video &&src) { frames = std::move(src.frames); return *this; }
 
-    qint64 png_size;
-    qint64 compressed_size;
-
 private:
     std::vector<VideoFrame> frames;
-
-    std::vector<QByteArray> compressed_frames;
 };
 
 class Recorder : public QObject

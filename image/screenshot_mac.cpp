@@ -90,7 +90,7 @@ QImage captureRect(const QRect &rect, QImage::Format format)
     return img;
 }
 
-QByteArray captureCompressed(const QRect &rect, QImage::Format format)
+QByteArray captureRectCompressed(const QRect &rect, QImage::Format format)
 {
     if (format != QImage::Format_RGB32)
         return QByteArray();
