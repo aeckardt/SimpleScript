@@ -51,11 +51,18 @@ public:
     bool load(const QString &str);
     bool save(const QString &str) const;
 
+    void compress();
+
     Video &operator=(const Video &src) { frames = src.frames; return *this; }
     Video &operator=(Video &&src) { frames = std::move(src.frames); return *this; }
 
+    qint64 png_size;
+    qint64 compressed_size;
+
 private:
     std::vector<VideoFrame> frames;
+
+    std::vector<QByteArray> compressed_frames;
 };
 
 class Recorder : public QObject

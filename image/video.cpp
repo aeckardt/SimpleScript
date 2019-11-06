@@ -29,6 +29,8 @@ bool Video::load(const QString &str)
             file.read(reinterpret_cast<char *>(&bytes), sizeof(bytes));
             ba += file.read(bytes);
 
+            png_size = bytes;
+
             QImage img;
             img.loadFromData(ba, "PNG");
             addFrame(VideoFrame(std::move(img), index * 500));
@@ -81,6 +83,27 @@ bool Video::save(const QString &str) const
     file.close();
 
     return true;
+}
+
+void Video::compress()
+{
+    size_t size = this->size();
+    if (size > 0)
+    {
+        const QImage &first_img = frame(0).image();
+        QSize image_size = first_img.size();
+
+        int buffer_size = image_size.width() * image_size.height() * 4;
+
+        if (first_img.format() == QImage::Format_RGB32)
+        {
+            for (const VideoFrame &videoFrame : frames)
+            {
+                compressed_frames.push_back(qCompress(videoFrame.image().bits(), buffer_size, 1));
+                compressed_size = compressed_frames.back().size();
+            }
+        }
+    }
 }
 
 Recorder::Recorder(const QRect &rect, Video &video_ref, int frame_rate)
