@@ -257,22 +257,6 @@ void ImageView::adjustScrollBar(QScrollBar *scrollBar, double factor)
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
 
-ScalableImage::ScalableImage(QWidget *parent)
-    : QWidget(parent)
-{
-}
-
-void ScalableImage::setPixmap(const QPixmap &pixmap)
-{
-    _pixmap = pixmap;
-    resize(_pixmap.size());
-}
-
-void ScalableImage::resize(const QSize &size)
-{
-    QWidget::resize(size);
-}
-
 void ScalableImage::paintEvent(QPaintEvent *event)
 {
     double scaleFactor = static_cast<double>(_pixmap.size().width()) / static_cast<double>(size().width());

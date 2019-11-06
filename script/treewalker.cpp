@@ -932,7 +932,10 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
             for (const ParameterType &type : cmd.param_types[index])
             {
                 if (!first) ss << ", ";
-                ss << type_names.at(type.basic_type);
+                if (type.basic_type != Object)
+                    ss << type_names.at(type.basic_type);
+                else
+                    ss << obj_names[type.obj_ref];
                 first = false;
             }
             if (cmd.param_types[index].size() > 1)
@@ -943,7 +946,7 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
         }
     }
 
-    return_value_type = cmd.return_type.basic_type;
+    return_value_type = cmd.return_type;
 
     return true;
 }
@@ -968,18 +971,18 @@ bool TreeWalker::validateExpr(const Node &node)
     // evaluating RPN (reverse polish notation)
     return_value_type = Empty;
 
-    vector<Parameter::Type> stack;
+    vector<ParameterType> stack;
     for (const Node &child : node.children)
     {
         if (tn::isOperator(child.param.id()))
         {
-            Parameter::Type p2 = *stack.rbegin();
+            ParameterType p2 = stack.back();
             stack.pop_back();
 
-            Parameter::Type p1 = *stack.rbegin();
+            ParameterType p1 = stack.back();
             stack.pop_back();
 
-            if (!validateOperation(child.param.id(), p1, p2))
+            if (!validateOperation(child.param.id(), p1.basic_type, p2.basic_type))
                 return false;
             stack.push_back(return_value_type);
 
@@ -1022,7 +1025,7 @@ bool TreeWalker::validateExpr(const Node &node)
 
 bool TreeWalker::validateFunction(const Node &node)
 {
-    vector<Parameter::Type> param_types;
+    vector<ParameterType> param_types;
     for (auto const &child : node.children)
     {
         if (child.rule != ps::Function && child.rule != ps::ConstValue &&

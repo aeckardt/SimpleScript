@@ -7,60 +7,42 @@ using namespace tw;
 #include "image/screenshot.h"
 #include "image/video.h"
 #include "imageView/ImageView.h"
+#include "videoView/VideoView.h"
 
 #include <sys/time.h>
+#include <unistd.h>
 
-#include <QLabel>
-#include <QScrollArea>
+static ScriptEngine *engine;
 
-static ScriptEngine *pengine;
-
-typedef ParameterObjectBase<QImage> ImageObject;
-template<> ObjectReference ImageObject::ref = -1;
-typedef ParameterObjectBase<Video> VideoObject;
-template<> ObjectReference VideoObject::ref = -1;
-
-bool cmdPrint(const ParameterList &params, Parameter &)
+enum : ObjectReference
 {
-    if (params.empty())
-    {
-        pengine->print(Parameter());
-        return true;
-    }
+    ImageRef,
+    VideoRef
+};
 
-    pengine->print(params[0]);
-    return true;
-}
-
-bool cmdSelect(const ParameterList &, Parameter &param)
-{
-    pengine->mainWindow->hide();
-    param.assign(SelectFrameWidget().selectRect());
-    pengine->mainWindow->show();
-
-    return true;
-}
+template<> ObjectReference ParameterObjectBase<QImage>::ref = ImageRef;
+template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &params, Parameter &param)
 {
     if (params.empty())
     {
-        param.assign(ImageObject(captureDesktop()));
+        param.createObject<QImage>(captureDesktop());
     }
     else
     {
         const QRect &rect = params[0].asRect();
-        param.assign(ImageObject(captureRect(rect)));
+        param.createObject<QImage>(captureRect(rect));
     }
-    return param.asObject<ImageObject>().obj.size() != QSize(0, 0);
+    return param.asObject<QImage>().size() != QSize(0, 0);
 }
 
-bool cmdView(const ParameterList &params, Parameter &)
+bool cmdMsecsBetween(const ParameterList &params, Parameter &param)
 {
-    const QImage &image = params[0].asObject<ImageObject>().obj;
+    const QDateTime &dt1 = params[0].asDateTime();
+    const QDateTime &dt2 = params[1].asDateTime();
 
-    ImageView imageView;
-    imageView.showImage(image);
+    param.assign(static_cast<int>(dt1.msecsTo(dt2)));
 
     return true;
 }
@@ -78,12 +60,67 @@ bool cmdNow(const ParameterList &, Parameter &param)
     return true;
 }
 
-bool cmdMsecsBetween(const ParameterList &params, Parameter &param)
+bool cmdPrint(const ParameterList &params, Parameter &)
 {
-    const QDateTime &dt1 = params[0].asDateTime();
-    const QDateTime &dt2 = params[1].asDateTime();
+    if (params.empty())
+    {
+        engine->print(Parameter());
+        return true;
+    }
 
-    param.assign(static_cast<int>(dt1.msecsTo(dt2)));
+    engine->print(params[0]);
+    return true;
+}
+
+bool cmdRecord(const ParameterList &params, Parameter &param)
+{
+    const QRect &rect = params[0].asRect();
+    const int frame_rate = params[1].asInt();
+
+    if (frame_rate < 1 || frame_rate > 30)
+    {
+        engine->printError("Frame rate needs to be between 1 and 30");
+        return false;
+    }
+
+    engine->mainWindow->hide();
+
+    Recorder recorder(rect, param.createObject<Video>(), frame_rate);
+    recorder.exec();
+
+    engine->mainWindow->show();
+
+    return true;
+}
+
+bool cmdSelect(const ParameterList &, Parameter &param)
+{
+    engine->mainWindow->hide();
+
+    param.assign(SelectFrameWidget().selectRect());
+
+    engine->mainWindow->show();
+
+    return true;
+}
+
+bool cmdSleep(const ParameterList &params, Parameter &)
+{
+    useconds_t msec;
+    switch (params[0].type())
+    {
+    case Int:
+        msec = static_cast<useconds_t>(params[0].asInt() * 1000);
+        break;
+    case Float:
+        msec = static_cast<useconds_t>(params[0].asFloat() * 1000.0);
+        break;
+    default:
+        msec = 0;
+        break;
+    }
+
+    usleep(msec);
 
     return true;
 }
@@ -97,57 +134,65 @@ bool cmdStr(const ParameterList &params, Parameter &param)
     return true;
 }
 
-bool cmdRecord(const ParameterList &params, Parameter &param)
+bool cmdView(const ParameterList &params, Parameter &)
 {
-    const QRect &rect    = params[0].asRect();
-//    const int frame_rate = params[1].asInt();
-//    if (frame_rate < 1)
-//    {
-//        return false;
-//    }
+    switch (params[0].objectRef())
+    {
+    case ImageRef:
+    {
+        const QImage &image = params[0].asObject<QImage>();
 
-//    int usec_interval = static_cast<int>(10000000.0 * (1.0 / static_cast<double>(frame_rate)) + 0.5);
+        ImageView imageView;
+        imageView.showImage(image);
 
-//    timeval start, last;
-//    gettimeofday(&start, nullptr);
+        return true;
+    }
+    case VideoRef:
+    {
+        const Video &video = params[0].asObject<Video>();
 
-    VideoObject video;
-    video.obj.addFrame(VideoFrame(captureRect(rect)));
+        VideoView videoView;
+        videoView.showVideo(video);
 
-    param.assign(move(video));
-
-    return true;
+        return true;
+    }
+    default:
+        return false;
+    }
 }
 
 ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
-//    ImageObject::ref = tw.createObjectReference();
-//    VideoObject::ref = tw.createObjectReference();
-
-    tw.registerCommand("print", cmdPrint,
-        {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
-
-    tw.registerCommand("select", cmdSelect,
-        {}, Rect);
+    tw.registerObject<QImage>("Image");
+    tw.registerObject<Video>("Video");
 
     tw.registerCommand("capture", cmdCapture,
-        {{Empty, Rect}}, {Object, ImageObject::ref});
-
-    tw.registerCommand("view", cmdView,
-        {{{Object, ImageObject::ref}}}, Empty);
-
-    tw.registerCommand("now", cmdNow,
-        {}, DateTime);
+        {{Empty, Rect}}, ImageRef);
 
     tw.registerCommand("msecsbetween", cmdMsecsBetween,
         {{DateTime}, {DateTime}}, Int);
 
+    tw.registerCommand("now", cmdNow,
+        {}, DateTime);
+
+    tw.registerCommand("print", cmdPrint,
+        {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
+
+    tw.registerCommand("record", cmdRecord,
+        {{Empty, Rect}, {Int}}, VideoRef);
+
+    tw.registerCommand("select", cmdSelect,
+        {}, Rect);
+
+    tw.registerCommand("sleep", cmdSleep,
+        {{Int, Float}}, Empty);
+
     tw.registerCommand("str", cmdStr,
         {{String, Int, Float, Boolean, Point, Rect, DateTime}}, String);
 
-    tw.registerCommand("record", cmdRecord,
-        {{Empty, Rect}, {Int}}, {Object, VideoObject::ref});
+    tw.registerCommand("view", cmdView,
+        {{ImageRef, VideoRef}}, Empty);
 
-    pengine = this;
+    engine = this;
 }

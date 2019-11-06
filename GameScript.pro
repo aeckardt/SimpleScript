@@ -30,34 +30,52 @@ SOURCES += \
     image/video.cpp \
     main.cpp \
     mainwindow.cpp \
-    image/screenshot.cpp \
+    hotkey/qhotkey.cpp \
     imageView/ImageView.cpp \
     script/engine.cpp \
     script/highlighter.cpp \
     script/parser.cpp \
     script/tokenizer.cpp \
     script/treewalker.cpp \
-    selectFrame/SelectFrameWidget.cpp
+    selectFrame/SelectFrameWidget.cpp \
+    videoView/VideoView.cpp
 
 HEADERS += \
     image/video.h \
     mainwindow.h \
-    script/highlighter.h \
-    script/tokenizer.h \
     ui_mainwindow.h \
+    hotkey/qhotkey.h \
+    hotkey/qhotkey_p.h \
     image/screenshot.h \
     imageView/ImageView.h \
     script/engine.h \
+    script/highlighter.h \
     script/parser.h \
+    script/tokenizer.h \
     script/treewalker.h \
     selectFrame/SelectFrameWidget.h \
-    utils/measuretime.h
+    videoView/VideoView.h
 
 INCLUDEPATH += \
     /usr/local/include
 
-LIBS += \
-    -framework ApplicationServices
+win32 {
+    SOURCES += \
+        hotkey/qhotkey_win.cpp \
+        image/screenshot_win.cpp
+
+    LIBS += \
+        -lgdi32
+}
+macx {
+    SOURCES += \
+        hotkey/qhotkey_mac.cpp \
+        image/screenshot_mac.cpp
+
+    LIBS += \
+        -framework ApplicationServices \
+        -framework Carbon
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

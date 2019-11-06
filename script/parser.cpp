@@ -17,7 +17,7 @@ static const std::map<TokenId, std::string> token_desc = {
 inline Node &Parser::addNode(Node &parent, ParserRule rule)
 {
     parent.children.push_back(Node());
-    Node &child = *parent.children.rbegin();
+    Node &child = parent.children.back();
     child.rule = rule;
     return child;
 }
@@ -160,11 +160,11 @@ void Parser::parseExpr(Node &node)
             isExpression = true;
             if (stack.size() > 0)
             {
-                while (stack.size() > 0 && ((stack.rbegin()->param.id() != LeftParen) &&
-                       (precedence.at(stack.rbegin()->param.id())  > precedence.at(it_node.param.id()) ||
-                       (precedence.at(stack.rbegin()->param.id()) == precedence.at(it_node.param.id()) && assoc_left.at(it_node.param.id())))))
+                while (stack.size() > 0 && ((stack.back().param.id() != LeftParen) &&
+                       (precedence.at(stack.back().param.id())  > precedence.at(it_node.param.id()) ||
+                       (precedence.at(stack.back().param.id()) == precedence.at(it_node.param.id()) && assoc_left.at(it_node.param.id())))))
                 {
-                    temp_node.children.push_back(*stack.rbegin());
+                    temp_node.children.push_back(stack.back());
                     stack.pop_back();
                 }
             }
@@ -181,13 +181,13 @@ void Parser::parseExpr(Node &node)
         {
             if (lvl == 0)
                 break;
-            while (stack.size() > 0 && stack.rbegin()->param.id() != LeftParen)
+            while (stack.size() > 0 && stack.back().param.id() != LeftParen)
             {
-                temp_node.children.push_back(*stack.rbegin());
+                temp_node.children.push_back(stack.back());
                 stack.pop_back();
             }
 
-            if (stack.size() > 0 && stack.rbegin()->param.id() == LeftParen)
+            if (stack.size() > 0 && stack.back().param.id() == LeftParen)
             {
                 stack.pop_back();
                 --lvl;
@@ -203,7 +203,7 @@ void Parser::parseExpr(Node &node)
 
     while (stack.size() > 0)
     {
-        temp_node.children.push_back(*stack.rbegin());
+        temp_node.children.push_back(stack.back());
         stack.pop_back();
     }
 

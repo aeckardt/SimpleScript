@@ -65,11 +65,9 @@ class ScalableImage : public QWidget
     Q_OBJECT
 
 public:
-    ScalableImage(QWidget *parent = nullptr);
+    ScalableImage(QWidget *parent = nullptr) : QWidget(parent) {}
 
-    void setPixmap(const QPixmap &pixmap);
-    void resize(const QSize &);
-
+    void setPixmap(QPixmap &&pixmap) { _pixmap = std::move(pixmap); resize(_pixmap.size()); }
     const QPixmap *pixmap() const { return &_pixmap; }
 
 protected:

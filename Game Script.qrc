@@ -4,5 +4,6 @@
         <file>resources/Zoom_Out.png</file>
         <file>resources/Zoom_In.png</file>
         <file>resources/Zoom_Actual_Size.png</file>
+        <file>resources/Play.png</file>
     </qresource>
 </RCC>

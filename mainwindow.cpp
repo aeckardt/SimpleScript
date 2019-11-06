@@ -3,6 +3,7 @@
 #include "qscrollbar.h"
 
 #include <QtWidgets>
+#include "hotkey/qhotkey.h"
 #include "script/highlighter.h"
 
 #include <sstream>
@@ -54,6 +55,10 @@ MainWindow::MainWindow(QWidget *parent) :
     highlighter = new SyntaxHighlighter(main_ui->textEdit->document());
 
     ui->textEdit->setFocus();
+
+    QHotkey *hotkey = new QHotkey(QKeySequence("Ctrl+."), true, this);
+//    connect(hotkey, &QHotkey::activated, this, &MainWindow::clearLog);
+    connect(hotkey, SIGNAL(activated()), this, SLOT(clearLog()));
 }
 
 MainWindow::~MainWindow()
@@ -141,8 +146,21 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 "# Record selected region\n"
                 "\n"
                 "rect=select()\n"
-                "video=record(rect, 1)\n"
-                "showvid(video)");
+                "video=record(rect, 20)\n"
+                "view(video)");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
+        }
+        else if (event->key() == Qt::Key_6)
+        {
+            ui->textEdit->setText(
+                "# Sleep test\n"
+                "\n"
+                "a = now()\n"
+                "sleep(130)\n"
+                "b = now()\n"
+                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms.\")");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);

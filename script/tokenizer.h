@@ -7,6 +7,9 @@
 namespace tn
 {
 
+using std::list;
+using std::string;
+
 enum TokenId : uint32_t
 {
     Term,
@@ -46,7 +49,7 @@ inline bool isOperator(const TokenId &id) { return (id >= Plus && id <= SlashEqu
 // isExprToken is equivalent to id is in {Term, Integer, Float, String, LeftParen, RightParen, EqualEqual, NotEqual, Plus, Minus, Star, Slash}
 inline bool isExprToken(const TokenId &id) { return isOperator(id) || (id >= Term && id <= RightParen); }
 
-typedef std::string::const_iterator token_pos;
+typedef string::const_iterator token_pos;
 
 struct Token
 {
@@ -59,24 +62,24 @@ struct Line
 {
     uint32_t index;
     uint32_t indent_level;
-    std::list<Token> tokens;
+    list<Token> tokens;
 };
 
-typedef std::list<Line> TokenList;
+typedef list<Line> TokenList;
 typedef TokenList::const_iterator line_pos;
 
 class Tokenizer
 {
 public:
-    void run(const std::string &context, TokenList &tokens);
+    void run(const string &context, TokenList &tokens);
 
-    const std::string &getLastError() const { return error_msg; }
+    const string &getLastError() const { return error_msg; }
 
 private:
-    std::string error_msg;
-    std::list<Line>::reverse_iterator line;
+    string error_msg;
+    list<Line>::reverse_iterator line;
 
-    void pushError(const std::string &msg);
+    void pushError(const string &msg);
 
     void readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs);
     void readName(token_pos &it, const token_pos &end, Token &token);
