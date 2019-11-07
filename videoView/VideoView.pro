@@ -6,17 +6,18 @@ SOURCES += \
     ../hotkey/qhotkey.cpp \
     ../image/video.cpp
 
-win {
+win32 {
     SOURCES += \
-        ../image/screenshot_win.cpp
+        ../image/screenshot_win.cpp \
+        ../hotkey/qhotkey_win.cpp
 
     LIBS += \
         -lgdi32
 }
 macx {
     SOURCES += \
-        ../hotkey/qhotkey_mac.cpp \
-        ../image/screenshot_mac.cpp
+        ../image/screenshot_mac.cpp \
+        ../hotkey/qhotkey_mac.cpp
 
     LIBS += \
         -framework ApplicationServices \
