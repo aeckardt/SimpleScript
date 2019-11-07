@@ -8,6 +8,52 @@
 
 #include "screenshot.h"
 
+bool _captureRect(const QRect &rect, QImage::Format format, char *&data, HBITMAP &hbmp, int &image_size)
+{
+    if (rect.width() < 1 || rect.height() < 1 ||
+        (format != QImage::Format_RGB888 && format != QImage::Format_RGB32)) {
+        return false;
+    }
+
+    HDC hScreenDC = GetDC(nullptr);
+    HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+
+    int bytes_per_line = 0;
+
+    BITMAPINFOHEADER bih;
+    memset(&bih, 0, sizeof(BITMAPINFOHEADER));
+    bih.biWidth = rect.width();
+    bih.biHeight = -rect.height(); // force top-down
+    bih.biSize = sizeof(BITMAPINFOHEADER);
+    bih.biPlanes = 1;
+
+    if (format == QImage::Format_RGB888) {
+        bytes_per_line = ((rect.width() * 3) + 3) & 0xfffffc;
+        bih.biBitCount = 24;
+    }
+    else if (format == QImage::Format_RGB32) {
+        bytes_per_line = rect.width() * 4;
+        bih.biBitCount = 32;
+    }
+    else {
+        return false;
+    }
+
+    bih.biSizeImage = static_cast<DWORD>(rect.height() * bytes_per_line);
+    image_size = bih.biSizeImage;
+
+    hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&data), nullptr, 0);
+
+    HGDIOBJ hOldObj = SelectObject(hMemoryDC, static_cast<HGDIOBJ>(hbmp));
+    BitBlt(hMemoryDC, 0, 0, rect.width(), rect.height(), hScreenDC, rect.x(), rect.y(), SRCCOPY | CAPTUREBLT);
+    SelectObject(hMemoryDC, hOldObj);
+
+    DeleteDC(hMemoryDC);
+    ReleaseDC(nullptr, hScreenDC);
+
+    return true;
+}
+
 QImage captureDesktop(QImage::Format format)
 {
     HDC hScreenDC = GetDC(nullptr);
@@ -20,52 +66,32 @@ QImage captureDesktop(QImage::Format format)
 
 QImage captureRect(const QRect &rect, QImage::Format format)
 {
-    int width = rect.width();
-    int height = rect.height();
+    char *data;
+    HBITMAP hbmp;
+    int image_size;
 
-    if (width < 1 || height < 1 || (format != QImage::Format_RGB888 && format != QImage::Format_RGB32))
-    {
+    if (!_captureRect(rect, format, data, hbmp, image_size)) {
         return QImage();
     }
 
-    HDC hScreenDC = GetDC(nullptr);
-    HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+    return QImage(reinterpret_cast<uchar *>(data), rect.width(), rect.height(), format, [](void *hbmp) { DeleteObject(hbmp); }, hbmp);
+}
 
-    int bytes_per_line = 0;
-
-    BITMAPINFOHEADER bih;
-    memset(&bih, 0, sizeof(BITMAPINFOHEADER));
-    bih.biWidth = width;
-    bih.biHeight = -height; // force top-down
-    bih.biSize = sizeof(BITMAPINFOHEADER);
-    bih.biPlanes = 1;
-
-    if (format == QImage::Format_RGB888)
-    {
-        bytes_per_line = ((width * 3) + 3) & 0xfffffc;
-        bih.biBitCount = 24;
-    }
-    else if (format == QImage::Format_RGB32)
-    {
-        bytes_per_line = width * 4;
-        bih.biBitCount = 32;
-    }
-
-    bih.biSizeImage = static_cast<DWORD>(height * bytes_per_line);
-
+QByteArray captureRectCompressed(const QRect &rect, QImage::Format format)
+{
+    char *data;
     HBITMAP hbmp;
-    uchar *bits;
+    int image_size;
 
-    hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&bits), nullptr, 0);
+    if (!_captureRect(rect, format, data, hbmp, image_size)) {
+        return QByteArray();
+    }
 
-    HGDIOBJ hOldObj = SelectObject(hMemoryDC, static_cast<HGDIOBJ>(hbmp));
-    BitBlt(hMemoryDC, 0, 0, width, height, hScreenDC, rect.x(), rect.y(), SRCCOPY | CAPTUREBLT);
-    SelectObject(hMemoryDC, hOldObj);
+    QByteArray byteArray = qCompress(reinterpret_cast<uchar *>(data), static_cast<int>(image_size), 1);
 
-    DeleteDC(hMemoryDC);
-    ReleaseDC(nullptr, hScreenDC);
+    DeleteObject(hbmp);
 
-    return QImage(bits, width, height, format, [](void *hbmp) { DeleteObject(hbmp); }, hbmp);
+    return byteArray;
 }
 
 #endif
