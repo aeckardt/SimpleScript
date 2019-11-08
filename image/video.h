@@ -2,13 +2,17 @@
 #define VIDEO_H
 
 #include <vector>
-#include <sys/time.h>
 
-#include <QEventLoop>
+#include <QObject>
 #include <QImage>
+#include <QThread>
 #include <QTimer>
-#include <QString>
 #include <QElapsedTimer>
+#include <QEventLoop>
+
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 #include "hotkey/qhotkey.h"
 
@@ -83,19 +87,30 @@ private:
     std::vector<VideoFrame> frames;
 };
 
+class CompressionWorker : public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void compressFrame(VideoFrame &frame) { frame.compress(); }
+};
+
 class Recorder : public QObject
 {
     Q_OBJECT
+    QThread compressThread;
 
 public:
     explicit Recorder(Video &video_ref, int frame_rate) : Recorder(QRect(), video_ref, frame_rate) {}
     explicit Recorder(const QRect &rect, Video &video_ref, int frame_rate);
+    ~Recorder() override;
 
     void setHotkey(const QString &keySequence) { hotkey.setShortcut(QKeySequence(keySequence)); }
 
     void exec();
 
 signals:
+    void compress(VideoFrame &);
 
 public slots:
     void hotkeyPressed();
@@ -106,6 +121,7 @@ private:
     Video *video;
     int frame_rate;
     int interval; // in milliseconds
+    int last_compressed_frame;
 
     QEventLoop loop;
     QTimer timer;

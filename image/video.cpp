@@ -191,10 +191,16 @@ bool Video::save(const QString &str) const
 }
 
 Recorder::Recorder(const QRect &rect, Video &video_ref, int frame_rate)
-    : QObject(nullptr), rect(rect), video(&video_ref), frame_rate(frame_rate), hotkey(QKeySequence("Ctrl+."), false)
+    : QObject(nullptr), rect(rect), video(&video_ref), frame_rate(frame_rate),
+      last_compressed_frame(-1), hotkey(QKeySequence("Ctrl+."), false)
 {
-    QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(timeout()));
-    QObject::connect(&hotkey, SIGNAL(activated()), this, SLOT(hotkeyPressed()));
+    connect(&timer, &QTimer::timeout, this, &Recorder::timeout);
+    connect(&hotkey, &QHotkey::activated, this, &Recorder::hotkeyPressed);
+
+    CompressionWorker *worker = new CompressionWorker;
+    worker->moveToThread(&compressThread);
+    connect(&compressThread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(this, &Recorder::compress, worker, &CompressionWorker::compressFrame);
 
     if (frame_rate > 0 && frame_rate <= 30)
         interval = 1000 / frame_rate;
@@ -204,8 +210,14 @@ Recorder::Recorder(const QRect &rect, Video &video_ref, int frame_rate)
         interval = 30;
 }
 
+Recorder::~Recorder()
+{
+    compressThread.wait();
+}
+
 void Recorder::hotkeyPressed()
 {
+    compressThread.quit();
     timer.stop();
     hotkey.setRegistered(false);
     loop.quit();
@@ -213,15 +225,20 @@ void Recorder::hotkeyPressed()
 
 void Recorder::timeout()
 {
-    if (rect.size() == QSize(0, 0))
+    if (rect.size() == QSize(0, 0)) {
         video->addFrame(VideoFrame(captureDesktop(), elapsed_timer.elapsed()));
-    else
+    }
+    else {
         video->addFrame(VideoFrame(captureRect(rect), elapsed_timer.elapsed()));
+    }
+    compress(video->frame(video->size() - 1));
 }
 
 void Recorder::exec()
 {
     elapsed_timer.start();
+
+    compressThread.start();
 
     timeout();
 

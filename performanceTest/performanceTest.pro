@@ -1,4 +1,4 @@
-QT += core gui
+QT += core gui widgets
 
 TARGET = performanceTest
 TEMPLATE = app
@@ -20,11 +20,32 @@ CONFIG += \
 
 SOURCES += \
     main.cpp \
-    ../image/screenshot.cpp
+    ../image/video.cpp \
+    ../hotkey/qhotkey.cpp
 
 HEADERS += \
     ../image/screenshot.h \
-    ../utils/measuretime.h
+    ../image/video.h \
+    ../hotkey/qhotkey.h \
+    ../hotkey/qhotkey_p.h
 
-LIBS += \
-    -framework ApplicationServices
+INCLUDEPATH += \
+    ..
+
+win32 {
+    SOURCES += \
+        ../image/screenshot_win.cpp \
+        ../hotkey/qhotkey_win.cpp
+
+    LIBS += \
+        -lgdi32
+}
+macx {
+    SOURCES += \
+        ../image/screenshot_mac.cpp \
+        ../hotkey/qhotkey_mac.cpp
+
+    LIBS += \
+        -framework ApplicationServices \
+        -framework Carbon
+}
