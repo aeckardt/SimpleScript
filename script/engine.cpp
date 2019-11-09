@@ -111,7 +111,11 @@ bool cmdSleep(const ParameterList &params, Parameter &)
         break;
     }
 
-    QThread::msleep(msec);
+    QTimer timer;
+    QEventLoop loop;
+
+    timer.singleShot(msec, &loop, &QEventLoop::quit);
+    loop.exec();
 
     return true;
 }
