@@ -77,21 +77,4 @@ QImage captureRect(const QRect &rect, QImage::Format format)
     return QImage(reinterpret_cast<uchar *>(data), rect.width(), rect.height(), format, [](void *hbmp) { DeleteObject(hbmp); }, hbmp);
 }
 
-QByteArray captureRectCompressed(const QRect &rect, QImage::Format format)
-{
-    char *data;
-    HBITMAP hbmp;
-    int image_size;
-
-    if (!_captureRect(rect, format, data, hbmp, image_size)) {
-        return QByteArray();
-    }
-
-    QByteArray byteArray = qCompress(reinterpret_cast<uchar *>(data), static_cast<int>(image_size), 1);
-
-    DeleteObject(hbmp);
-
-    return byteArray;
-}
-
 #endif

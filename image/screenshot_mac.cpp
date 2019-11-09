@@ -90,37 +90,4 @@ QImage captureRect(const QRect &rect, QImage::Format format)
     return img;
 }
 
-QByteArray captureRectCompressed(const QRect &rect, QImage::Format format)
-{
-    if (format != QImage::Format_RGB32)
-        return QByteArray();
-
-    CGDirectDisplayID main_display = CGMainDisplayID();
-    CGImageRef image_ref = CGDisplayCreateImageForRect(main_display, CGRectMake(rect.x(), rect.y(), rect.width(), rect.height()));
-
-    size_t width = CGImageGetWidth(image_ref);
-    size_t height = CGImageGetHeight(image_ref);
-
-    if (width == 0 || height == 0)
-        return QByteArray();
-
-    CGDataProviderRef provider = CGImageGetDataProvider(image_ref);
-    CFDataRef dataref = CGDataProviderCopyData(provider);
-
-    size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
-    if (bpp != 4)
-    {
-        CFRelease(dataref);
-        CGImageRelease(image_ref);
-        return QByteArray();
-    }
-
-    QByteArray byte_array = qCompress(CFDataGetBytePtr(dataref), static_cast<int>(width * height * 4), 1);
-
-    CFRelease(dataref);
-    CGImageRelease(image_ref);
-
-    return byte_array;
-}
-
 #endif

@@ -9,16 +9,13 @@ VideoFrame::VideoFrame(const VideoFrame &src)
 {
     if (src.img != nullptr) {
         img = new QImage(*src.img);
-        byte_array = nullptr;
-        _size = nullptr;
-    } else if (src.byte_array != nullptr && src._size != nullptr) {
+        compressed_data = nullptr;
+    } else if (src.compressed_data != nullptr) {
         img = nullptr;
-        byte_array = new QByteArray(*src.byte_array);
-        _size = new QSize(*src._size);
+        compressed_data = new CompressedData(*src.compressed_data);
     } else {
         img = nullptr;
-        byte_array = nullptr;
-        _size = nullptr;
+        compressed_data = nullptr;
     }
     ms = src.ms;
 }
@@ -27,16 +24,13 @@ VideoFrame::VideoFrame(VideoFrame &&src)
 {
     if (src.img != nullptr) {
         img = new QImage(std::move(*src.img));
-        byte_array = nullptr;
-        _size = nullptr;
-    } else if (src.byte_array != nullptr && src._size != nullptr) {
+        compressed_data = nullptr;
+    } else if (src.compressed_data != nullptr) {
         img = nullptr;
-        byte_array = new QByteArray(std::move(*src.byte_array));
-        _size = new QSize(std::move(*src._size));
+        compressed_data = new CompressedData(std::move(*src.compressed_data));
     } else {
         img = nullptr;
-        byte_array = nullptr;
-        _size = nullptr;
+        compressed_data = nullptr;
     }
     ms = src.ms;
 }
@@ -46,12 +40,8 @@ void VideoFrame::clear()
     if (img != nullptr) {
         delete img;
     }
-    if (byte_array != nullptr) {
-        delete byte_array;
-    }
-    if (_size != nullptr)
-    {
-        delete _size;
+    if (compressed_data != nullptr) {
+        delete compressed_data;
     }
 }
 
@@ -61,11 +51,8 @@ VideoFrame &VideoFrame::operator=(const VideoFrame &src)
 
     if (src.img != nullptr) {
         img = new QImage(*src.img);
-    }
-    else if (src.byte_array != nullptr)
-    {
-        byte_array = new QByteArray(*src.byte_array);
-        _size = new QSize(*src._size);
+    } else if (src.compressed_data != nullptr) {
+        compressed_data = new CompressedData(*src.compressed_data);
     }
     ms = src.ms;
 
@@ -78,17 +65,14 @@ void VideoFrame::compress()
         return;
     }
 
-    int byte_size = img->size().width() * img->size().height() * 4;
+    int nbytes  = img->size().width() * img->size().height() * 4;
 
-    if (byte_array != nullptr) {
-        delete byte_array;
+    if (compressed_data != nullptr) {
+        delete compressed_data;
     }
-    byte_array = new QByteArray(qCompress(img->bits(), byte_size, 1));
-
-    if (_size != nullptr) {
-        delete _size;
-    }
-    _size = new QSize(img->size());
+    compressed_data = new CompressedData;
+    compressed_data->byte_array = QByteArray(qCompress(img->bits(), nbytes, 1));
+    compressed_data->size = img->size();
 
     delete img;
     img = nullptr;
@@ -96,20 +80,18 @@ void VideoFrame::compress()
 
 void VideoFrame::decompress()
 {
-    if (byte_array == nullptr) {
+    if (compressed_data == nullptr) {
         return;
     }
 
     if (img != nullptr) {
         delete img;
     }
-    img = new QImage(*_size, QImage::Format_RGB32);
-    img->loadFromData(qUncompress(*byte_array));
+    img = new QImage(compressed_data->size, QImage::Format_RGB32);
+    img->loadFromData(qUncompress(compressed_data->byte_array));
 
-    delete byte_array;
-    byte_array = nullptr;
-    delete _size;
-    _size = nullptr;
+    delete compressed_data;
+    compressed_data = nullptr;
 }
 
 bool Video::load(const QString &str)
@@ -188,64 +170,4 @@ bool Video::save(const QString &str) const
     file.close();
 
     return true;
-}
-
-Recorder::Recorder(const QRect &rect, Video &video_ref, int frame_rate)
-    : QObject(nullptr), rect(rect), video(&video_ref), frame_rate(frame_rate),
-      last_compressed_frame(-1), hotkey(QKeySequence("Ctrl+."), false)
-{
-    connect(&timer, &QTimer::timeout, this, &Recorder::timeout);
-    connect(&hotkey, &QHotkey::activated, this, &Recorder::hotkeyPressed);
-
-    CompressionWorker *worker = new CompressionWorker;
-    worker->moveToThread(&compressThread);
-    connect(&compressThread, &QThread::finished, worker, &QObject::deleteLater);
-    connect(this, &Recorder::compress, worker, &CompressionWorker::compressFrame);
-
-    if (frame_rate > 0 && frame_rate <= 30)
-        interval = 1000 / frame_rate;
-    else if (frame_rate <= 0)
-        interval = 1000;
-    else // if (frame_rate > 30)
-        interval = 30;
-}
-
-Recorder::~Recorder()
-{
-    compressThread.wait();
-}
-
-void Recorder::hotkeyPressed()
-{
-    compressThread.quit();
-    timer.stop();
-    hotkey.setRegistered(false);
-    loop.quit();
-}
-
-void Recorder::timeout()
-{
-    if (rect.size() == QSize(0, 0)) {
-        video->addFrame(VideoFrame(captureDesktop(), elapsed_timer.elapsed()));
-    }
-    else {
-        video->addFrame(VideoFrame(captureRect(rect), elapsed_timer.elapsed()));
-    }
-    compress(video->frame(video->size() - 1));
-}
-
-void Recorder::exec()
-{
-    elapsed_timer.start();
-
-    compressThread.start();
-
-    timeout();
-
-    hotkey.setRegistered(true);
-
-    timer.setInterval(interval);
-    timer.start();
-
-    loop.exec();
 }

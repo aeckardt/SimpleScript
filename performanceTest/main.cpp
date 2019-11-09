@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     QElapsedTimer elapsedTimer;
 
-    int i, iterations = 5000;
+    int i, iterations = 100;
 
 #ifdef USE_CAPTURE_RECTCOMPRESSED
     QRect rect = {0, 0, 1280, 800};

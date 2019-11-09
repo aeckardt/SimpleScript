@@ -3,60 +3,65 @@
 
 #include <vector>
 
-#include <QObject>
 #include <QImage>
-#include <QThread>
-#include <QTimer>
-#include <QElapsedTimer>
-#include <QEventLoop>
-
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
-
-#include "hotkey/qhotkey.h"
+#include <QByteArray>
+#include <QString>
 
 class VideoFrame
 {
 public:
-    VideoFrame() : img(nullptr), byte_array(nullptr), _size(nullptr), ms(0) {}
+    struct CompressedData
+    {
+    public:
+        inline CompressedData() {}
+
+        inline CompressedData(const CompressedData &src)
+        { byte_array = src.byte_array; size = src.size; }
+
+        inline CompressedData(CompressedData &&src)
+        { byte_array = std::move(src.byte_array); size = std::move(src.size); }
+
+        QByteArray byte_array;
+        QSize size;
+    };
+
+    VideoFrame() : img(nullptr), compressed_data(nullptr), ms(0) {}
     VideoFrame(const VideoFrame &src);
     VideoFrame(VideoFrame &&src);
 
-    VideoFrame(const QImage &img, qint64 ms) : byte_array(nullptr), _size(nullptr)
+    VideoFrame(const QImage &img, qint64 ms) : compressed_data(nullptr)
     { this->img = new QImage(img); this->ms = ms; }
 
-    VideoFrame(QImage &&img, qint64 ms) : byte_array(nullptr), _size(nullptr)
+    VideoFrame(QImage &&img, qint64 ms) : compressed_data(nullptr)
     { this->img = new QImage(std::move(img)); this->ms = ms; }
 
-    VideoFrame(const QByteArray &byte_array, const QSize &size, qint64 ms) : img(nullptr)
-    { this->byte_array = new QByteArray(byte_array); this->_size = new QSize(size); this->ms = ms;}
+    VideoFrame(const CompressedData &_cmp, qint64 ms) : img(nullptr)
+    { this->compressed_data = new CompressedData(_cmp); this->ms = ms; }
 
-    VideoFrame(QByteArray &&byte_array, const QSize &size, qint64 ms) : img(nullptr)
-    { this->byte_array = new QByteArray(std::move(byte_array)); this->_size = new QSize(size); this->ms = ms;}
+    VideoFrame(CompressedData &&_cmp, qint64 ms) : img(nullptr)
+    { this->compressed_data = new CompressedData(std::move(_cmp)); this->ms = ms;}
 
-    ~VideoFrame() { clear(); }
+    inline ~VideoFrame() { clear(); }
 
     void clear();
 
-    const QImage &image() const { return *img; }
-    const QByteArray &byteArray() const { return *byte_array; }
-    const QSize &size() const { return *_size; }
+    inline const QImage &image() const { return *img; }
+    inline const CompressedData &compressedData() const { return *compressed_data; }
 
-    qint64 msFromStart() const { return ms; }
+    inline qint64 msFromStart() const { return ms; }
 
-    bool isEmpty() const { return img == nullptr && byte_array == nullptr; }
+    inline bool isEmpty() const { return img == nullptr && compressed_data == nullptr; }
 
     void compress();
     void decompress();
+
+    inline bool isCompressed() const { return img == nullptr && compressed_data != nullptr; }
 
     VideoFrame &operator=(const VideoFrame& src);
 
 private:
     QImage *img;
-
-    QByteArray *byte_array;
-    QSize *_size;
+    CompressedData *compressed_data;
 
     qint64 ms;
 };
@@ -75,7 +80,9 @@ public:
     VideoFrame &frame(size_t index) { return frames[index]; }
     const VideoFrame &frame(size_t index) const { return frames[index]; }
 
-    size_t size() const { return frames.size(); }
+    inline VideoFrame &back() { return frames.back(); }
+    inline size_t size() const { return frames.size(); }
+    inline void clear() { frames.clear(); }
 
     bool load(const QString &str);
     bool save(const QString &str) const;
@@ -85,48 +92,6 @@ public:
 
 private:
     std::vector<VideoFrame> frames;
-};
-
-class CompressionWorker : public QObject
-{
-    Q_OBJECT
-
-public slots:
-    void compressFrame(VideoFrame &frame) { frame.compress(); }
-};
-
-class Recorder : public QObject
-{
-    Q_OBJECT
-    QThread compressThread;
-
-public:
-    explicit Recorder(Video &video_ref, int frame_rate) : Recorder(QRect(), video_ref, frame_rate) {}
-    explicit Recorder(const QRect &rect, Video &video_ref, int frame_rate);
-    ~Recorder() override;
-
-    void setHotkey(const QString &keySequence) { hotkey.setShortcut(QKeySequence(keySequence)); }
-
-    void exec();
-
-signals:
-    void compress(VideoFrame &);
-
-public slots:
-    void hotkeyPressed();
-    void timeout();
-
-private:
-    QRect rect;
-    Video *video;
-    int frame_rate;
-    int interval; // in milliseconds
-    int last_compressed_frame;
-
-    QEventLoop loop;
-    QTimer timer;
-    QHotkey hotkey;
-    QElapsedTimer elapsed_timer;
 };
 
 #endif // VIDEO_H
