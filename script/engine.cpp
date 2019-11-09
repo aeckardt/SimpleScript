@@ -6,6 +6,7 @@ using namespace tw;
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
 #include "image/video.h"
+#include "image/recorder.h"
 #include "imageView/ImageView.h"
 #include "videoView/VideoView.h"
 
@@ -85,8 +86,8 @@ bool cmdRecord(const ParameterList &params, Parameter &param)
 
     engine->mainWindow->hide();
 
-    Recorder recorder(rect, param.createObject<Video>(), frame_rate);
-    recorder.exec();
+    Recorder recorder;
+    recorder.exec(rect, param.createObject<Video>(), frame_rate);
 
     engine->mainWindow->show();
 

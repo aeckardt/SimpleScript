@@ -5,7 +5,7 @@
 
 #include <QMainWindow>
 
-#include "treewalker.h"
+#include "astwalker.h"
 
 class ScriptEngine
 {

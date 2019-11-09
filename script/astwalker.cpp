@@ -1,7 +1,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-#include "treewalker.h"
+#include "astwalker.h"
 
 using tn::TokenList;
 

@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "tokenizer.h"
+#include "lexer.h"
 
 using namespace tn;
 

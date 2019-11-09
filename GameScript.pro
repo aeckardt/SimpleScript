@@ -27,32 +27,34 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
-    image/video.cpp \
     main.cpp \
     mainwindow.cpp \
     hotkey/qhotkey.cpp \
+    image/video.cpp \
+    image/recorder.cpp \
     imageView/ImageView.cpp \
     script/engine.cpp \
     script/highlighter.cpp \
     script/parser.cpp \
-    script/tokenizer.cpp \
-    script/treewalker.cpp \
+    script/lexer.cpp \
+    script/astwalker.cpp \
     selectFrame/SelectFrameWidget.cpp \
     videoView/VideoView.cpp
 
 HEADERS += \
-    image/video.h \
     mainwindow.h \
     ui_mainwindow.h \
     hotkey/qhotkey.h \
     hotkey/qhotkey_p.h \
     image/screenshot.h \
+    image/video.h \
+    image/recorder.h \
     imageView/ImageView.h \
     script/engine.h \
     script/highlighter.h \
     script/parser.h \
-    script/tokenizer.h \
-    script/treewalker.h \
+    script/lexer.h \
+    script/astwalker.h \
     selectFrame/SelectFrameWidget.h \
     videoView/VideoView.h
 

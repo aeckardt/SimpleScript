@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#include "tokenizer.h"
+#include "lexer.h"
 
 namespace ps
 {

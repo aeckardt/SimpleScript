@@ -10,7 +10,7 @@
 #include <QDateTime>
 #include <QBrush>
 
-#include "tokenizer.h"
+#include "lexer.h"
 #include "parser.h"
 
 namespace tw
