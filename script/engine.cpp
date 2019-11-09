@@ -10,9 +10,6 @@ using namespace tw;
 #include "imageView/ImageView.h"
 #include "videoView/VideoView.h"
 
-#include <sys/time.h>
-#include <unistd.h>
-
 static ScriptEngine *engine;
 
 enum : ObjectReference
@@ -50,14 +47,7 @@ bool cmdMsecsBetween(const ParameterList &params, Parameter &param)
 
 bool cmdNow(const ParameterList &, Parameter &param)
 {
-    timeval tv;
-    gettimeofday(&tv, nullptr);
-
-    qint64 msecs = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-
-    QDateTime dt = QDateTime::fromMSecsSinceEpoch(msecs);
-    param.assign(dt);
-
+    param.assign(QDateTime::currentDateTime());
     return true;
 }
 
@@ -111,17 +101,17 @@ bool cmdSleep(const ParameterList &params, Parameter &)
     switch (params[0].type())
     {
     case Int:
-        msec = static_cast<useconds_t>(params[0].asInt() * 1000);
+        msec = static_cast<useconds_t>(params[0].asInt());
         break;
     case Float:
-        msec = static_cast<useconds_t>(params[0].asFloat() * 1000.0);
+        msec = static_cast<useconds_t>(params[0].asFloat());
         break;
     default:
         msec = 0;
         break;
     }
 
-    usleep(msec);
+    QThread::msleep(msec);
 
     return true;
 }
