@@ -68,7 +68,7 @@ struct Line
 typedef list<Line> TokenList;
 typedef TokenList::const_iterator line_pos;
 
-class Tokenizer
+class Lexer
 {
 public:
     void run(const string &context, TokenList &tokens);

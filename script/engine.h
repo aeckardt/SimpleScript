@@ -16,7 +16,7 @@ public:
     void setOutput(const tw::OutputFnc &output) { this->output = output; tw.setErrorOutput(output); }
 
 private:
-    tw::TreeWalker tw;
+    tw::ASTWalker tw;
     tw::OutputFnc output;
     QMainWindow *mainWindow;
 

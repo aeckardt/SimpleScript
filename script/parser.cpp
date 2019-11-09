@@ -90,7 +90,7 @@ inline void Parser::readParam(Node &node)
     }
 }
 
-void Parser::parse(const TokenList &tokens, Node &root)
+void Parser::run(const TokenList &tokens, Node &root)
 {
     error_msg.clear();
 

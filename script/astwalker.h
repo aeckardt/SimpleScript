@@ -16,7 +16,7 @@
 namespace tw
 {
 
-using tn::Tokenizer;
+using tn::Lexer;
 using tn::Token;
 using tn::TokenId;
 
@@ -99,7 +99,7 @@ class Parameter
 public:
     typedef BasicParameterType Type;
 
-    inline Parameter() { value = nullptr; type_ = Empty; isReference = false; }
+    inline Parameter() : type_(Empty), value(nullptr), isReference(false) {}
     inline Parameter(const Parameter &src) : Parameter() { operator=(src); }
     inline Parameter(Parameter &&src) : Parameter() { operator=(move(src)); }
     inline ~Parameter() { clear(); }
@@ -121,7 +121,7 @@ public:
 
     template<class T, class... _Args>
     inline typename ParameterObjectBase<T>::ObjectType &createObject(_Args... __args)
-        { assign(ParameterObjectBase<T>((__args)...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+    { assign(ParameterObjectBase<T>((__args)...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
     const string      &asString() const   { return *static_cast<string*>(value); }
     int32_t            asInt() const;
@@ -132,8 +132,11 @@ public:
     const QDateTime   &asDateTime() const { return *static_cast<QDateTime*>(value); }
 
     template<class T>
-    const T           &asObject() const { return static_cast<ParameterObjectBase<T>*>(value)->obj; }
-    ObjectReference   objectRef() const { return static_cast<ParameterObject*>(value)->objRef(); }
+    const T           &asObject() const
+    { return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+
+    ObjectReference   objectRef() const
+    { return static_cast<ParameterObject*>(value)->objRef(); }
 
     void copyReference(Parameter &dest) const;
 
@@ -162,21 +165,23 @@ struct Command
     ParameterType return_type;
 };
 
-class TreeWalker
+class ASTWalker
 {
 public:
-    TreeWalker() : output_fnc(nullptr) {}
+    ASTWalker() : output_fnc(nullptr) {}
 
     bool run(const string &str);
 
     inline void registerCommand(const string &name, const CommandFnc &callback_fnc,
         const vector<vector<ParameterType>> &param_types, const ParameterType &return_type)
-        { commands[name] = {callback_fnc, param_types, return_type}; }
+    { commands[name] = {callback_fnc, param_types, return_type}; }
 
     template<class T>
-    inline void registerObject(const string &name) { obj_names[ParameterObjectBase<T>::ref] = name; }
+    inline void registerObject(const string &name)
+    { obj_names[ParameterObjectBase<T>::ref] = name; }
 
-    void setErrorOutput(const OutputFnc &fnc) { output_fnc = fnc; }
+    inline void setErrorOutput(const OutputFnc &fnc)
+    { output_fnc = fnc; }
 
 private:
     OutputFnc output_fnc;
@@ -196,7 +201,7 @@ private:
     bool traverseIfStatement(const Node &node);
     bool traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2);
 
-    // the following types, variables and functions are only used to validate the syntax
+    // the following types, variables and functions are exclusively used to validate the syntax
     typedef vector<ParameterType> ParameterTypeList;
 
     map<string, ParameterType> var_types;

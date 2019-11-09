@@ -278,7 +278,7 @@ bool floatEqual(const double &f1, const double &f2)
     return fabs(f1 - f2) < FLOAT_CMP_EPSILON;
 }
 
-inline void TreeWalker::errorMsg(const char *msg) const
+inline void ASTWalker::errorMsg(const char *msg) const
 {
     if (output_fnc != nullptr)
     {
@@ -290,7 +290,7 @@ inline void TreeWalker::errorMsg(const char *msg) const
 
 #define ERROR_MSG(...) { stringstream ss; ss << __VA_ARGS__; errorMsg(ss.str().c_str()); }
 
-Parameter TreeWalker::getConstValue(const Node &node)
+Parameter ASTWalker::getConstValue(const Node &node)
 {
     const string &content = node.param.getText();
     Parameter param;
@@ -316,7 +316,7 @@ Parameter TreeWalker::getConstValue(const Node &node)
     return param;
 }
 
-Parameter::Type TreeWalker::getParamType(const Node &node)
+Parameter::Type ASTWalker::getParamType(const Node &node)
 {
     switch (node.param.id())
     {
@@ -332,22 +332,22 @@ Parameter::Type TreeWalker::getParamType(const Node &node)
     }
 }
 
-bool TreeWalker::run(const string &str)
+bool ASTWalker::run(const string &str)
 {
     TokenList tokens;
-    Tokenizer tokenizer;
-    tokenizer.run(str, tokens);
+    Lexer lexer;
+    lexer.run(str, tokens);
 
-    if (!tokenizer.getLastError().empty())
+    if (!lexer.getLastError().empty())
     {
         errorMsg("Error tokenizing:");
-        errorMsg(tokenizer.getLastError().c_str());
+        errorMsg(lexer.getLastError().c_str());
         return false;
     }
 
     Node ast_root;
     Parser parser;
-    parser.parse(tokens, ast_root);
+    parser.run(tokens, ast_root);
     if (!parser.getLastError().empty())
     {
         errorMsg("Error parsing:");
@@ -372,7 +372,7 @@ bool TreeWalker::run(const string &str)
     return true;
 }
 
-bool TreeWalker::traverse(const Node &node)
+bool ASTWalker::traverse(const Node &node)
 {
     switch (node.rule)
     {
@@ -394,7 +394,7 @@ bool TreeWalker::traverse(const Node &node)
     }
 }
 
-bool TreeWalker::traverseAssignment(const Node &node)
+bool ASTWalker::traverseAssignment(const Node &node)
 {
     const Node &var_node = *node.children.begin();
     const string &var_name = var_node.param.getText();
@@ -421,7 +421,7 @@ bool TreeWalker::traverseAssignment(const Node &node)
     return true;
 }
 
-bool TreeWalker::traverseExpr(const Node &node)
+bool ASTWalker::traverseExpr(const Node &node)
 {
     return_value.clear();
 
@@ -476,7 +476,7 @@ bool TreeWalker::traverseExpr(const Node &node)
     return true;
 }
 
-bool TreeWalker::traverseFunction(const Node &node)
+bool ASTWalker::traverseFunction(const Node &node)
 {
     const string &cmd_name_debug = node.param.getText();
     cmd_name_debug.empty();
@@ -509,7 +509,7 @@ bool TreeWalker::traverseFunction(const Node &node)
     return true;
 }
 
-bool TreeWalker::traverseIfStatement(const Node &node)
+bool ASTWalker::traverseIfStatement(const Node &node)
 {
     // Check expression in if-statement
     ps::tree_pos tp = node.children.begin();
@@ -558,7 +558,7 @@ bool TreeWalker::traverseIfStatement(const Node &node)
     return true;
 }
 
-bool TreeWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
+bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
 {
     switch (op)
     {
@@ -806,7 +806,7 @@ bool TreeWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, c
     }
 }
 
-bool TreeWalker::validate(const Node &node)
+bool ASTWalker::validate(const Node &node)
 {
     switch (node.rule)
     {
@@ -834,7 +834,7 @@ bool TreeWalker::validate(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateAssignment(const Node &node)
+bool ASTWalker::validateAssignment(const Node &node)
 {
     if (node.children.size() < 2)
     {
@@ -881,7 +881,7 @@ bool TreeWalker::validateAssignment(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateCommand(const string &command, const ParameterTypeList &param_types)
+bool ASTWalker::validateCommand(const string &command, const ParameterTypeList &param_types)
 {
     // check if function with that name exists
     if (commands.find(command) == commands.end())
@@ -951,7 +951,7 @@ bool TreeWalker::validateCommand(const string &command, const ParameterTypeList 
     return true;
 }
 
-bool TreeWalker::validateExpr(const Node &node)
+bool ASTWalker::validateExpr(const Node &node)
 {
     if (node.children.size() < 2)
     {
@@ -1023,7 +1023,7 @@ bool TreeWalker::validateExpr(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateFunction(const Node &node)
+bool ASTWalker::validateFunction(const Node &node)
 {
     vector<ParameterType> param_types;
     for (auto const &child : node.children)
@@ -1058,7 +1058,7 @@ bool TreeWalker::validateFunction(const Node &node)
     return validateCommand(cmd_name, param_types);
 }
 
-bool TreeWalker::validateIfStatement(const Node &node)
+bool ASTWalker::validateIfStatement(const Node &node)
 {
     if (node.children.size() < 2 || node.children.size() > 3)
     {
@@ -1086,7 +1086,7 @@ bool TreeWalker::validateIfStatement(const Node &node)
     return true;
 }
 
-bool TreeWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &pt1, const Parameter::Type &pt2)
+bool ASTWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &pt1, const Parameter::Type &pt2)
 {
     switch (op)
     {
@@ -1237,7 +1237,7 @@ bool TreeWalker::validateOperation(const tn::TokenId &op, const Parameter::Type 
     }
 }
 
-inline bool TreeWalker::validateParamType(const Node &node, ParameterTypeList *param_types)
+inline bool ASTWalker::validateParamType(const Node &node, ParameterTypeList *param_types)
 {
     if (!node.param.hasValue())
     {

@@ -71,7 +71,7 @@ typedef list<Node>::const_iterator tree_pos;
 class Parser
 {
 public:
-    void parse(const tn::TokenList &tokens, Node &root);
+    void run(const tn::TokenList &tokens, Node &root);
 
     const string &getLastError() const { return error_msg; }
 
