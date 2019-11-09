@@ -168,7 +168,7 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
 }
 
 #ifdef TEST_THREADING
-void Recorder::record(QRect rect, Video &video, int iterations)
+void Recorder::iterate(QRect rect, Video &video, int iterations)
 {
     this->rect = std::move(rect);
     this->video = &video;
