@@ -74,8 +74,7 @@ void MainWindow::clearLog()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->modifiers() == Qt::ControlModifier)
-    {
+    if (event->modifiers() == Qt::ControlModifier) {
         if (event->key() == Qt::Key_R) {
             run();
         } else if (event->key() == Qt::Key_L) {

@@ -41,19 +41,15 @@ void VideoView::showVideo(const Video &video)
 
 void VideoView::nextFrame()
 {
-    if (play_active)
-    {
+    if (play_active) {
         frameImage->setFrame(currentFrame);
         slider->setValue(currentFrame);
         currentFrame++;
 
-        if (video->size() > currentFrame)
-        {
+        if (video->size() > currentFrame) {
             qint64 msecsToNextFrame = video->frame(currentFrame).msFromStart() - elapsedTimer.elapsed();
             timer.singleShot(msecsToNextFrame, this, &VideoView::nextFrame);
-        }
-        else
-        {
+        } else {
             play_active = false;
             navigationButtons->setPlayActive(play_active);
         }
@@ -64,22 +60,14 @@ void VideoView::play()
 {
     play_active = !play_active;
 
-    if (play_active)
-    {
-        if (video->size() > currentFrame)
-        {
+    if (play_active) {
+        if (video->size() > currentFrame) {
             elapsedTimer.start();
             timer.singleShot(video->frame(0).msFromStart(), this, &VideoView::nextFrame);
-        }
-        else
-        {
+        } else
             play_active = false;
-        }
-    }
-    else
-    {
+    } else
         timer.stop();
-    }
 
     navigationButtons->setPlayActive(play_active);
 }
@@ -143,8 +131,7 @@ void NavigationButtons::paintEvent(QPaintEvent *)
 
 bool NavigationButtons::buttonPressed(const QPoint &pos, ToolButton &toolButton)
 {
-    if (toolButton.enabled && toolButton.rect.contains(pos))
-    {
+    if (toolButton.enabled && toolButton.rect.contains(pos)) {
         toolButton.pressed = true;
         update();
         return true;
@@ -155,13 +142,10 @@ bool NavigationButtons::buttonPressed(const QPoint &pos, ToolButton &toolButton)
 
 void NavigationButtons::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton)
-    {
+    if (event->button() == Qt::LeftButton) {
         QPoint relPos = mapFromGlobal(event->globalPos());
         if (buttonPressed(relPos, play))
-        {
             event->accept();
-        }
     }
 }
 
@@ -169,11 +153,8 @@ void NavigationButtons::mouseReleaseEvent(QMouseEvent *event)
 {
     QPoint relPos = mapFromGlobal(event->globalPos());
     if (play.pressed && play.enabled && play.rect.contains(relPos))
-    {
         parent->play();
-    }
-    if (play.pressed)
-    {
+    if (play.pressed) {
         play.pressed = false;
         update();
         event->accept();

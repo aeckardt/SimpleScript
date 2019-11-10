@@ -79,7 +79,8 @@ class NavigationButtons : public QWidget
 public:
     NavigationButtons(VideoView *parent);
 
-    void setPlayActive(bool active) { if (play.active != active) { play.active = active; update(); } }
+    inline void setPlayActive(bool active)
+    { if (play.active != active) { play.active = active; update(); } }
 
 protected:
     void paintEvent(QPaintEvent *event) override;
