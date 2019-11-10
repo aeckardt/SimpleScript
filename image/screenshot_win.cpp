@@ -21,9 +21,8 @@ QImage captureDesktop(QImage::Format format)
 QImage captureRect(const QRect &rect, QImage::Format format)
 {
     if (rect.width() < 1 || rect.height() < 1 ||
-        (format != QImage::Format_RGB888 && format != QImage::Format_RGB32)) {
+        (format != QImage::Format_RGB888 && format != QImage::Format_RGB32))
         return QImage();
-    }
 
     HDC hScreenDC = GetDC(nullptr);
     HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
@@ -43,9 +42,8 @@ QImage captureRect(const QRect &rect, QImage::Format format)
     } else if (format == QImage::Format_RGB32) {
         bytes_per_line = rect.width() * 4;
         bih.biBitCount = 32;
-    } else {
+    } else
         return QImage();
-    }
 
     bih.biSizeImage = static_cast<DWORD>(rect.height() * bytes_per_line);
 

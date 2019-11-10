@@ -22,9 +22,9 @@ template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &params, Parameter &param)
 {
-    if (params.empty()) {
+    if (params.empty())
         param.createObject<QImage>(captureDesktop());
-    } else {
+    else {
         const QRect &rect = params[0].asRect();
         param.createObject<QImage>(captureRect(rect));
     }

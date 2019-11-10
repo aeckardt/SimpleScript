@@ -72,19 +72,18 @@ void ImageView::showImage(const QImage &image)
 void ImageView::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
-        if (event->key() == Qt::Key_W) {
+        if (event->key() == Qt::Key_W)
             close(); // Close when Ctrl+W is pressed
-        } else if (event->key() == Qt::Key_C) {
+        else if (event->key() == Qt::Key_C)
             copy();
-        } else if (event->key() == Qt::Key_Plus  && scaleFactor < 8.0) {
+        else if (event->key() == Qt::Key_Plus  && scaleFactor < 8.0)
             zoomIn();
-        } else if (event->key() == Qt::Key_Minus && scaleFactor > 0.125) {
+        else if (event->key() == Qt::Key_Minus && scaleFactor > 0.125)
             zoomOut();
-        } else if (event->key() == Qt::Key_F) {
+        else if (event->key() == Qt::Key_F)
             fitToWindow();
-        } else if (event->key() == Qt::Key_A) {
+        else if (event->key() == Qt::Key_A)
             actualSize();
-        }
     }
 }
 
@@ -121,9 +120,8 @@ void ImageView::actualSize()
 
 void ImageView::comboBoxChange()
 {
-    if (scaleStr == scaleEdit->text()) {
+    if (scaleStr == scaleEdit->text())
         return;
-    }
 
     switch (scaleComboBox->currentIndex()) {
     case 0:
@@ -157,9 +155,8 @@ void ImageView::lineEditReturn()
     double newScaleFactor;
     sscanf(scaleEdit->text().toUtf8(), "%lf%%", &newScaleFactor);
     newScaleFactor /= 100.0;
-    if (newScaleFactor >= 0.01 && newScaleFactor <= 100.0) {
+    if (newScaleFactor >= 0.01 && newScaleFactor <= 100.0)
         scaleImage(newScaleFactor / scaleFactor);
-    }
 }
 
 void ImageView::scaleImage(double factor)
@@ -176,11 +173,10 @@ void ImageView::scaleImage(double factor)
     zoomToolButtons->setZoomInEnabled(scaleFactor < 8.0);
     zoomToolButtons->setZoomOutEnabled(scaleFactor > 0.126);
 
-    if (fabs(scaleFactor * 100.0 - static_cast<double>(static_cast<int>(scaleFactor * 100.0 + 0.5))) < 0.0999) {
+    if (fabs(scaleFactor * 100.0 - static_cast<double>(static_cast<int>(scaleFactor * 100.0 + 0.5))) < 0.0999)
         scaleStr.sprintf("%d%%", static_cast<int>(scaleFactor * 100.0 + 0.1));
-    } else {
+    else
         scaleStr.sprintf("%.1f%%", scaleFactor * 100.0);
-    }
     scaleEdit->setText(scaleStr);
 
     if (scaleStr == "12.5%") {
@@ -258,8 +254,7 @@ ZoomToolButtons::ZoomToolButtons(ImageView *parent)
 
 bool ZoomToolButtons::event(QEvent *event)
 {
-    if (event->type() == QEvent::ToolTip)
-    {
+    if (event->type() == QEvent::ToolTip) {
         QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
         if (zoomIn.rect.contains(helpEvent->pos()))
             QToolTip::showText(helpEvent->globalPos(), "Zoom In");
@@ -328,10 +323,9 @@ void ZoomToolButtons::mousePressEvent(QMouseEvent *event)
         if (buttonPressed(relPos, zoomOut) ||
             buttonPressed(relPos, zoomIn)  ||
             buttonPressed(relPos, zoomToFit) ||
-            buttonPressed(relPos, zoomActualSize)) {
+            buttonPressed(relPos, zoomActualSize))
 
             event->accept();
-        }
     }
 }
 
@@ -379,9 +373,9 @@ bool LabelEventFilter::eventFilter(QObject *watched, QEvent *event)
             if (mouseEvent->button() == Qt::LeftButton) {
                 QPoint movePt = mouseEvent->globalPos() - parent->frameGeometry().topLeft() - dragPosition;
                 parent->scrollArea->horizontalScrollBar()->setValue(
-                            parent->scrollArea->horizontalScrollBar()->value() - movePt.x());
+                    parent->scrollArea->horizontalScrollBar()->value() - movePt.x());
                 parent->scrollArea->verticalScrollBar()->setValue(
-                            parent->scrollArea->verticalScrollBar()->value() - movePt.y());
+                    parent->scrollArea->verticalScrollBar()->value() - movePt.y());
                 event->accept();
                 dragPosition = mouseEvent->globalPos() - parent->frameGeometry().topLeft();
             }
@@ -390,7 +384,6 @@ bool LabelEventFilter::eventFilter(QObject *watched, QEvent *event)
             event->accept();
         }
         return true;
-    } else {
+    } else
         return QObject::eventFilter(watched, event);
-    }
 }

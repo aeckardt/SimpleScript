@@ -104,11 +104,10 @@ void SelectFrameWidget::parentMouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton) {
         if (dragMode == CreateFrame) {
             endPosition = event->globalPos() - menuPosition;
-            if (endPosition.y() < 0) {
+            if (endPosition.y() < 0)
                 endPosition.setY(0);
-            } else if (endPosition.y() > frameGeometry().height()) {
+            else if (endPosition.y() > frameGeometry().height())
                 endPosition.setY(frameGeometry().height());
-            }
         } else if (dragMode == MoveFrame) {
             QPoint size = endPosition - startPosition;
             QPoint diff = QPoint(event->globalPos() - dragPosition);
@@ -116,11 +115,10 @@ void SelectFrameWidget::parentMouseMoveEvent(QMouseEvent *event)
             endPosition   = diff + size;
         } else if (dragMode == ResizeFrame) {
             startPosition = event->globalPos() - menuPosition;
-            if (startPosition.y() < 0) {
+            if (startPosition.y() < 0)
                 startPosition.setY(0);
-            } else if (startPosition.y() > frameGeometry().height()) {
+            else if (startPosition.y() > frameGeometry().height())
                 startPosition.setY(frameGeometry().height());
-            }
         }
         event->accept();
         resizeEvent(nullptr);
