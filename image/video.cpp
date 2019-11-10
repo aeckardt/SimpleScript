@@ -39,9 +39,11 @@ void VideoFrame::clear()
 {
     if (img != nullptr) {
         delete img;
+        img = nullptr;
     }
     if (compressed_data != nullptr) {
         delete compressed_data;
+        compressed_data = nullptr;
     }
 }
 
@@ -49,11 +51,11 @@ VideoFrame &VideoFrame::operator=(const VideoFrame &src)
 {
     clear();
 
-    if (src.img != nullptr) {
+    if (src.img != nullptr)
         img = new QImage(*src.img);
-    } else if (src.compressed_data != nullptr) {
+    else if (src.compressed_data != nullptr)
         compressed_data = new CompressedData(*src.compressed_data);
-    }
+
     ms = src.ms;
 
     return *this;
@@ -61,15 +63,14 @@ VideoFrame &VideoFrame::operator=(const VideoFrame &src)
 
 void VideoFrame::compress()
 {
-    if (img == nullptr) {
+    if (img == nullptr)
         return;
-    }
 
     int nbytes  = img->size().width() * img->size().height() * 4;
 
-    if (compressed_data != nullptr) {
+    if (compressed_data != nullptr)
         delete compressed_data;
-    }
+
     compressed_data = new CompressedData;
     compressed_data->byte_array = QByteArray(qCompress(img->bits(), nbytes, 1));
     compressed_data->size = img->size();
@@ -80,13 +81,12 @@ void VideoFrame::compress()
 
 void VideoFrame::decompress()
 {
-    if (compressed_data == nullptr) {
+    if (compressed_data == nullptr)
         return;
-    }
 
-    if (img != nullptr) {
+    if (img != nullptr)
         delete img;
-    }
+
     img = new QImage(compressed_data->size, QImage::Format_RGB32);
     img->loadFromData(qUncompress(compressed_data->byte_array));
 
@@ -94,11 +94,11 @@ void VideoFrame::decompress()
     compressed_data = nullptr;
 }
 
-bool Video::load(const QString &str)
+bool Video::load(const QString &fileName)
 {
     frames.clear();
 
-    QFile file(str);
+    QFile file(fileName);
     file.open(QIODevice::ReadOnly);
 
     QByteArray ba;
@@ -129,11 +129,11 @@ bool Video::load(const QString &str)
     return true;
 }
 
-bool Video::save(const QString &str) const
+bool Video::save(const QString &fileName) const
 {
     QByteArray ba;
     QBuffer buffer(&ba);
-    QFile file(str);
+    QFile file(fileName);
 
     buffer.open(QIODevice::WriteOnly);
     file.open(QIODevice::WriteOnly);

@@ -4,7 +4,7 @@
 
 #define ASSERT(expr) { expr; if (!error_msg.empty()) return; }
 
-using namespace tn;
+using namespace lx;
 using namespace ps;
 
 static const std::map<TokenId, std::string> token_desc = {

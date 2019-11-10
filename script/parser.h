@@ -11,11 +11,6 @@
 namespace ps
 {
 
-using std::list;
-using std::string;
-using std::stringstream;
-using std::vector;
-
 enum ParserRule : uint32_t
 {
     Section,
@@ -28,7 +23,7 @@ enum ParserRule : uint32_t
     Expr,
 };
 
-typedef list<tn::Token>::const_iterator token_index;
+typedef std::list<lx::Token>::const_iterator token_index;
 
 class Token
 {
@@ -37,14 +32,14 @@ public:
     inline Token(const token_index &v) { isValid = true; val = v; }
 
     inline bool hasValue() const { return isValid; }
-    inline const tn::TokenId &id() const { return val->id; }
+    inline const lx::TokenId &id() const { return val->id; }
 
     inline Token &operator++() { ++val; return *this; }
     inline Token operator++(int) { return val++; }
     inline Token &operator--() { --val; return *this; }
     inline Token operator--(int) { return val--; }
     inline Token &operator=(const token_index &val) { this->val = val; isValid = true; return *this; }
-    inline const string getText() const { return string(val->begin, val->end); }
+    inline const std::string getText() const { return std::string(val->begin, val->end); }
 
 private:
     token_index val;
@@ -63,34 +58,34 @@ inline bool operator!=(const Token &np1, const Token &np2)
 struct Node
 {
     ParserRule rule;
-    list<Node> children;
+    std::list<Node> children;
 
     // parameter token, can be empty
     Token param;
 };
 
-typedef list<Node>::const_iterator tree_pos;
+typedef std::list<Node>::const_iterator tree_pos;
 
 class Parser
 {
 public:
-    void run(const tn::TokenList &tokens, Node &root);
+    void run(const lx::TokenList &tokens, Node &root);
 
-    const string &getLastError() const { return error_msg; }
+    const std::string &getLastError() const { return error_msg; }
 
 private:
-    string error_msg;
-    stringstream err_msg_ss;
-    const tn::TokenList *ptokens;
+    std::string error_msg;
+    std::stringstream err_msg_ss;
+    const lx::TokenList *ptokens;
 
     // current position
-    tn::line_pos cur_line;
+    lx::line_pos cur_line;
     Token cur_token;
 
-    void pushError(const string &msg);
+    void pushError(const std::string &msg);
 
     Node &addNode(Node &parent, ParserRule rule);
-    void expectToken(const vector<tn::TokenId> &ids);
+    void expectToken(const std::vector<lx::TokenId> &ids);
     void readParam(Node &node);
     void readOperator(Node &node);
 

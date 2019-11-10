@@ -2,9 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QAbstractButton>
-
-#include <vector>
 
 #include "script/engine.h"
 

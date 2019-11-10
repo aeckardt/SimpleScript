@@ -84,8 +84,8 @@ public:
     inline size_t size() const { return frames.size(); }
     inline void clear() { frames.clear(); }
 
-    bool load(const QString &str);
-    bool save(const QString &str) const;
+    bool load(const QString &fileName);
+    bool save(const QString &fileName) const;
 
     inline Video &operator=(const Video &src) { frames = src.frames; return *this; }
     inline Video &operator=(Video &&src) { frames = std::move(src.frames); return *this; }

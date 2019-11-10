@@ -8,14 +8,13 @@
 
 #include <sstream>
 
-using namespace std;
 using namespace tw;
 
 static Ui::MainWindow *main_ui;
 
 void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
 {
-    stringstream ss;
+    std::stringstream ss;
     ss << param;
 
     QTextCharFormat format;

@@ -1,6 +1,5 @@
 #include "engine.h"
 
-using namespace std;
 using namespace tw;
 
 #include "selectFrame/SelectFrameWidget.h"

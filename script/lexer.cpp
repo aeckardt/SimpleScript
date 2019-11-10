@@ -6,7 +6,7 @@
 
 #include "lexer.h"
 
-using namespace tn;
+using namespace lx;
 
 static TokenId char_def[UCHAR_MAX + 1] = {
     Other, Other, Other, Other, Other, Other, Other, Other,
@@ -209,7 +209,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
                 ++it;
                 break;
             case Other: // not allowed
-            default:    // no paths lead here...
+            default:    // no paths lead here, just to suppress warnings...
                 return pushError("Invalid character");
             }
         }

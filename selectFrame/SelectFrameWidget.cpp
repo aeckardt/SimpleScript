@@ -207,8 +207,8 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
 void SelectFrameWidget::recalcDim()
 {
     QPoint size = QPoint(
-                std::abs(startPosition.x() - endPosition.x()),
-                std::abs(startPosition.y() - endPosition.y()));
+                abs(startPosition.x() - endPosition.x()),
+                abs(startPosition.y() - endPosition.y()));
 
     topLeft = QPoint(
                 std::max(0, std::min(startPosition.x(), endPosition.x())),
