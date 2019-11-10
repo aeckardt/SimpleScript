@@ -15,9 +15,8 @@ void CompressionWorker1::run()
             QThread::msleep(1);
         }
 
-        if (recorder->last_frame == nullptr && recorder->finished) {
+        if (recorder->last_frame == nullptr && recorder->finished)
             break;
-        }
 
         recorder->mutex.lock();
 
@@ -58,9 +57,8 @@ void CompressionWorker2::run()
             QThread::msleep(1);
         }
 
-        if (recorder->last_frame == nullptr && recorder->finished) {
+        if (recorder->last_frame == nullptr && recorder->finished)
             break;
-        }
 
         recorder->mutex.lock();
 
@@ -104,11 +102,10 @@ void Recorder::captureFrame()
         QThread::msleep(1);
     }
 
-    if (rect.size() == QSize(0, 0)) {
+    if (rect.size() == QSize(0, 0))
         last_frame = new VideoFrame(captureDesktop(), elapsed_timer.elapsed());
-    } else {
+    else
         last_frame = new VideoFrame(captureRect(rect), elapsed_timer.elapsed());
-    }
 
     mutex.lock();
     captured++;
@@ -121,13 +118,12 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     this->video = &video;
     hotkey.setShortcut(hotkeySequence);
 
-    if (frame_rate > 0 && frame_rate <= 30) {
+    if (frame_rate > 0 && frame_rate <= 30)
         interval = 1000 / frame_rate;
-    } else if (frame_rate <= 0) {
+    else if (frame_rate <= 0)
         interval = 1000;
-    } else { // if (frame_rate > 30)
+    else // if (frame_rate > 30)
         interval = 30;
-    }
 
     captured = 0;
     compressed = 0;

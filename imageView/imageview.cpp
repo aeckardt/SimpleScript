@@ -52,22 +52,15 @@ void ImageView::showImage(const QImage &image)
     const QSize &maxImageSize  = availableSize - unusuableSize;
     const QSize &imageSize     = image.size();
 
-    if (imageSize.width() <= maxImageSize.width() && imageSize.height() <= maxImageSize.height())
-    {
+    if (imageSize.width() <= maxImageSize.width() && imageSize.height() <= maxImageSize.height()) {
         resize(imageSize + unusuableSize);
-    }
-    else if (imageSize.width() <= maxImageSize.width())
-    {
+    } else if (imageSize.width() <= maxImageSize.width()) {
         // Vertical scrollbar needed (less space for image)
         resize(imageSize.width() + unusuableSize.width(), availableSize.height());
-    }
-    else if (imageSize.height() <= maxImageSize.height())
-    {
+    } else if (imageSize.height() <= maxImageSize.height()) {
         // Horizontal scrollbar needed (less space for image)
         resize(availableSize.width(), imageSize.height() + unusuableSize.height());
-    }
-    else
-    {
+    } else {
         resize(availableSize.width(), availableSize.height());
     }
 
@@ -78,30 +71,18 @@ void ImageView::showImage(const QImage &image)
 
 void ImageView::keyPressEvent(QKeyEvent *event)
 {
-    if (event->modifiers() & Qt::ControlModifier)
-    {
-        if (event->key() == Qt::Key_W)
-        {
+    if (event->modifiers() & Qt::ControlModifier) {
+        if (event->key() == Qt::Key_W) {
             close(); // Close when Ctrl+W is pressed
-        }
-        else if (event->key() == Qt::Key_C)
-        {
+        } else if (event->key() == Qt::Key_C) {
             copy();
-        }
-        else if (event->key() == Qt::Key_Plus  && scaleFactor < 8.0)
-        {
+        } else if (event->key() == Qt::Key_Plus  && scaleFactor < 8.0) {
             zoomIn();
-        }
-        else if (event->key() == Qt::Key_Minus && scaleFactor > 0.125)
-        {
+        } else if (event->key() == Qt::Key_Minus && scaleFactor > 0.125) {
             zoomOut();
-        }
-        else if (event->key() == Qt::Key_F)
-        {
+        } else if (event->key() == Qt::Key_F) {
             fitToWindow();
-        }
-        else if (event->key() == Qt::Key_A)
-        {
+        } else if (event->key() == Qt::Key_A) {
             actualSize();
         }
     }
@@ -140,13 +121,11 @@ void ImageView::actualSize()
 
 void ImageView::comboBoxChange()
 {
-    if (scaleStr == scaleEdit->text())
-    {
+    if (scaleStr == scaleEdit->text()) {
         return;
     }
 
-    switch (scaleComboBox->currentIndex())
-    {
+    switch (scaleComboBox->currentIndex()) {
     case 0:
         scaleImage(0.125 / scaleFactor);
         break;
@@ -178,8 +157,7 @@ void ImageView::lineEditReturn()
     double newScaleFactor;
     sscanf(scaleEdit->text().toUtf8(), "%lf%%", &newScaleFactor);
     newScaleFactor /= 100.0;
-    if (newScaleFactor >= 0.01 && newScaleFactor <= 100.0)
-    {
+    if (newScaleFactor >= 0.01 && newScaleFactor <= 100.0) {
         scaleImage(newScaleFactor / scaleFactor);
     }
 }
@@ -190,8 +168,7 @@ void ImageView::scaleImage(double factor)
     scaleFactor *= factor;
     scalableImage->resize(scaleFactor * scalableImage->pixmap()->size());
 
-    if (factor != 1.0)
-    {
+    if (factor != 1.0) {
         adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
         adjustScrollBar(scrollArea->verticalScrollBar(), factor);
     }
@@ -199,53 +176,41 @@ void ImageView::scaleImage(double factor)
     zoomToolButtons->setZoomInEnabled(scaleFactor < 8.0);
     zoomToolButtons->setZoomOutEnabled(scaleFactor > 0.126);
 
-    if (fabs(scaleFactor * 100.0 - static_cast<double>(static_cast<int>(scaleFactor * 100.0 + 0.5))) < 0.0999)
-    {
+    if (fabs(scaleFactor * 100.0 - static_cast<double>(static_cast<int>(scaleFactor * 100.0 + 0.5))) < 0.0999) {
         scaleStr.sprintf("%d%%", static_cast<int>(scaleFactor * 100.0 + 0.1));
-    }
-    else
-    {
+    } else {
         scaleStr.sprintf("%.1f%%", scaleFactor * 100.0);
     }
     scaleEdit->setText(scaleStr);
 
-    if (scaleStr == "12.5%")
-    {
+    if (scaleStr == "12.5%") {
         scaleComboBox->setCurrentIndex(0);
         scaleFactor = 0.125;
     }
-    else if (scaleStr == "25%")
-    {
+    else if (scaleStr == "25%") {
         scaleComboBox->setCurrentIndex(1);
         scaleFactor = 0.25;
     }
-    else if (scaleStr == "50%")
-    {
+    else if (scaleStr == "50%") {
         scaleComboBox->setCurrentIndex(2);
         scaleFactor = 0.5;
     }
-    else if (scaleStr == "100%")
-    {
+    else if (scaleStr == "100%") {
         scaleComboBox->setCurrentIndex(3);
         scaleFactor = 1.0;
     }
-    else if (scaleStr == "200%")
-    {
+    else if (scaleStr == "200%") {
         scaleComboBox->setCurrentIndex(4);
         scaleFactor = 2.0;
     }
-    else if (scaleStr == "400%")
-    {
+    else if (scaleStr == "400%") {
         scaleComboBox->setCurrentIndex(5);
         scaleFactor = 4.0;
     }
-    else if (scaleStr == "800%")
-    {
+    else if (scaleStr == "800%") {
         scaleComboBox->setCurrentIndex(6);
         scaleFactor = 8.0;
-    }
-    else
-    {
+    } else {
         scaleComboBox->setCurrentIndex(-1);
         scaleComboBox->setCurrentText(scaleStr);
     }
@@ -304,8 +269,7 @@ bool ZoomToolButtons::event(QEvent *event)
             QToolTip::showText(helpEvent->globalPos(), "Fit to Window");
         else if (zoomActualSize.rect.contains(helpEvent->pos()))
             QToolTip::showText(helpEvent->globalPos(), "Actual Size");
-        else
-        {
+        else {
             QToolTip::hideText();
             event->ignore();
         }
@@ -348,8 +312,7 @@ void ZoomToolButtons::paintEvent(QPaintEvent *)
 
 bool ZoomToolButtons::buttonPressed(const QPoint &pos, ToolButton &toolButton)
 {
-    if (toolButton.enabled && toolButton.rect.contains(pos))
-    {
+    if (toolButton.enabled && toolButton.rect.contains(pos)) {
         toolButton.pressed = true;
         update();
         return true;
@@ -360,14 +323,13 @@ bool ZoomToolButtons::buttonPressed(const QPoint &pos, ToolButton &toolButton)
 
 void ZoomToolButtons::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton)
-    {
+    if (event->button() == Qt::LeftButton) {
         QPoint relPos = mapFromGlobal(event->globalPos());
         if (buttonPressed(relPos, zoomOut) ||
             buttonPressed(relPos, zoomIn)  ||
             buttonPressed(relPos, zoomToFit) ||
-            buttonPressed(relPos, zoomActualSize))
-        {
+            buttonPressed(relPos, zoomActualSize)) {
+
             event->accept();
         }
     }
@@ -384,8 +346,7 @@ void ZoomToolButtons::mouseReleaseEvent(QMouseEvent *event)
         parent->fitToWindow();
     else if (zoomActualSize.pressed && zoomActualSize.enabled && zoomActualSize.rect.contains(relPos))
         parent->actualSize();
-    if (zoomOut.pressed || zoomIn.pressed || zoomToFit.pressed || zoomActualSize.pressed)
-    {
+    if (zoomOut.pressed || zoomIn.pressed || zoomToFit.pressed || zoomActualSize.pressed) {
         zoomOut.pressed = false;
         zoomIn.pressed = false;
         zoomToFit.pressed = false;
@@ -404,19 +365,16 @@ bool LabelEventFilter::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress ||
         event->type() == QEvent::MouseMove ||
-        event->type() == QEvent::MouseButtonRelease)
-    {
+        event->type() == QEvent::MouseButtonRelease) {
+
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-        if (event->type() == QEvent::MouseButtonPress)
-        {
+        if (event->type() == QEvent::MouseButtonPress) {
             if (mouseEvent->button() == Qt::LeftButton) {
                 dragPosition = mouseEvent->globalPos() - parent->frameGeometry().topLeft();
                 QApplication::setOverrideCursor(QCursor(Qt::PointingHandCursor));
                 event->accept();
             }
-        }
-        else if (event->type() == QEvent::MouseMove)
-        {
+        } else if (event->type() == QEvent::MouseMove) {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
             if (mouseEvent->button() == Qt::LeftButton) {
                 QPoint movePt = mouseEvent->globalPos() - parent->frameGeometry().topLeft() - dragPosition;
@@ -427,16 +385,12 @@ bool LabelEventFilter::eventFilter(QObject *watched, QEvent *event)
                 event->accept();
                 dragPosition = mouseEvent->globalPos() - parent->frameGeometry().topLeft();
             }
-        }
-        else if (event->type() == QEvent::MouseButtonRelease)
-        {
+        } else if (event->type() == QEvent::MouseButtonRelease) {
             QApplication::restoreOverrideCursor();
             event->accept();
         }
         return true;
-    }
-    else
-    {
+    } else {
         return QObject::eventFilter(watched, event);
     }
 }

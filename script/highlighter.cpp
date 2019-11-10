@@ -9,8 +9,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent)
     keywordFormat.setFontWeight(QFont::Bold);
     QStringList keywordPatterns;
     keywordPatterns << "\\bif\\b" << "\\belse\\b" << "\\bprint\\b";
-    for (const QString &pattern : keywordPatterns)
-    {
+    for (const QString &pattern : keywordPatterns) {
         rule.pattern = QRegularExpression(pattern);
         rule.format = keywordFormat;
         highlightingRules.append(rule);
@@ -50,22 +49,18 @@ void SyntaxHighlighter::highlightBlock(const QString &text)
         QRegularExpressionMatch match = quotation.match(text, startIndex + 1);
         int endIndex = match.capturedStart();
         int commentLength = 0;
-        if (endIndex == -1)
-        {
+        if (endIndex == -1) {
             setCurrentBlockState(1);
             commentLength = text.length() - startIndex;
             QRegularExpressionMatch matchSingleQuot = singleQuote.match(text, startIndex);
 
             endIndex = matchSingleQuot.capturedEnd();
-            if (endIndex != -1)
-            {
+            if (endIndex != -1) {
                 commentLength = endIndex - startIndex
                                 + matchSingleQuot.capturedLength();
                 setFormat(startIndex, commentLength, quotationFormat);
             }
-        }
-        else
-        {
+        } else {
             commentLength = endIndex - startIndex
                             + match.capturedLength();
             setFormat(startIndex, commentLength, quotationFormat);
@@ -76,8 +71,7 @@ void SyntaxHighlighter::highlightBlock(const QString &text)
     QRegularExpressionMatchIterator matchIterator = singleLineComment.globalMatch(text);
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
-        if (format(match.capturedStart()) != quotationFormat)
-        {
+        if (format(match.capturedStart()) != quotationFormat) {
             QRegularExpressionMatch matchLine = singleLineCommentLine.match(text, match.capturedStart());
             setFormat(matchLine.capturedStart(), matchLine.capturedLength(), singleLineCommentFormat);
         }

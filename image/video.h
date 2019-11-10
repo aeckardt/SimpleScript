@@ -74,11 +74,11 @@ public:
     Video(Video &&src) { frames = std::move(src.frames); }
     ~Video() {}
 
-    void addFrame(const VideoFrame &frame) { frames.push_back(frame); }
-    void addFrame(VideoFrame &&frame) { frames.push_back(std::move(frame)); }
+    inline void addFrame(const VideoFrame &frame) { frames.push_back(frame); }
+    inline void addFrame(VideoFrame &&frame) { frames.push_back(std::move(frame)); }
 
-    VideoFrame &frame(size_t index) { return frames[index]; }
-    const VideoFrame &frame(size_t index) const { return frames[index]; }
+    inline VideoFrame &frame(size_t index) { return frames[index]; }
+    inline const VideoFrame &frame(size_t index) const { return frames[index]; }
 
     inline VideoFrame &back() { return frames.back(); }
     inline size_t size() const { return frames.size(); }
@@ -87,8 +87,8 @@ public:
     bool load(const QString &str);
     bool save(const QString &str) const;
 
-    Video &operator=(const Video &src) { frames = src.frames; return *this; }
-    Video &operator=(Video &&src) { frames = std::move(src.frames); return *this; }
+    inline Video &operator=(const Video &src) { frames = src.frames; return *this; }
+    inline Video &operator=(Video &&src) { frames = std::move(src.frames); return *this; }
 
 private:
     std::vector<VideoFrame> frames;

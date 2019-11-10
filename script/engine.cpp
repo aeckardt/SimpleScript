@@ -23,12 +23,9 @@ template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &params, Parameter &param)
 {
-    if (params.empty())
-    {
+    if (params.empty()) {
         param.createObject<QImage>(captureDesktop());
-    }
-    else
-    {
+    } else {
         const QRect &rect = params[0].asRect();
         param.createObject<QImage>(captureRect(rect));
     }
@@ -53,8 +50,7 @@ bool cmdNow(const ParameterList &, Parameter &param)
 
 bool cmdPrint(const ParameterList &params, Parameter &)
 {
-    if (params.empty())
-    {
+    if (params.empty()) {
         engine->print(Parameter());
         return true;
     }
@@ -68,8 +64,7 @@ bool cmdRecord(const ParameterList &params, Parameter &param)
     const QRect &rect = params[0].asRect();
     const int frame_rate = params[1].asInt();
 
-    if (frame_rate < 1 || frame_rate > 30)
-    {
+    if (frame_rate < 1 || frame_rate > 30) {
         engine->printError("Frame rate needs to be between 1 and 30");
         return false;
     }
@@ -95,11 +90,12 @@ bool cmdSelect(const ParameterList &, Parameter &param)
     return true;
 }
 
+#include <unistd.h>
+
 bool cmdSleep(const ParameterList &params, Parameter &)
 {
     useconds_t msec;
-    switch (params[0].type())
-    {
+    switch (params[0].type()) {
     case Int:
         msec = static_cast<useconds_t>(params[0].asInt());
         break;
@@ -131,10 +127,8 @@ bool cmdStr(const ParameterList &params, Parameter &param)
 
 bool cmdView(const ParameterList &params, Parameter &)
 {
-    switch (params[0].objectRef())
-    {
-    case ImageRef:
-    {
+    switch (params[0].objectRef()) {
+    case ImageRef: {
         const QImage &image = params[0].asObject<QImage>();
 
         ImageView imageView;
@@ -142,8 +136,7 @@ bool cmdView(const ParameterList &params, Parameter &)
 
         return true;
     }
-    case VideoRef:
-    {
+    case VideoRef: {
         const Video &video = params[0].asObject<Video>();
 
         VideoView videoView;

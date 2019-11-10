@@ -54,8 +54,11 @@ private:
     friend bool operator!=(const Token &, const Token &);
 };
 
-inline bool operator==(const Token &np1, const Token &np2) { return np1.val == np2.val; }
-inline bool operator!=(const Token &np1, const Token &np2) { return np1.val != np2.val; }
+inline bool operator==(const Token &np1, const Token &np2)
+{ return np1.val == np2.val; }
+
+inline bool operator!=(const Token &np1, const Token &np2)
+{ return np1.val != np2.val; }
 
 struct Node
 {
@@ -98,8 +101,11 @@ private:
     void parseLine(Node &parent);
     void parseSection(Node &node, uint32_t lvl, bool may_be_empty);
 
-    inline const token_index lineBegin() const { return cur_line->tokens.begin(); }
-    inline const token_index lineEnd() const { return cur_line->tokens.end(); }
+    inline const token_index lineBegin() const
+    { return cur_line->tokens.begin(); }
+
+    inline const token_index lineEnd() const
+    { return cur_line->tokens.end(); }
 };
 
 } // namespace ps

@@ -55,10 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
     highlighter = new SyntaxHighlighter(main_ui->textEdit->document());
 
     ui->textEdit->setFocus();
-
-    QHotkey *hotkey = new QHotkey(QKeySequence("Ctrl+."), true, this);
-//    connect(hotkey, &QHotkey::activated, this, &MainWindow::clearLog);
-    connect(hotkey, SIGNAL(activated()), this, SLOT(clearLog()));
 }
 
 MainWindow::~MainWindow()
@@ -81,16 +77,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() == Qt::ControlModifier)
     {
-        if (event->key() == Qt::Key_R)
-        {
+        if (event->key() == Qt::Key_R) {
             run();
-        }
-        else if (event->key() == Qt::Key_L)
-        {
+        } else if (event->key() == Qt::Key_L) {
             clearLog();
-        }
-        else if (event->key() == Qt::Key_1)
-        {
+        } else if (event->key() == Qt::Key_1) {
             ui->textEdit->setText(
                 "print(str(\"Hello \") + str(\"world!\"))\n"
                 "\n"
@@ -99,9 +90,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        }
-        else if (event->key() == Qt::Key_2)
-        {
+        } else if (event->key() == Qt::Key_2) {
             ui->textEdit->setText(
                 "# Expression calculation\n"
                 "\n"
@@ -110,9 +99,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        }
-        else if (event->key() == Qt::Key_3)
-        {
+        } else if (event->key() == Qt::Key_3) {
             ui->textEdit->setText(
                 "# Screenshot time measurement\n"
                 "\n"
@@ -122,9 +109,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        }
-        else if (event->key() == Qt::Key_4)
-        {
+        } else if (event->key() == Qt::Key_4) {
             ui->textEdit->setText(
                 "# View screenshot of selected region\n"
                 "\n"
@@ -139,9 +124,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        }
-        else if (event->key() == Qt::Key_5)
-        {
+        } else if (event->key() == Qt::Key_5) {
             ui->textEdit->setText(
                 "# Record selected region\n"
                 "\n"
@@ -151,16 +134,38 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        }
-        else if (event->key() == Qt::Key_6)
-        {
+        } else if (event->key() == Qt::Key_6) {
             ui->textEdit->setText(
-                "# Sleep test\n"
+                "# Sleep test 1\n"
                 "\n"
                 "a = now()\n"
-                "sleep(130)\n"
+                "sleep(1)\n"
                 "b = now()\n"
-                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms.\")");
+                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 1ms.\")\n"
+                "a = now()\n"
+                "sleep(10)\n"
+                "b = now()\n"
+                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 10ms.\")\n"
+                "a = now()\n"
+                "sleep(100)\n"
+                "b = now()\n"
+                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 100ms.\")");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
+        } else if (event->key() == Qt::Key_7) {
+            ui->textEdit->setText(
+                "# Sleep test 2\n"
+                "\n"
+                "print(\"On three we go!\")\n"
+                "start_zeit = now()\n"
+                "sleep(1000)\n"
+                "print(\"1...\")\n"
+                "sleep(1000)\n"
+                "print(\"2...\")\n"
+                "sleep(1000)\n"
+                "print(\"3 !!!\")\n"
+                "print(\"The countdown took \" + str(msecsbetween(start_zeit, now())) + \"ms, expected 3000ms.\")");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);

@@ -21,8 +21,7 @@ const map<Parameter::Type, string> type_names = {
 
 Parameter::Type getParameterType(const TokenId &token_id)
 {
-    switch (token_id)
-    {
+    switch (token_id) {
     case tn::Integer:
         return Int;
     case tn::Float:
@@ -38,16 +37,14 @@ void Parameter::clear()
 {
     if (empty())
         return;
-    else if (isReference)
-    {
+    else if (isReference) {
         value = nullptr;
         type_ = Empty;
         isReference = false;
         return;
     }
 
-    switch (type_)
-    {
+    switch (type_) {
     case Empty:
         // do nothing...
         break;
@@ -147,8 +144,7 @@ double Parameter::asFloat() const
 {
     if (type_ == Float)
         return *static_cast<double*>(value);
-    else if (type_ == Int)
-    {
+    else if (type_ == Int) {
         int32_t val = *static_cast<int32_t*>(value);
         return static_cast<double>(val);
     }
@@ -159,8 +155,7 @@ int32_t Parameter::asInt() const
 {
     if (type_ == Int)
         return *static_cast<int32_t*>(value);
-    else if (type_ == Float)
-    {
+    else if (type_ == Float) {
         double val = *static_cast<double*>(value);
         return static_cast<int32_t>(val);
     }
@@ -178,16 +173,12 @@ void Parameter::copyReference(Parameter &dest) const
 Parameter &Parameter::operator=(const Parameter &src)
 {
     clear();
-    if (src.isReference)
-    {
+    if (src.isReference) {
         value = src.value;
         type_ = src.type_;
         isReference = true;
-    }
-    else
-    {
-        switch (src.type())
-        {
+    } else {
+        switch (src.type()) {
         case Empty:
             type_ = Empty;
             break;
@@ -235,8 +226,7 @@ Parameter &Parameter::operator=(Parameter &&src)
 
 ostream &tw::operator<<(ostream &os, const Parameter &param)
 {
-    switch (param.type())
-    {
+    switch (param.type()) {
     case Empty:
         return os;
     case String:
@@ -280,8 +270,7 @@ bool floatEqual(const double &f1, const double &f2)
 
 inline void ASTWalker::errorMsg(const char *msg) const
 {
-    if (output_fnc != nullptr)
-    {
+    if (output_fnc != nullptr) {
         Parameter param;
         param.assign(string(msg));
         output_fnc(param, Qt::darkRed);
@@ -295,8 +284,7 @@ Parameter ASTWalker::getConstValue(const Node &node)
     const string &content = node.param.getText();
     Parameter param;
 
-    switch (node.param.id())
-    {
+    switch (node.param.id()) {
     case tn::Integer:
         param.assign(atoi(content.c_str()));
         break;
@@ -318,8 +306,7 @@ Parameter ASTWalker::getConstValue(const Node &node)
 
 Parameter::Type ASTWalker::getParamType(const Node &node)
 {
-    switch (node.param.id())
-    {
+    switch (node.param.id()) {
     case tn::Integer:
         return Int;
     case tn::Float:
@@ -338,8 +325,7 @@ bool ASTWalker::run(const string &str)
     Lexer lexer;
     lexer.run(str, tokens);
 
-    if (!lexer.getLastError().empty())
-    {
+    if (!lexer.getLastError().empty()) {
         errorMsg("Error tokenizing:");
         errorMsg(lexer.getLastError().c_str());
         return false;
@@ -348,22 +334,17 @@ bool ASTWalker::run(const string &str)
     Node ast_root;
     Parser parser;
     parser.run(tokens, ast_root);
-    if (!parser.getLastError().empty())
-    {
+    if (!parser.getLastError().empty()) {
         errorMsg("Error parsing:");
         errorMsg(parser.getLastError().c_str());
         return false;
     }
 
-    if (!validate(ast_root))
-    {
+    if (!validate(ast_root)) {
         errorMsg("Error validating syntax");
         return false;
-    }
-    else
-    {
-        if (!traverse(ast_root))
-        {
+    } else {
+        if (!traverse(ast_root)) {
             errorMsg("Error running script");
             return false;
         }
@@ -374,8 +355,7 @@ bool ASTWalker::run(const string &str)
 
 bool ASTWalker::traverse(const Node &node)
 {
-    switch (node.rule)
-    {
+    switch (node.rule) {
     case ps::Section:
         for (auto const &child : node.children)
             if (!traverse(child))
@@ -400,18 +380,13 @@ bool ASTWalker::traverseAssignment(const Node &node)
     const string &var_name = var_node.param.getText();
 
     const Node &src_node = *node.children.rbegin();
-    if (src_node.rule == ps::Function || src_node.rule == ps::Expr)
-    {
+    if (src_node.rule == ps::Function || src_node.rule == ps::Expr) {
         if (!traverse(src_node))
             return false;
-    }
-    else if (src_node.rule == ps::Variable)
-    {
+    } else if (src_node.rule == ps::Variable) {
         // create new variable as copy of rvalue variable
         return_value = vars[src_node.param.getText()];
-    }
-    else if (src_node.rule == ps::ConstValue)
-    {
+    } else if (src_node.rule == ps::ConstValue) {
         // create new parameter containing the given value
         return_value = getConstValue(src_node);
     }
@@ -426,10 +401,8 @@ bool ASTWalker::traverseExpr(const Node &node)
     return_value.clear();
 
     ParameterList stack;
-    for (const Node &child : node.children)
-    {
-        if (tn::isOperator(child.param.id()))
-        {
+    for (const Node &child : node.children) {
+        if (tn::isOperator(child.param.id())) {
             const Parameter p2 = stack.back();
             stack.pop_back();
 
@@ -443,16 +416,14 @@ bool ASTWalker::traverseExpr(const Node &node)
             continue;
         }
 
-        switch (child.rule)
-        {
+        switch (child.rule) {
         case ps::Function:
         case ps::Expr:
             if (!traverse(child))
                 return false;
             stack.push_back(move(return_value));
             break;
-        case ps::Variable:
-        {
+        case ps::Variable: {
             const string &var_name = child.param.getText();
             stack.push_back(referenceTo(vars[var_name]));
             break;
@@ -466,8 +437,7 @@ bool ASTWalker::traverseExpr(const Node &node)
         }
     }
 
-    if (stack.size() != 1)
-    {
+    if (stack.size() != 1) {
         errorMsg("Unable to evaluate expression");
         return false;
     }
@@ -482,20 +452,14 @@ bool ASTWalker::traverseFunction(const Node &node)
     cmd_name_debug.empty();
 
     ParameterList params;
-    for (const Node &child : node.children)
-    {
-        if (child.rule == ps::Function || child.rule == ps::Expr)
-        {
+    for (const Node &child : node.children) {
+        if (child.rule == ps::Function || child.rule == ps::Expr) {
             if (!traverse(child))
                 return false;
             params.push_back(move(return_value));
-        }
-        else if (child.rule == ps::Variable)
-        {
+        } else if (child.rule == ps::Variable) {
             params.emplace_back(referenceTo(vars[child.param.getText()]));
-        }
-        else if (child.rule == ps::ConstValue)
-        {
+        } else if (child.rule == ps::ConstValue) {
             params.emplace_back(getConstValue(child));
         }
     }
@@ -515,17 +479,12 @@ bool ASTWalker::traverseIfStatement(const Node &node)
     ps::tree_pos tp = node.children.begin();
 
     const Node &expr_node = *tp;
-    if (expr_node.rule == ps::Function || expr_node.rule == ps::Expr)
-    {
+    if (expr_node.rule == ps::Function || expr_node.rule == ps::Expr) {
         if (!traverse(expr_node))
             return false;
-    }
-    else if (expr_node.rule == ps::Variable)
-    {
+    } else if (expr_node.rule == ps::Variable) {
         vars[expr_node.param.getText()].copyReference(return_value);
-    }
-    else if (expr_node.rule == ps::ConstValue)
-    {
+    } else if (expr_node.rule == ps::ConstValue) {
         return_value = getConstValue(expr_node);
     }
 
@@ -540,15 +499,12 @@ bool ASTWalker::traverseIfStatement(const Node &node)
 
     return_value.clear();
 
-    if (exprIsTrue)
-    {
+    if (exprIsTrue) {
         // execute if-section
         const Node &section_node = *(++tp);
         if (!traverse(section_node))
             return false;
-    }
-    else if (node.children.size() == 3)
-    {
+    } else if (node.children.size() == 3) {
         // an else-section exists
         const Node &else_section_node = *(++++tp);
         if (!traverse(else_section_node))
@@ -560,24 +516,19 @@ bool ASTWalker::traverseIfStatement(const Node &node)
 
 bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, const Parameter &p2)
 {
-    switch (op)
-    {
-    case tn::Plus:
-    {
-        if (p1.type() != p2.type())
-        {
+    switch (op) {
+    case tn::Plus: {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(p1.asFloat() + p2.asFloat());
                 return true;
-            }
-            else
+            } else
                 return false;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case String:
             return_value.assign(p1.asString() + p2.asString());
             break;
@@ -598,22 +549,18 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case tn::Minus:
-    {
-        if (p1.type() != p2.type())
-        {
+    case tn::Minus: {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(p1.asFloat() - p2.asFloat());
                 return true;
-            }
-            else
+            } else
                 return false;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case Int:
             return_value.assign(p1.asInt() - p2.asInt());
             break;
@@ -631,17 +578,14 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case tn::Star:
-    {
-        if (p1.type() != p2.type())
-        {
+    case tn::Star: {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(p1.asFloat() * p2.asFloat());
                 return true;
-            }
-            else if (p1.type() == Point && p2.type() == Int)
+            } else if (p1.type() == Point && p2.type() == Int)
                 return_value.assign(p1.asPoint() * p2.asInt());
             else if (p1.type() == Point && p2.type() == Float)
                 return_value.assign(p1.asPoint() * p2.asFloat());
@@ -654,8 +598,7 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
             return true;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case Int:
             return_value.assign(p1.asInt() * p2.asInt());
             break;
@@ -670,34 +613,26 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case tn::Slash:
-    {
-        if (p2.type() == Int)
-        {
-            if (p2.asInt() == 0)
-            {
+    case tn::Slash: {
+        if (p2.type() == Int) {
+            if (p2.asInt() == 0) {
                 errorMsg("Division by zero not allowed");
                 return false;
             }
-        }
-        else if (p2.type() == Float)
-        {
-            if (fabs(p2.asFloat()) == 0)
-            {
+        } else if (p2.type() == Float) {
+            if (fabs(p2.asFloat()) == 0) {
                 errorMsg("Division by zero not allowed");
                 return false;
             }
         }
 
-        if (p1.type() != p2.type())
-        {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(p1.asFloat() / p2.asFloat());
                 return true;
-            }
-            else if (p1.type() == Point && p2.type() == Int)
+            } else if (p1.type() == Point && p2.type() == Int)
                 return_value.assign(p1.asPoint() / p2.asInt());
             else if (p1.type() == Point && p2.type() == Float)
                 return_value.assign(p1.asPoint() / p2.asFloat());
@@ -706,8 +641,7 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
             return true;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case Int:
             return_value.assign(p1.asInt() / p2.asInt());
             break;
@@ -719,22 +653,18 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
         }
         return true;
     }
-    case tn::EqualEqual:
-    {
-        if (p1.type() != p2.type())
-        {
+    case tn::EqualEqual: {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(floatEqual(p1.asFloat(), p2.asFloat()));
                 return true;
-            }
-            else
+            } else
                 return false;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case String:
             return_value.assign(p1.asString() == p2.asString());
             return true;
@@ -760,22 +690,18 @@ bool ASTWalker::traverseOperation(const tn::TokenId &op, const Parameter &p1, co
             return false;
         }
     }
-    case tn::NotEqual:
-    {
-        if (p1.type() != p2.type())
-        {
+    case tn::NotEqual: {
+        if (p1.type() != p2.type()) {
             if ((p1.type() == Int   && p2.type() == Float) ||
-                (p1.type() == Float && p2.type() == Int))
-            {
+                (p1.type() == Float && p2.type() == Int)) {
+
                 return_value.assign(!floatEqual(p1.asFloat(), p2.asFloat()));
                 return true;
-            }
-            else
+            } else
                 return false;
         }
 
-        switch (p1.type())
-        {
+        switch (p1.type()) {
         case String:
             return_value.assign(p1.asString() != p2.asString());
             return true;
@@ -836,37 +762,31 @@ bool ASTWalker::validate(const Node &node)
 
 bool ASTWalker::validateAssignment(const Node &node)
 {
-    if (node.children.size() < 2)
-    {
+    if (node.children.size() < 2) {
         errorMsg("Invalid assignment");
         return false;
     }
 
     const Node &var_node = *node.children.begin();
-    if (var_node.rule != ps::Variable)
-    {
+    if (var_node.rule != ps::Variable) {
         errorMsg("Expression is not assignable, lvalue needs to be variable");
         return false;
     }
 
     const Node &src_node = *node.children.rbegin();
     if (src_node.rule != ps::Variable && src_node.rule != ps::ConstValue &&
-        src_node.rule != ps::Function && src_node.rule != ps::Expr)
-    {
+        src_node.rule != ps::Function && src_node.rule != ps::Expr) {
+
         errorMsg("Invalid rvalue for assignment");
         return false;
     }
 
-    if (src_node.rule == ps::Function || src_node.rule == ps::Expr)
-    {
+    if (src_node.rule == ps::Function || src_node.rule == ps::Expr) {
         if (!validate(src_node))
             return false;
-    }
-    else if (src_node.rule == ps::Variable)
-    {
+    } else if (src_node.rule == ps::Variable) {
         const string &var_name = src_node.param.getText();
-        if (var_types.find(var_name) == var_types.end())
-        {
+        if (var_types.find(var_name) == var_types.end()) {
             ERROR_MSG("Variable '" << var_name << "' not found")
             return false;
         }
@@ -884,16 +804,14 @@ bool ASTWalker::validateAssignment(const Node &node)
 bool ASTWalker::validateCommand(const string &command, const ParameterTypeList &param_types)
 {
     // check if function with that name exists
-    if (commands.find(command) == commands.end())
-    {
+    if (commands.find(command) == commands.end()) {
         ERROR_MSG("Unknown function '" << command << "'")
         return false;
     }
 
     const Command &cmd = commands.find(command)->second;
 
-    if (cmd.param_types.size() < param_types.size())
-    {
+    if (cmd.param_types.size() < param_types.size()) {
         ERROR_MSG("Too many arguments passed to function '" << command << "', expected " << cmd.param_types.size())
         return false;
     }
@@ -901,36 +819,27 @@ bool ASTWalker::validateCommand(const string &command, const ParameterTypeList &
     // check if number and type of arguments are correct
     size_t index;
     bool validParam;
-    for (index = 0; index < cmd.param_types.size(); index++)
-    {
+    for (index = 0; index < cmd.param_types.size(); index++) {
         validParam = false;
-        for (const ParameterType &type : cmd.param_types[index])
-        {
-            if (param_types.size() <= index && type.basic_type == Empty)
-            {
+        for (const ParameterType &type : cmd.param_types[index]) {
+            if (param_types.size() <= index && type.basic_type == Empty) {
                 validParam = true;
                 break;
-            }
-            else if (param_types.size() <= index)
-            {
+            } else if (param_types.size() <= index) {
                 ERROR_MSG("Error: Wrong number of arguments passed to function '" << command << "', expected " << cmd.param_types.size())
                 return false;
-            }
-            else if (param_types[index] == type)
-            {
+            } else if (param_types[index] == type) {
                 validParam = true;
                 break;
             }
         }
-        if (!validParam)
-        {
+        if (!validParam) {
             stringstream ss;
             ss << "Error: Wrong type of argument passed to function '" << command << "', expected ";
             if (cmd.param_types[index].size() > 1)
                 ss << "{";
             bool first = true;
-            for (const ParameterType &type : cmd.param_types[index])
-            {
+            for (const ParameterType &type : cmd.param_types[index]) {
                 if (!first) ss << ", ";
                 if (type.basic_type != Object)
                     ss << type_names.at(type.basic_type);
@@ -953,16 +862,13 @@ bool ASTWalker::validateCommand(const string &command, const ParameterTypeList &
 
 bool ASTWalker::validateExpr(const Node &node)
 {
-    if (node.children.size() < 2)
-    {
+    if (node.children.size() < 2) {
         errorMsg("Invalid expression, needs to have at least two operands");
         return false;
     }
 
-    for (const Node &child : node.children)
-    {
-        if (!child.param.hasValue())
-        {
+    for (const Node &child : node.children) {
+        if (!child.param.hasValue()) {
             errorMsg("Invalid expression statement, needs to have a value");
             return false;
         }
@@ -972,10 +878,8 @@ bool ASTWalker::validateExpr(const Node &node)
     return_value_type = Empty;
 
     vector<ParameterType> stack;
-    for (const Node &child : node.children)
-    {
-        if (tn::isOperator(child.param.id()))
-        {
+    for (const Node &child : node.children) {
+        if (tn::isOperator(child.param.id())) {
             ParameterType p2 = stack.back();
             stack.pop_back();
 
@@ -989,16 +893,14 @@ bool ASTWalker::validateExpr(const Node &node)
             continue;
         }
 
-        switch (child.rule)
-        {
+        switch (child.rule) {
         case ps::Function:
         case ps::Expr:
             if (!validate(child))
                 return false;
             stack.push_back(return_value_type);
             break;
-        case ps::Variable:
-        {
+        case ps::Variable: {
             const string &var_name = child.param.getText();
             stack.push_back(var_types[var_name]);
             break;
@@ -1012,8 +914,7 @@ bool ASTWalker::validateExpr(const Node &node)
         }
     }
 
-    if (stack.size() != 1)
-    {
+    if (stack.size() != 1) {
         errorMsg("Unable to validate expression");
         return false;
     }
@@ -1026,28 +927,21 @@ bool ASTWalker::validateExpr(const Node &node)
 bool ASTWalker::validateFunction(const Node &node)
 {
     vector<ParameterType> param_types;
-    for (auto const &child : node.children)
-    {
+    for (auto const &child : node.children) {
         if (child.rule != ps::Function && child.rule != ps::ConstValue &&
-            child.rule != ps::Variable && child.rule != ps::Expr)
-        {
+            child.rule != ps::Variable && child.rule != ps::Expr) {
+
             errorMsg("Invalid function parameter");
             return false;
-        }
-        else if (child.rule == ps::Function || child.rule == ps::Expr)
-        {
+        } else if (child.rule == ps::Function || child.rule == ps::Expr) {
             return_value_type = Empty;
             if (!validate(child))
                 return false;
             param_types.push_back(return_value_type);
-        }
-        else if (child.rule == ps::ConstValue || child.rule == ps::Variable)
-        {
+        } else if (child.rule == ps::ConstValue || child.rule == ps::Variable) {
             if (!validateParamType(child, &param_types))
                 return false;
-        }
-        else
-        {
+        } else {
             errorMsg("Invalid function parameter");
             return false;
         }
@@ -1060,8 +954,7 @@ bool ASTWalker::validateFunction(const Node &node)
 
 bool ASTWalker::validateIfStatement(const Node &node)
 {
-    if (node.children.size() < 2 || node.children.size() > 3)
-    {
+    if (node.children.size() < 2 || node.children.size() > 3) {
         errorMsg("Invalid if-statement");
         return false;
     }
@@ -1076,8 +969,7 @@ bool ASTWalker::validateIfStatement(const Node &node)
     if (!validate(section_node))
         return false;
 
-    if (node.children.size() == 3)
-    {
+    if (node.children.size() == 3) {
         const Node &else_section_node = *(++tp);
         if (!validate(else_section_node))
             return false;
@@ -1088,25 +980,17 @@ bool ASTWalker::validateIfStatement(const Node &node)
 
 bool ASTWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &pt1, const Parameter::Type &pt2)
 {
-    switch (op)
-    {
-    case tn::Plus:
-    {
-        if (pt1 != pt2)
-        {
-            if ((pt1 == Int && pt2 == Float) || (pt1 == Float && pt2 == Int))
-            {
+    switch (op) {
+    case tn::Plus: {
+        if (pt1 != pt2) {
+            if ((pt1 == Int && pt2 == Float) || (pt1 == Float && pt2 == Int)) {
                 return_value_type = Float;
                 return true;
-            }
-            else
-            {
+            } else {
                 errorMsg("Parameter types in operation do not match");
                 return false;
             }
-        }
-        else if (pt1 == Rect || pt1 == Object)
-        {
+        } else if (pt1 == Rect || pt1 == Object) {
             ERROR_MSG("Operator '+' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
@@ -1114,116 +998,83 @@ bool ASTWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &
         return_value_type = pt1;
         return true;
     }
-    case tn::Minus:
-    {
-        if (pt1 != pt2)
-        {
-            if ((pt1 == Int && pt2 == Float) || (pt1 == Float && pt2 == Int))
-            {
+    case tn::Minus: {
+        if (pt1 != pt2) {
+            if ((pt1 == Int && pt2 == Float) || (pt1 == Float && pt2 == Int)) {
                 return_value_type = Float;
                 return true;
-            }
-            else
-            {
+            } else {
                 errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
 
-        if (pt1 == Int || pt1 == Float || pt1 == Point || pt1 == Boolean)
-        {
+        if (pt1 == Int || pt1 == Float || pt1 == Point || pt1 == Boolean) {
             return_value_type = pt1;
             return true;
-        }
-        else
-        {
+        } else {
             ERROR_MSG("Operator '-' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
-    case tn::Star:
-    {
-        if (pt1 != pt2)
-        {
+    case tn::Star: {
+        if (pt1 != pt2) {
             if ((pt1 == Int && pt2 == Float) ||
-                (pt1 == Float && pt2 == Int))
-            {
+                (pt1 == Float && pt2 == Int)) {
                 return_value_type = Float;
                 return true;
-            }
-            else if ((pt1 == Point && pt2 == Int) ||
+            } else if ((pt1 == Point && pt2 == Int) ||
                 (pt1 == Point && pt2 == Float) ||
                 (pt1 == Int   && pt2 == Point) ||
-                (pt1 == Float && pt2 == Point))
-            {
+                (pt1 == Float && pt2 == Point)) {
                 return_value_type = Point;
                 return true;
-            }
-            else
-            {
+            } else {
                 errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
 
-        if (pt1 == Int || pt1 == Float || pt1 == Boolean)
-        {
+        if (pt1 == Int || pt1 == Float || pt1 == Boolean) {
             return_value_type = pt1;
             return true;
-        }
-        else
-        {
+        } else {
             ERROR_MSG("Operator '*' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
-    case tn::Slash:
-    {
-        if (pt1 != pt2)
-        {
+    case tn::Slash: {
+        if (pt1 != pt2) {
             if ((pt1 == Int && pt2 == Float) ||
-                (pt1 == Float && pt2 == Int))
-            {
+                (pt1 == Float && pt2 == Int)) {
                 return_value_type = Float;
                 return true;
-            }
-            else if ((pt1 == Point && pt2 == Int) ||
-                (pt1 == Point && pt2 == Float))
-            {
+            } else if ((pt1 == Point && pt2 == Int) ||
+                (pt1 == Point && pt2 == Float)) {
                 return_value_type = Point;
                 return true;
-            }
-            else
-            {
+            } else {
                 errorMsg("Parameter types in operation do not match");
                 return false;
             }
         }
 
-        if (pt1 == Int || pt1 == Float)
-        {
+        if (pt1 == Int || pt1 == Float) {
             return_value_type = pt1;
             return true;
-        }
-        else
-        {
+        } else {
             ERROR_MSG("Operator '/' not applicable for parameter type: " << type_names.at(pt1))
             return false;
         }
     }
     case tn::EqualEqual:
-    case tn::NotEqual:
-    {
-        if (pt1 != pt2)
-        {
+    case tn::NotEqual: {
+        if (pt1 != pt2) {
             if ((pt1 == Int && pt2 == Float) ||
-                (pt1 == Float && pt2 == Int))
-            {
+                (pt1 == Float && pt2 == Int)) {
                 return_value_type = Boolean;
                 return true;
-            }
-            else
-            {
+            } else {
                 errorMsg("Parameter types in operation do not match");
                 return false;
             }
@@ -1239,24 +1090,19 @@ bool ASTWalker::validateOperation(const tn::TokenId &op, const Parameter::Type &
 
 inline bool ASTWalker::validateParamType(const Node &node, ParameterTypeList *param_types)
 {
-    if (!node.param.hasValue())
-    {
+    if (!node.param.hasValue()) {
         errorMsg("No parameter found");
         return false;
     }
 
-    switch (node.param.id())
-    {
-    case tn::Term:
-    {
-        if (node.rule == ps::ConstValue)
-        {
+    switch (node.param.id()) {
+    case tn::Term: {
+        if (node.rule == ps::ConstValue) {
             errorMsg("Token name cannot be used as parameter");
             return false;
         }
         const string &content = node.param.getText();
-        if (var_types.find(content) == var_types.end())
-        {
+        if (var_types.find(content) == var_types.end()) {
             ERROR_MSG("Variable '" << content << "' not found")
             return false;
         }

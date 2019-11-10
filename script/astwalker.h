@@ -44,7 +44,8 @@ enum BasicParameterType : int16_t
 
 typedef int16_t ObjectReference;
 
-class ParameterType {
+class ParameterType
+{
 public:
     ParameterType() : basic_type(Empty), obj_ref(-1) {}
     ParameterType(BasicParameterType basic_type) : basic_type(basic_type), obj_ref(-1) {}
@@ -151,7 +152,8 @@ private:
 
 ostream &operator <<(ostream &os, const Parameter &param);
 
-inline Parameter referenceTo(const Parameter &src) { Parameter param; src.copyReference(param); return param; }
+inline Parameter referenceTo(const Parameter &src)
+{ Parameter param; src.copyReference(param); return param; }
 
 typedef vector<Parameter> ParameterList;
 

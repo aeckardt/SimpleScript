@@ -63,46 +63,35 @@ QRect SelectFrameWidget::selectRect()
 void SelectFrameWidget::parentMousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        if (!ellipseRect[0].isNull() && ellipseRect[0].contains(event->globalPos() - menuPosition, false))
-        {
+        if (!ellipseRect[0].isNull() && ellipseRect[0].contains(event->globalPos() - menuPosition, false)) {
             dragMode = ResizeFrame;
             dragPosition = event->globalPos() - startPosition;
             QApplication::setOverrideCursor(QCursor(Qt::SizeFDiagCursor));
             startPosition = topLeft;
             endPosition = bottomRight;
-        }
-        else if (!ellipseRect[1].isNull() && ellipseRect[1].contains(event->globalPos() - menuPosition, false))
-        {
+        } else if (!ellipseRect[1].isNull() && ellipseRect[1].contains(event->globalPos() - menuPosition, false)) {
             dragMode = ResizeFrame;
             dragPosition = event->globalPos() - startPosition;
             QApplication::setOverrideCursor(QCursor(Qt::SizeBDiagCursor));
             startPosition = QPoint(topLeft.x(), bottomRight.y());
             endPosition = QPoint(bottomRight.x(), topLeft.y());
-        }
-        else if (!ellipseRect[2].isNull() && ellipseRect[2].contains(event->globalPos() - menuPosition, false))
-        {
+        } else if (!ellipseRect[2].isNull() && ellipseRect[2].contains(event->globalPos() - menuPosition, false)) {
             dragMode = ResizeFrame;
             dragPosition = event->globalPos() - startPosition;
             QApplication::setOverrideCursor(QCursor(Qt::SizeBDiagCursor));
             startPosition = QPoint(bottomRight.x(), topLeft.y());
             endPosition = QPoint(topLeft.x(), bottomRight.y());
-        }
-        else if (!ellipseRect[3].isNull() && ellipseRect[3].contains(event->globalPos() - menuPosition, false))
-        {
+        } else if (!ellipseRect[3].isNull() && ellipseRect[3].contains(event->globalPos() - menuPosition, false)) {
             dragMode = ResizeFrame;
             dragPosition = event->globalPos() - startPosition;
             QApplication::setOverrideCursor(QCursor(Qt::SizeFDiagCursor));
             startPosition = bottomRight;
             endPosition = topLeft;
-        }
-        else if (!frameRect.isNull() && frameRect.contains(event->globalPos() - menuPosition, false))
-        {
+        } else if (!frameRect.isNull() && frameRect.contains(event->globalPos() - menuPosition, false)) {
             dragMode = MoveFrame;
             dragPosition = event->globalPos() - startPosition;
             QApplication::setOverrideCursor(QCursor(Qt::PointingHandCursor));
-        }
-        else
-        {
+        } else {
             dragMode = CreateFrame;
             startPosition = event->globalPos() - menuPosition;
         }
@@ -113,34 +102,23 @@ void SelectFrameWidget::parentMousePressEvent(QMouseEvent *event)
 void SelectFrameWidget::parentMouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton) {
-        if (dragMode == CreateFrame)
-        {
+        if (dragMode == CreateFrame) {
             endPosition = event->globalPos() - menuPosition;
-            if (endPosition.y() < 0)
-            {
+            if (endPosition.y() < 0) {
                 endPosition.setY(0);
-            }
-            else if (endPosition.y() > frameGeometry().height())
-            {
+            } else if (endPosition.y() > frameGeometry().height()) {
                 endPosition.setY(frameGeometry().height());
             }
-        }
-        else if (dragMode == MoveFrame)
-        {
+        } else if (dragMode == MoveFrame) {
             QPoint size = endPosition - startPosition;
             QPoint diff = QPoint(event->globalPos() - dragPosition);
             startPosition = diff;
             endPosition   = diff + size;
-        }
-        else if (dragMode == ResizeFrame)
-        {
+        } else if (dragMode == ResizeFrame) {
             startPosition = event->globalPos() - menuPosition;
-            if (startPosition.y() < 0)
-            {
+            if (startPosition.y() < 0) {
                 startPosition.setY(0);
-            }
-            else if (startPosition.y() > frameGeometry().height())
-            {
+            } else if (startPosition.y() > frameGeometry().height()) {
                 startPosition.setY(frameGeometry().height());
             }
         }
@@ -152,8 +130,7 @@ void SelectFrameWidget::parentMouseMoveEvent(QMouseEvent *event)
 
 void SelectFrameWidget::parentMouseReleaseEvent(QMouseEvent *event)
 {
-    if (dragMode == MoveFrame || dragMode == ResizeFrame)
-    {
+    if (dragMode == MoveFrame || dragMode == ResizeFrame) {
         QApplication::restoreOverrideCursor();
 
         startPosition = topLeft;
@@ -162,8 +139,7 @@ void SelectFrameWidget::parentMouseReleaseEvent(QMouseEvent *event)
     dragMode = NoDrag;
     event->accept();
 
-    if (mode == SelectRect)
-    {
+    if (mode == SelectRect) {
         focus_dialog.close();
         close();
     }
@@ -185,20 +161,16 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
     painter.setBrush(QColor(255, 255, 255));
 
     painter.save();
-    for (xpos = topLeft.x() - xinc; xpos < bottomRight.x(); xpos += 6)
-    {
+    for (xpos = topLeft.x() - xinc; xpos < bottomRight.x(); xpos += 6) {
         painter.drawRect(xpos, topLeft.y(), 3, frame_width);
     }
-    for (xpos = topLeft.x() + xinc; xpos < bottomRight.x(); xpos += 6)
-    {
+    for (xpos = topLeft.x() + xinc; xpos < bottomRight.x(); xpos += 6) {
         painter.drawRect(xpos, bottomRight.y() - frame_width, 3, frame_width);
     }
-    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
-    {
+    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6) {
         painter.drawRect(topLeft.x(), ypos, frame_width, 3);
     }
-    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
-    {
+    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6) {
         painter.drawRect(bottomRight.x() - frame_width, ypos, frame_width, 3);
     }
     painter.restore();
@@ -207,20 +179,16 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
     painter.setBrush(QColor(63, 63, 63));
 
     painter.save();
-    for (xpos = topLeft.x() - xinc; xpos + xinc < bottomRight.x(); xpos += 6)
-    {
+    for (xpos = topLeft.x() - xinc; xpos + xinc < bottomRight.x(); xpos += 6) {
         painter.drawRect(xpos + 2, topLeft.y(), 3, frame_width);
     }
-    for (xpos = topLeft.x() + xinc; xpos + xinc < bottomRight.x(); xpos += 6)
-    {
+    for (xpos = topLeft.x() + xinc; xpos + xinc < bottomRight.x(); xpos += 6) {
         painter.drawRect(xpos + 2, bottomRight.y() - frame_width, 3, frame_width);
     }
-    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6)
-    {
+    for (ypos = topLeft.y() + xinc; ypos < bottomRight.y(); ypos += 6) {
         painter.drawRect(topLeft.x(), ypos + 2, frame_width, 3);
     }
-    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6)
-    {
+    for (ypos = topLeft.y() - xinc; ypos < bottomRight.y(); ypos += 6) {
         painter.drawRect(bottomRight.x() - frame_width, ypos + 2, frame_width, 3);
     }
     painter.restore();

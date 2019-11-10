@@ -49,8 +49,7 @@ inline TokenId token_at(const token_pos it)
 
 inline void Lexer::pushError(const std::string &msg)
 {
-    if (error_msg.empty())
-    {
+    if (error_msg.empty()) {
         char buf[20];
         sprintf(buf, "%d", (line->index + 1));
         error_msg = std::string("At line ") + buf + ": " + msg;
@@ -59,8 +58,7 @@ inline void Lexer::pushError(const std::string &msg)
 
 inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs)
 {
-    while (it != end && token_at(it) == Whitespace)
-    {
+    while (it != end && token_at(it) == Whitespace) {
         if (*it == ' ')
             ++spaces;
         else
@@ -84,12 +82,10 @@ inline void Lexer::readNumber(token_pos &it, const token_pos &end, Token &token)
     // *it is in [0-9.]
     bool contains_dot = *it == '.';
     token.begin = it++;
-    if (!contains_dot)
-    {
+    if (!contains_dot) {
         while (it != end && token_at(it) == Integer)
             ++it;
-        if (it != end && *it == '.')
-        {
+        if (it != end && *it == '.') {
             ++it;
             contains_dot = true;
         }
@@ -128,8 +124,7 @@ inline void Lexer::readOperator(token_pos &it, const token_pos &end, Token &toke
     token.id = token_at(it);
     token.end = ++it;
 
-    if (it != end && *it == '=')
-    {
+    if (it != end && *it == '=') {
         token.id = static_cast<TokenId>(static_cast<uint8_t>(token.id) + 1);
         token.end = ++it;
     }
@@ -157,8 +152,8 @@ void Lexer::run(const std::string &context, TokenList &tokens)
     uint32_t spaces;
     uint32_t tabs;
 
-    while (it != end)
-    {
+    while (it != end) {
+
         tokens.push_back(Line());
         line = tokens.rbegin();
         line->index = line_index;
@@ -167,25 +162,21 @@ void Lexer::run(const std::string &context, TokenList &tokens)
         tabs   = 0;
         readIndent(it, end, spaces, tabs);
 
-        while (it != end && *it != '\n')
-        {
-            switch (token_at(it))
-            {
-            case Term:
-            {
+        while (it != end && *it != '\n') {
+
+            switch (token_at(it)) {
+            case Term: {
                 line->tokens.push_back(Token());
                 readName(it, end, *line->tokens.rbegin());
                 continue;
             }
             case Integer:
-            case Float:
-            {
+            case Float: {
                 line->tokens.push_back(Token());
                 readNumber(it, end, *line->tokens.rbegin());
                 break;
             }
-            case String:
-            {
+            case String: {
                 line->tokens.push_back(Token());
                 readString(it, end, *line->tokens.rbegin());
                 break;
@@ -193,8 +184,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
             case Comma:
             case Colon:
             case LeftParen:
-            case RightParen:
-            {
+            case RightParen: {
                 line->tokens.push_back(Token());
                 readSingleChar(it, *line->tokens.rbegin());
                 break;
@@ -204,8 +194,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
             case Star:       // Star or StarEqual
             case Slash:      // Slash or SlashEqual
             case Plus:       // Plus or PlusEqual
-            case Minus:      // Minus or MinusEqual
-            {
+            case Minus: {    // Minus or MinusEqual
                 line->tokens.push_back(Token());
                 readOperator(it, end, *line->tokens.rbegin());
                 break;
@@ -230,8 +219,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
 
         if (line->tokens.size() == 0)
             tokens.pop_back();
-        else
-        {
+        else {
             // check if indentation is correct
             if (spaces % 4 != 0)
                 return pushError("Invalid indentation");

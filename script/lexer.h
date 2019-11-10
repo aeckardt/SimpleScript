@@ -73,7 +73,8 @@ class Lexer
 public:
     void run(const string &context, TokenList &tokens);
 
-    const string &getLastError() const { return error_msg; }
+    const string &getLastError() const
+    { return error_msg; }
 
 private:
     string error_msg;

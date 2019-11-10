@@ -106,14 +106,12 @@ bool Video::load(const QString &str)
     size_t size;
     file.read(reinterpret_cast<char *>(&size), sizeof(size));
 
-    if (size > 0)
-    {
+    if (size > 0) {
         QSize image_size;
         file.read(reinterpret_cast<char *>(&image_size), sizeof(image_size));
 
         size_t index;
-        for (index = 0; index < size; ++index)
-        {
+        for (index = 0; index < size; ++index) {
             qint64 bytes;
             file.read(reinterpret_cast<char *>(&bytes), sizeof(bytes));
             ba += file.read(bytes);
@@ -143,17 +141,14 @@ bool Video::save(const QString &str) const
     size_t size = this->size();
     file.write(reinterpret_cast<char *>(&size), sizeof(size));
 
-    if (size > 0)
-    {
+    if (size > 0) {
         const QImage &first_img = frame(0).image();
 
         QSize image_size = first_img.size();
         file.write(reinterpret_cast<char *>(&image_size), sizeof(image_size));
 
-        if (first_img.format() == QImage::Format_RGB32)
-        {
-            for (const VideoFrame &videoFrame : frames)
-            {
+        if (first_img.format() == QImage::Format_RGB32) {
+            for (const VideoFrame &videoFrame : frames) {
                 videoFrame.image().save(&buffer, "PNG");
 
                 qint64 bytes = buffer.size();

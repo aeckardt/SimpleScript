@@ -7,9 +7,7 @@
 QImage captureDesktop(QImage::Format format)
 {
     if (format != QImage::Format_RGB32)
-    {
         return QImage();
-    }
 
     CGDirectDisplayID main_display = CGMainDisplayID();
 
@@ -26,8 +24,7 @@ QImage captureDesktop(QImage::Format format)
     size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
     size_t bpr = CGImageGetBytesPerRow(image_ref);
 
-    if (bpp != 4)
-    {
+    if (bpp != 4) {
         CFRelease(dataref);
         CGImageRelease(image_ref);
         return QImage();
@@ -50,9 +47,7 @@ QImage captureDesktop(QImage::Format format)
 QImage captureRect(const QRect &rect, QImage::Format format)
 {
     if (format != QImage::Format_RGB32)
-    {
         return QImage();
-    }
 
     CGDirectDisplayID main_display = CGMainDisplayID();
     CGImageRef image_ref = CGDisplayCreateImageForRect(main_display, CGRectMake(rect.x(), rect.y(), rect.width(), rect.height()));
@@ -69,8 +64,7 @@ QImage captureRect(const QRect &rect, QImage::Format format)
     size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
     size_t bpr = CGImageGetBytesPerRow(image_ref);
 
-    if (bpp != 4)
-    {
+    if (bpp != 4) {
         CFRelease(dataref);
         CGImageRelease(image_ref);
         return QImage();
