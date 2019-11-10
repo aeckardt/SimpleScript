@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 
 #include "parser.h"
 
@@ -7,7 +7,7 @@
 using namespace lx;
 using namespace ps;
 
-static const std::map<TokenId, std::string> token_desc = {
+static const std::unordered_map<uint32_t, std::string> token_desc = {
     {Term,    "Term"}, {Integer, "Integer"}, {Float,   "Float"}, {String,    "String"},
     {Comma,    "','"}, {Colon,       "':'"}, {LeftParen, "'('"}, {RightParen,   "')'"},
     {Equal,    "'='"}, {EqualEqual, "'=='"}, {Not,       "'!'"}, {NotEqual,    "'!='"},
@@ -107,7 +107,7 @@ void Parser::parseExpr(Node &node)
     bool isExpression = false;
     Node temp_node;
 
-    static const std::map<TokenId, uint32_t> precedence = {
+    static const std::unordered_map<uint32_t, uint32_t> precedence = {
         {EqualEqual, 1},
         {NotEqual, 1},
         {Plus, 2,},
@@ -115,7 +115,7 @@ void Parser::parseExpr(Node &node)
         {Star, 3},
         {Slash, 3}};
 
-    static const std::map<TokenId, bool> assoc_left = {
+    static const std::unordered_map<uint32_t, bool> assoc_left = {
         {EqualEqual, true},
         {NotEqual, true},
         {Plus, true},

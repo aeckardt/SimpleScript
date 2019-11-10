@@ -3,6 +3,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <unordered_set>
 
 #include "lexer.h"
 
@@ -41,6 +42,13 @@ static TokenId char_def[UCHAR_MAX + 1] = {
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other};
+
+const std::unordered_set<uint32_t> lx::operators = {
+    EqualEqual, NotEqual, Plus, Minus, Star, Slash};
+
+const std::unordered_set<uint32_t> lx::expr_tokens = {
+    Term, Integer, Float, String, LeftParen, RightParen,
+    EqualEqual, NotEqual, Plus, Minus, Star, Slash};
 
 inline TokenId token_at(const token_pos it)
 {

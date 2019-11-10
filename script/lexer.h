@@ -3,6 +3,7 @@
 
 #include <list>
 #include <string>
+#include <unordered_set>
 
 namespace lx
 {
@@ -40,13 +41,16 @@ enum TokenId : uint32_t
     End
 };
 
-// isOperator is equivalent to id is in {Plus, Minus, Star, Slash}
-inline bool isOperator(const TokenId &id) { return (id >= Plus && id <= SlashEqual && (static_cast<uint32_t>(id) % 2 == 0)) || id == EqualEqual || id == NotEqual; }
-
-// isExprToken is equivalent to id is in {Term, Integer, Float, String, LeftParen, RightParen, EqualEqual, NotEqual, Plus, Minus, Star, Slash}
-inline bool isExprToken(const TokenId &id) { return isOperator(id) || (id >= Term && id <= RightParen); }
-
 typedef std::string::const_iterator token_pos;
+
+extern const std::unordered_set<uint32_t> operators;
+extern const std::unordered_set<uint32_t> expr_tokens;
+
+inline bool isOperator(TokenId id)
+{ return operators.find(id) != operators.end(); }
+
+inline bool isExprToken(TokenId id)
+{ return expr_tokens.find(id) != expr_tokens.end(); }
 
 struct Token
 {

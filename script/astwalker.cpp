@@ -142,7 +142,7 @@ void Parameter::assign(ParameterObject &&o)
     _type = Object;
 }
 
-inline double Parameter::asFloat() const
+double Parameter::asFloat() const
 {
     if (_type == Float)
         return *static_cast<double*>(value);
@@ -153,7 +153,7 @@ inline double Parameter::asFloat() const
     return 0;
 }
 
-inline int32_t Parameter::asInt() const
+int32_t Parameter::asInt() const
 {
     if (_type == Int)
         return *static_cast<int32_t*>(value);

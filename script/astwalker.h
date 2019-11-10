@@ -122,8 +122,8 @@ public:
     { assign(ParameterObjectBase<T>(__args...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
     inline const std::string &asString() const   { return *static_cast<std::string*>(value); }
-    inline int32_t            asInt() const;
-    inline double             asFloat() const;
+           int32_t            asInt() const;
+           double             asFloat() const;
     inline const QPoint      &asPoint() const    { return *static_cast<QPoint*>(value); }
     inline const QRect       &asRect() const     { return *static_cast<QRect*>(value); }
     inline bool               asBoolean() const  { return *static_cast<bool*>(value); }
