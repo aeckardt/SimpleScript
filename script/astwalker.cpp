@@ -1,5 +1,5 @@
-#include <math.h>
-#include <cstdarg>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "astwalker.h"
 
@@ -7,16 +7,19 @@ using lx::TokenList;
 
 using namespace tw;
 
+const std::unordered_map<int32_t, std::string> type_names = {
+    {Empty,     "Empty"}, {String,    "String"},  {Int,         "Int"},
+    {Float,     "Float"}, {Boolean,  "Boolean"},  {Point,     "Point"},
+    {Rect,       "Rect"}, {DateTime, "DateTime"}, {Object,   "Object"}};
+
+const std::unordered_set<std::string> keywords = {
+    "if", "else", "print"};
+
 //*************************************************************************//
 //
 // Parameter class implementation
 //
 //*************************************************************************//
-
-const std::map<Parameter::Type, std::string> type_names = {
-    {Empty,     "Empty"}, {String,    "String"},  {Int,         "Int"},
-    {Float,     "Float"}, {Boolean,  "Boolean"},  {Point,     "Point"},
-    {Rect,       "Rect"}, {DateTime, "DateTime"}, {Object,   "Object"}};
 
 Parameter::Type getParameterType(const TokenId &token_id)
 {
@@ -36,10 +39,10 @@ void Parameter::clear()
 {
     if (empty())
         return;
-    else if (isReference) {
+    else if (is_reference) {
         value = nullptr;
         _type = Empty;
-        isReference = false;
+        is_reference = false;
         return;
     }
 
@@ -139,7 +142,7 @@ void Parameter::assign(ParameterObject &&o)
     _type = Object;
 }
 
-double Parameter::asFloat() const
+inline double Parameter::asFloat() const
 {
     if (_type == Float)
         return *static_cast<double*>(value);
@@ -150,7 +153,7 @@ double Parameter::asFloat() const
     return 0;
 }
 
-int32_t Parameter::asInt() const
+inline int32_t Parameter::asInt() const
 {
     if (_type == Int)
         return *static_cast<int32_t*>(value);
@@ -166,16 +169,16 @@ void Parameter::copyReference(Parameter &dest) const
     dest.clear();
     dest.value = value;
     dest._type = _type;
-    dest.isReference = true;
+    dest.is_reference = true;
 }
 
 Parameter &Parameter::operator=(const Parameter &src)
 {
     clear();
-    if (src.isReference) {
+    if (src.is_reference) {
         value = src.value;
         _type = src._type;
-        isReference = true;
+        is_reference = true;
     } else {
         switch (src.type()) {
         case Empty:
@@ -216,10 +219,10 @@ Parameter &Parameter::operator=(Parameter &&src)
     clear();
     value = src.value;
     _type = src._type;
-    isReference = src.isReference;
+    is_reference = src.is_reference;
     src.value = nullptr;
     src._type = Empty;
-    src.isReference = false;
+    src.is_reference = false;
     return *this;
 }
 
@@ -350,12 +353,11 @@ bool ASTWalker::run(const std::string &str)
     if (!validate(ast_root)) {
         errorMsg("Error validating syntax");
         return false;
-    } else {
+    } else
         if (!traverse(ast_root)) {
             errorMsg("Error running script");
             return false;
         }
-    }
 
     return true;
 }
@@ -462,9 +464,9 @@ bool ASTWalker::traverseFunction(const Node &node)
                 return false;
             params.push_back(std::move(return_value));
         } else if (child.rule == ps::Variable)
-            params.emplace_back(referenceTo(vars[child.param.getText()]));
+            params.push_back(referenceTo(vars[child.param.getText()]));
         else if (child.rule == ps::ConstValue)
-            params.emplace_back(getConstValue(child));
+            params.push_back(getConstValue(child));
     }
 
     const std::string &cmd_name = node.param.getText();
@@ -777,6 +779,12 @@ bool ASTWalker::validateAssignment(const Node &node)
         return false;
     }
 
+    const std::string &var_name = var_node.param.getText();
+    if (keywords.find(var_name) != keywords.end()) {
+        errorMsg("Keyword '%s' is not allowed as variable name", var_name.c_str());
+        return false;
+    }
+
     const Node &src_node = *node.children.rbegin();
     if (src_node.rule != ps::Variable && src_node.rule != ps::ConstValue &&
         src_node.rule != ps::Function && src_node.rule != ps::Expr) {
@@ -789,9 +797,9 @@ bool ASTWalker::validateAssignment(const Node &node)
         if (!validate(src_node))
             return false;
     } else if (src_node.rule == ps::Variable) {
-        const std::string &var_name = src_node.param.getText();
-        if (var_types.find(var_name) == var_types.end()) {
-            errorMsg("Variable '%s' not found", var_name.c_str());
+        const std::string &rvar_name = src_node.param.getText();
+        if (var_types.find(rvar_name) == var_types.end()) {
+            errorMsg("Variable '%s' not found", rvar_name.c_str());
             return false;
         }
         return_value_type = var_types[var_name];
@@ -799,7 +807,6 @@ bool ASTWalker::validateAssignment(const Node &node)
     else // rule is Int, Float or String
         return_value_type = getParamType(src_node);
 
-    const std::string &var_name = var_node.param.getText();
     var_types[var_name] = return_value_type;
 
     return true;

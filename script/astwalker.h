@@ -2,8 +2,8 @@
 #define SCRIPTENGINE_H
 
 #include <string>
-#include <map>
 #include <vector>
+#include <unordered_map>
 
 #include <QPoint>
 #include <QRect>
@@ -23,7 +23,7 @@ using lx::TokenId;
 using ps::Parser;
 using ps::Node;
 
-enum BasicParameterType : int16_t
+enum BasicParameterType : int32_t
 {
     Empty,
     String,
@@ -36,21 +36,24 @@ enum BasicParameterType : int16_t
     Object
 };
 
-typedef int16_t ObjectReference;
+typedef int32_t ObjectReference;
 
-class ParameterType
+struct ParameterType
 {
 public:
-    ParameterType() : basic_type(Empty), obj_ref(-1) {}
-    ParameterType(BasicParameterType basic_type) : basic_type(basic_type), obj_ref(-1) {}
-    ParameterType(ObjectReference obj_ref) : basic_type(Object), obj_ref(obj_ref) {}
+    inline ParameterType() : basic_type(Empty), obj_ref(-1) {}
+    inline ParameterType(BasicParameterType basic_type) : basic_type(basic_type), obj_ref(-1) {}
+    inline ParameterType(ObjectReference obj_ref) : basic_type(Object), obj_ref(obj_ref) {}
 
     BasicParameterType basic_type;
     ObjectReference    obj_ref;
 };
 
-inline bool operator==(const ParameterType &pt1, const ParameterType &pt2) { return pt1.basic_type == pt2.basic_type && pt1.obj_ref == pt2.obj_ref; }
-inline bool operator!=(const ParameterType &pt1, const ParameterType &pt2) { return pt1.basic_type != pt2.basic_type || pt1.obj_ref != pt2.obj_ref; }
+inline bool operator==(const ParameterType &pt1, const ParameterType &pt2)
+{ return pt1.basic_type == pt2.basic_type && pt1.obj_ref == pt2.obj_ref; }
+
+inline bool operator!=(const ParameterType &pt1, const ParameterType &pt2)
+{ return pt1.basic_type != pt2.basic_type || pt1.obj_ref != pt2.obj_ref; }
 
 class ParameterObject
 {
@@ -94,7 +97,7 @@ class Parameter
 public:
     typedef BasicParameterType Type;
 
-    inline Parameter() : _type(Empty), value(nullptr), isReference(false) {}
+    inline Parameter() : _type(Empty), value(nullptr), is_reference(false) {}
     inline Parameter(const Parameter &src) : Parameter() { operator=(src); }
     inline Parameter(Parameter &&src) : Parameter() { operator=(std::move(src)); }
     inline ~Parameter() { clear(); }
@@ -118,20 +121,17 @@ public:
     inline typename ParameterObjectBase<T>::ObjectType &createObject(_Args... __args)
     { assign(ParameterObjectBase<T>(__args...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
-    const std::string &asString() const   { return *static_cast<std::string*>(value); }
-    int32_t            asInt() const;
-    double             asFloat() const;
-    const QPoint      &asPoint() const    { return *static_cast<QPoint*>(value); }
-    const QRect       &asRect() const     { return *static_cast<QRect*>(value); }
-    bool               asBoolean() const  { return *static_cast<bool*>(value); }
-    const QDateTime   &asDateTime() const { return *static_cast<QDateTime*>(value); }
+    inline const std::string &asString() const   { return *static_cast<std::string*>(value); }
+    inline int32_t            asInt() const;
+    inline double             asFloat() const;
+    inline const QPoint      &asPoint() const    { return *static_cast<QPoint*>(value); }
+    inline const QRect       &asRect() const     { return *static_cast<QRect*>(value); }
+    inline bool               asBoolean() const  { return *static_cast<bool*>(value); }
+    inline const QDateTime   &asDateTime() const { return *static_cast<QDateTime*>(value); }
 
     template<class T>
-    const T           &asObject() const
-    { return static_cast<ParameterObjectBase<T>*>(value)->obj; }
-
-    ObjectReference    objectRef() const
-    { return static_cast<ParameterObject*>(value)->objRef(); }
+    inline const T           &asObject() const   { return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+    inline ObjectReference    objectRef() const  { return static_cast<ParameterObject*>(value)->objRef(); }
 
     void copyReference(Parameter &dest) const;
 
@@ -141,7 +141,7 @@ public:
 private:
     Type _type;
     void *value;
-    bool isReference;
+    bool is_reference;
 };
 
 std::ostream &operator <<(std::ostream &os, const Parameter &param);
@@ -186,10 +186,10 @@ private:
     template<class... _Args>
     void errorMsg(const char *format, _Args ... __args) const;
 
-    std::map<std::string, Command> commands;
-    std::map<ObjectReference, std::string> obj_names;
+    std::unordered_map<std::string, Command> commands;
+    std::unordered_map<ObjectReference, std::string> obj_names;
 
-    std::map<std::string, Parameter> vars;
+    std::unordered_map<std::string, Parameter> vars;
     Parameter return_value;
 
     Parameter getConstValue(const Node &node);
@@ -203,7 +203,7 @@ private:
     // the following types, variables and functions are exclusively used to validate the syntax
     typedef std::vector<ParameterType> ParameterTypeList;
 
-    std::map<std::string, ParameterType> var_types;
+    std::unordered_map<std::string, ParameterType> var_types;
     ParameterType return_value_type;
 
     Parameter::Type getParamType(const Node &node);

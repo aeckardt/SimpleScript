@@ -1,13 +1,13 @@
 #include "engine.h"
 
-using namespace tw;
-
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
 #include "image/video.h"
 #include "image/recorder.h"
 #include "imageView/ImageView.h"
 #include "videoView/VideoView.h"
+
+using namespace tw;
 
 static ScriptEngine *engine;
 
@@ -88,8 +88,6 @@ bool cmdSelect(const ParameterList &, Parameter &param)
 
     return true;
 }
-
-#include <unistd.h>
 
 bool cmdSleep(const ParameterList &params, Parameter &)
 {

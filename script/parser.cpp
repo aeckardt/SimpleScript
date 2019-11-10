@@ -85,8 +85,8 @@ void Parser::run(const TokenList &tokens, Node &root)
     error_msg.clear();
 
     root.rule = Section;
-    ptokens = &tokens;
-    cur_line = ptokens->begin();
+    this->tokens = &tokens;
+    cur_line = tokens.begin();
     parseSection(root, 0, true);
 }
 
@@ -242,7 +242,7 @@ void Parser::parseIfStatement(Node &node)
     uint32_t if_indent = (cur_line++)->indent_level;
     ASSERT(parseSection(addNode(node, Section), if_indent + 1, false))
 
-    if (cur_line == ptokens->end()) {
+    if (cur_line == tokens->end()) {
         --cur_line;
         cur_token = lineEnd();
         return;
@@ -295,13 +295,13 @@ void Parser::parseLine(Node &parent)
 
 void Parser::parseSection(Node &node, uint32_t lvl, bool may_be_empty)
 {
-    while (cur_line != ptokens->end() && cur_line->indent_level == lvl) {
+    while (cur_line != tokens->end() && cur_line->indent_level == lvl) {
         ASSERT(parseLine(node))
-        if (cur_line != ptokens->end())
+        if (cur_line != tokens->end())
             ++cur_line;
     }
 
-    if (cur_line != ptokens->end() && cur_line->indent_level > lvl)
+    if (cur_line != tokens->end() && cur_line->indent_level > lvl)
         return pushError("Invalid indentation");
 
     if (!may_be_empty && node.children.empty()) {

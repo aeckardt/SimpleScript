@@ -76,7 +76,7 @@ public:
 private:
     std::string error_msg;
     std::stringstream err_msg_ss;
-    const lx::TokenList *ptokens;
+    const lx::TokenList *tokens;
 
     // current position
     lx::line_pos cur_line;
