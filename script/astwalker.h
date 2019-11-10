@@ -116,7 +116,7 @@ public:
 
     template<class T, class... _Args>
     inline typename ParameterObjectBase<T>::ObjectType &createObject(_Args... __args)
-    { assign(ParameterObjectBase<T>((__args)...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+    { assign(ParameterObjectBase<T>(__args...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
     const std::string &asString() const   { return *static_cast<std::string*>(value); }
     int32_t            asInt() const;

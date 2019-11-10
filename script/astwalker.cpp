@@ -494,10 +494,12 @@ bool ASTWalker::traverseIfStatement(const Node &node)
     bool exprIsTrue;
     if (return_value.empty())
         exprIsTrue = false;
-    else if (return_value.type() != Boolean)
+    else if (return_value.type() != Boolean && return_value.type() != Int)
         exprIsTrue = true;
-    else
+    else if (return_value.type() == Boolean)
         exprIsTrue = return_value.asBoolean();
+    else
+        exprIsTrue = return_value.asInt();
 
     return_value.clear();
 
