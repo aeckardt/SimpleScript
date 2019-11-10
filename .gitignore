@@ -1,0 +1,13 @@
+*.9-pre1
+*.autosave
+*.pro.user
+/build/*
+/output/*
+/hotkey/*
+/tempData/*
+/imageView/build/*
+/performanceTest/build/*
+/selectFrame/build/*
+/threadtest/build/*
+/videoView/build/*
+/videoView/resources/*
