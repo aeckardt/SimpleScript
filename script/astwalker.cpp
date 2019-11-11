@@ -1,9 +1,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "astwalker.h"
+#include <math.h>
 
-using lx::TokenList;
+#include "parameter.h"
+#include "astwalker.h"
 
 using namespace tw;
 
@@ -15,253 +16,6 @@ const std::unordered_map<int32_t, std::string> type_names = {
 const std::unordered_set<std::string> keywords = {
     "if", "else", "print"};
 
-//*************************************************************************//
-//
-// Parameter class implementation
-//
-//*************************************************************************//
-
-Parameter::Type getParameterType(const TokenId &token_id)
-{
-    switch (token_id) {
-    case lx::Integer:
-        return Int;
-    case lx::Float:
-        return Float;
-    case lx::String:
-        return String;
-    default:
-        return Empty;
-    }
-}
-
-void Parameter::clear()
-{
-    if (empty())
-        return;
-    else if (is_reference) {
-        value = nullptr;
-        _type = Empty;
-        is_reference = false;
-        return;
-    }
-
-    switch (_type) {
-    case Empty:
-        // do nothing...
-        break;
-    case String:
-        delete static_cast<std::string*>(value);
-        break;
-    case Int:
-        delete static_cast<int32_t*>(value);
-        break;
-    case Float:
-        delete static_cast<double*>(value);
-        break;
-    case Boolean:
-        delete static_cast<bool*>(value);
-        break;
-    case Point:
-        delete static_cast<QPoint*>(value);
-        break;
-    case Rect:
-        delete static_cast<QRect*>(value);
-        break;
-    case DateTime:
-        delete static_cast<QDateTime*>(value);
-        break;
-    case Object:
-        delete static_cast<ParameterObject*>(value);
-        break;
-    }
-    _type = Empty;
-    value = nullptr;
-}
-
-void Parameter::assign(const std::string &str)
-{
-    clear();
-    value = new std::string(str);
-    _type = String;
-}
-
-void Parameter::assign(int32_t i)
-{
-    clear();
-    value = new int32_t(i);
-    _type = Int;
-}
-
-void Parameter::assign(double f)
-{
-    clear();
-    value = new double(f);
-    _type = Float;
-}
-
-void Parameter::assign(bool b)
-{
-    clear();
-    value = new bool(b);
-    _type = Boolean;
-}
-
-void Parameter::assign(const QPoint &pt)
-{
-    clear();
-    value = new QPoint(pt);
-    _type = Point;
-}
-
-void Parameter::assign(const QRect &rect)
-{
-    clear();
-    value = new QRect(rect);
-    _type = Rect;
-}
-
-void Parameter::assign(const QDateTime &dt)
-{
-    clear();
-    value = new QDateTime(dt);
-    _type = DateTime;
-}
-
-void Parameter::assign(const ParameterObject &o)
-{
-    clear();
-    o.copyTo(value);
-    _type = Object;
-}
-
-void Parameter::assign(ParameterObject &&o)
-{
-    clear();
-    o.moveTo(value);
-    _type = Object;
-}
-
-double Parameter::asFloat() const
-{
-    if (_type == Float)
-        return *static_cast<double*>(value);
-    else if (_type == Int) {
-        int32_t val = *static_cast<int32_t*>(value);
-        return static_cast<double>(val);
-    }
-    return 0;
-}
-
-int32_t Parameter::asInt() const
-{
-    if (_type == Int)
-        return *static_cast<int32_t*>(value);
-    else if (_type == Float) {
-        double val = *static_cast<double*>(value);
-        return static_cast<int32_t>(val);
-    }
-    return 0;
-}
-
-void Parameter::copyReference(Parameter &dest) const
-{
-    dest.clear();
-    dest.value = value;
-    dest._type = _type;
-    dest.is_reference = true;
-}
-
-Parameter &Parameter::operator=(const Parameter &src)
-{
-    clear();
-    if (src.is_reference) {
-        value = src.value;
-        _type = src._type;
-        is_reference = true;
-    } else {
-        switch (src.type()) {
-        case Empty:
-            _type = Empty;
-            break;
-        case String:
-            assign(src.asString());
-            break;
-        case Int:
-            assign(src.asInt());
-            break;
-        case Float:
-            assign(src.asFloat());
-            break;
-        case Boolean:
-            assign(src.asBoolean());
-            break;
-        case Point:
-            assign(src.asPoint());
-            break;
-        case Rect:
-            assign(src.asRect());
-            break;
-        case DateTime:
-            assign(src.asDateTime());
-            break;
-        case Object:
-            static_cast<ParameterObject*>(src.value)->copyTo(value);
-            _type = Object;
-            break;
-        }
-    }
-    return *this;
-}
-
-Parameter &Parameter::operator=(Parameter &&src)
-{
-    clear();
-    value = src.value;
-    _type = src._type;
-    is_reference = src.is_reference;
-    src.value = nullptr;
-    src._type = Empty;
-    src.is_reference = false;
-    return *this;
-}
-
-std::ostream &tw::operator<<(std::ostream &os, const Parameter &param)
-{
-    switch (param.type()) {
-    case Empty:
-        return os;
-    case String:
-        return os << param.asString();
-    case Int:
-        return os << param.asInt();
-    case Float:
-        return os << param.asFloat();
-    case Boolean:
-        return os << (param.asBoolean() ? "true" : "false");
-    case Point: {
-        const QPoint &pt = param.asPoint();
-        return os << "(" << pt.x() << ", " << pt.y() << ")";
-    }
-    case Rect: {
-        const QRect &rect = param.asRect();
-        return os << "(" << rect.x() << ", " << rect.y() << ", " << rect.width() << ", " << rect.height() << ")";
-    }
-    case DateTime: {
-        const QDateTime &dt = param.asDateTime();
-        return os << dt.toString("yyyy-MM-dd HH:mm:ss").toStdString();
-    }
-    default:
-        return os;
-    }
-}
-
-//*************************************************************************//
-//
-// TreeWalker class implementation
-//
-//*************************************************************************//
-
 // Comparison range for floating types
 #define FLOAT_CMP_EPSILON 0.00001
 
@@ -270,21 +24,15 @@ bool floatEqual(const double &f1, const double &f2)
     return fabs(f1 - f2) < FLOAT_CMP_EPSILON;
 }
 
-inline void ASTWalker::errorMsg(const char *msg) const
-{
-    if (output_fnc != nullptr) {
-        Parameter param;
-        param.assign(std::string(msg));
-        output_fnc(param, Qt::darkRed);
-    }
-}
-
 template<class... _Args>
 inline void ASTWalker::errorMsg(const char *format, _Args... __args) const
 {
     if (output_fnc != nullptr) {
         Parameter param;
-        param.assign(QString().sprintf(format, __args...).toStdString());
+        char *buffer = new char[strlen(format) * 2 + 50];
+        sprintf(buffer, format, __args...);
+        param.assign(std::string(buffer));
+        delete [] buffer;
         output_fnc(param, Qt::darkRed);
     }
 }
@@ -331,8 +79,8 @@ Parameter::Type ASTWalker::getParamType(const Node &node)
 
 bool ASTWalker::run(const std::string &str)
 {
-    TokenList tokens;
-    Lexer lexer;
+    lx::TokenList tokens;
+    lx::Lexer lexer;
     lexer.run(str, tokens);
 
     if (!lexer.getLastError().empty()) {
@@ -342,7 +90,7 @@ bool ASTWalker::run(const std::string &str)
     }
 
     Node ast_root;
-    Parser parser;
+    ps::Parser parser;
     parser.run(tokens, ast_root);
     if (!parser.getLastError().empty()) {
         errorMsg("Error parsing:");
@@ -392,13 +140,12 @@ bool ASTWalker::traverseAssignment(const Node &node)
     if (src_node.rule == ps::Function || src_node.rule == ps::Expr) {
         if (!traverse(src_node))
             return false;
-    } else if (src_node.rule == ps::Variable) {
+    } else if (src_node.rule == ps::Variable)
         // create new variable as copy of rvalue variable
         return_value = vars[src_node.param.getText()];
-    } else if (src_node.rule == ps::ConstValue) {
+    else if (src_node.rule == ps::ConstValue)
         // create new parameter containing the given value
         return_value = getConstValue(src_node);
-    }
 
     vars[var_name] = std::move(return_value);
 
