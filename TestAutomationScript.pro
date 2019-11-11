@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = "Game Script"
+TARGET = "Test Automation Script V1.0"
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -27,8 +27,8 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
-    main.cpp \
-    mainwindow.cpp \
+    mainWindow/main.cpp \
+    mainWindow/mainwindow.cpp \
     hotkey/qhotkey.cpp \
     image/video.cpp \
     image/recorder.cpp \
@@ -43,10 +43,10 @@ SOURCES += \
     videoView/VideoView.cpp
 
 HEADERS += \
-    mainwindow.h \
+    mainWindow/mainwindow.h \
+    mainWindow/ui_mainwindow.h \
     script/parameter.h \
     script/types.h \
-    ui_mainwindow.h \
     hotkey/qhotkey.h \
     hotkey/qhotkey_p.h \
     image/screenshot.h \
@@ -88,4 +88,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    "Game Script.qrc"
+    "resources/resources.qrc"

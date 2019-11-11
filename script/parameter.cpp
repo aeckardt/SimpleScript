@@ -1,3 +1,5 @@
+#include <ostream>
+
 #include "lexer.h"
 #include "parameter.h"
 
