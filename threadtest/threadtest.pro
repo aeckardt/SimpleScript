@@ -22,8 +22,7 @@ SOURCES += \
     main.cpp \
     ../image/video.cpp \
     ../image/recorder.cpp \
-    ../hotkey/qhotkey.cpp \
-    ../hotkey/qhotkey_mac.cpp
+    ../hotkey/qhotkey.cpp
 
 HEADERS += \
     ../image/screenshot.h \
@@ -39,14 +38,16 @@ INCLUDEPATH += \
 
 win32 {
     SOURCES += \
-        ../image/screenshot_win.cpp
+        ../image/screenshot_win.cpp \
+        ../hotkey/qhotkey_win.cpp
 
     LIBS += \
         -lgdi32
 }
 macx {
     SOURCES += \
-        ../image/screenshot_mac.cpp
+        ../image/screenshot_mac.cpp \
+        ../hotkey/qhotkey_mac.cpp
 
     LIBS += \
         -framework ApplicationServices \
