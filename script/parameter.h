@@ -15,9 +15,9 @@ enum BasicParameterType : int32_t
     String,
     Int,
     Float,
+    Boolean,
     Point,
     Rect,
-    Boolean,
     DateTime,
     Object
 };
