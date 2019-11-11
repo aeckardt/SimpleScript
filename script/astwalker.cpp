@@ -33,6 +33,7 @@ inline void ASTWalker::errorMsg(const char *msg) const
     }
 }
 
+// void(0) is used to enforce semicolon after the macro
 #define errorMsgf(format, ...) \
 { char *buffer = new char[strlen(format) * 2 + 50]; sprintf(buffer, format, __VA_ARGS__); errorMsg(buffer); } (void)0
 
@@ -527,8 +528,7 @@ bool ASTWalker::validateAssignment(const Node &node)
 
     const std::string &var_name = var_node.param.getText();
     if (keywords.find(var_name) != keywords.end()) {
-        char buffer[200];
-        sprintf(buffer, "Keyword '%s' is not allowed as variable name", var_name.c_str());
+        errorMsgf("Keyword '%s' is not allowed as variable name", var_name.c_str());
         return false;
     }
 
