@@ -35,6 +35,7 @@ SOURCES += \
     imageView/ImageView.cpp \
     script/engine.cpp \
     script/highlighter.cpp \
+    script/parameter.cpp \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
@@ -43,6 +44,8 @@ SOURCES += \
 
 HEADERS += \
     mainwindow.h \
+    script/parameter.h \
+    script/types.h \
     ui_mainwindow.h \
     hotkey/qhotkey.h \
     hotkey/qhotkey_p.h \
