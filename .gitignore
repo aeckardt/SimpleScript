@@ -1,7 +1,7 @@
 *.9-pre1
 *.autosave
 *.pro.user
-/build/*
+/build*/*
 /output/*
 /hotkey/*
 /tempData/*

@@ -24,18 +24,17 @@ bool floatEqual(const double &f1, const double &f2)
     return fabs(f1 - f2) < FLOAT_CMP_EPSILON;
 }
 
-template<class... _Args>
-inline void ASTWalker::errorMsg(const char *format, _Args... __args) const
+inline void ASTWalker::errorMsg(const char *msg) const
 {
     if (output_fnc != nullptr) {
         Parameter param;
-        char *buffer = new char[strlen(format) * 2 + 50];
-        sprintf(buffer, format, __args...);
-        param.assign(std::string(buffer));
-        delete [] buffer;
+        param.assign(std::string(msg));
         output_fnc(param, Qt::darkRed);
     }
 }
+
+#define errorMsgf(format, ...) \
+{ char *buffer = new char[strlen(format) * 2 + 50]; sprintf(buffer, format, __VA_ARGS__); errorMsg(buffer); } (void)0
 
 Parameter ASTWalker::getConstValue(const Node &node)
 {
@@ -528,7 +527,8 @@ bool ASTWalker::validateAssignment(const Node &node)
 
     const std::string &var_name = var_node.param.getText();
     if (keywords.find(var_name) != keywords.end()) {
-        errorMsg("Keyword '%s' is not allowed as variable name", var_name.c_str());
+        char buffer[200];
+        sprintf(buffer, "Keyword '%s' is not allowed as variable name", var_name.c_str());
         return false;
     }
 
@@ -546,7 +546,7 @@ bool ASTWalker::validateAssignment(const Node &node)
     } else if (src_node.rule == ps::Variable) {
         const std::string &rvar_name = src_node.param.getText();
         if (var_types.find(rvar_name) == var_types.end()) {
-            errorMsg("Variable '%s' not found", rvar_name.c_str());
+            errorMsgf("Variable '%s' not found", rvar_name.c_str());
             return false;
         }
         return_value_type = var_types[var_name];
@@ -563,14 +563,14 @@ bool ASTWalker::validateCommand(const std::string &command, const ParameterTypeL
 {
     // check if function with that name exists
     if (commands.find(command) == commands.end()) {
-        errorMsg("Unknown function '%s'", command.c_str());
+        errorMsgf("Unknown function '%s'", command.c_str());
         return false;
     }
 
     const Command &cmd = commands.find(command)->second;
 
     if (cmd.param_types.size() < param_types.size()) {
-        errorMsg("Too many arguments passed to function '%s', expected %d", command.c_str(), cmd.param_types.size());
+        errorMsgf("Too many arguments passed to function '%s', expected %lu", command.c_str(), cmd.param_types.size());
         return false;
     }
 
@@ -584,7 +584,7 @@ bool ASTWalker::validateCommand(const std::string &command, const ParameterTypeL
                 validParam = true;
                 break;
             } else if (param_types.size() <= index) {
-                errorMsg("Error: Wrong number of arguments passed to function '%s', expected %d", command.c_str(), cmd.param_types.size());
+                errorMsgf("Error: Wrong number of arguments passed to function '%s', expected %lu", command.c_str(), cmd.param_types.size());
                 return false;
             } else if (param_types[index] == type) {
                 validParam = true;
@@ -749,7 +749,7 @@ bool ASTWalker::validateOperation(const lx::TokenId &op, const Parameter::Type &
                 return false;
             }
         } else if (pt1 == Rect || pt1 == Object) {
-            errorMsg("Operator '+' not applicable for parameter type: %s", type_names.at(pt1).c_str());
+            errorMsgf("Operator '+' not applicable for parameter type: %s", type_names.at(pt1).c_str());
             return false;
         }
 
@@ -771,7 +771,7 @@ bool ASTWalker::validateOperation(const lx::TokenId &op, const Parameter::Type &
             return_value_type = pt1;
             return true;
         } else {
-            errorMsg("Operator '-' not applicable for parameter type: %s", type_names.at(pt1).c_str());
+            errorMsgf("Operator '-' not applicable for parameter type: %s", type_names.at(pt1).c_str());
             return false;
         }
     }
@@ -797,7 +797,7 @@ bool ASTWalker::validateOperation(const lx::TokenId &op, const Parameter::Type &
             return_value_type = pt1;
             return true;
         } else {
-            errorMsg("Operator '*' not applicable for parameter type: %s", type_names.at(pt1).c_str());
+            errorMsgf("Operator '*' not applicable for parameter type: %s", type_names.at(pt1).c_str());
             return false;
         }
     }
@@ -821,7 +821,7 @@ bool ASTWalker::validateOperation(const lx::TokenId &op, const Parameter::Type &
             return_value_type = pt1;
             return true;
         } else {
-            errorMsg("Operator '/' not applicable for parameter type: %s", type_names.at(pt1).c_str());
+            errorMsgf("Operator '/' not applicable for parameter type: %s", type_names.at(pt1).c_str());
             return false;
         }
     }
@@ -861,7 +861,7 @@ inline bool ASTWalker::validateParamType(const Node &node, ParameterTypeList *pa
         }
         const std::string &content = node.param.getText();
         if (var_types.find(content) == var_types.end()) {
-            errorMsg("Variable '%s' not found", content.c_str());
+            errorMsgf("Variable '%s' not found", content.c_str());
             return false;
         }
         if (param_types)

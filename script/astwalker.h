@@ -50,8 +50,7 @@ public:
 private:
     OutputFnc output_fnc;
 
-    template<class... _Args>
-    void errorMsg(const char *format, _Args ... __args) const;
+    void errorMsg(const char *msg) const;
 
     std::unordered_map<std::string, Command> commands;
     std::unordered_map<ObjectReference, std::string> obj_names;
