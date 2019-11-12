@@ -20,6 +20,6 @@ This simple example allows to select an area on the screen, to record it with a 
 
 To effectively automate GUI tests, there will be much more to follow.
 
-P.S.: I know that there are probably already 100 tools like that out there. I don't usually like the idea of re-inventing the wheel. However, I set this challenge to myself to learn about different things, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition. Another reason is to be able to use for future applications, so it'll better be good :)
+P.S.: I know that there are probably already 100 tools like that out there. I don't usually like the idea of re-inventing the wheel. However, I set this challenge to myself to learn about different things, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition. Another reason is to be able to use this for future applications, so it'll better be good :)
 
 You are welcome to ask questions. Any feedback is appreciated!
