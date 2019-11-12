@@ -12,6 +12,7 @@ The core parts what it can do is:
 - Allow to customize as much as possible in a script language
 
 -> save images, videos in variables and load/save them
+
 -> make calculations/decisions based on the information found in images/texts
 
 ```
