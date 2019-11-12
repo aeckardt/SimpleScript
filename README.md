@@ -22,10 +22,10 @@ view(screen_rec)
 
 This simple example allows to select an area on the screen, to record it with a frame rate of 15fps until a hotkey is pressed (which is Ctrl+. at the moment) and then can be viewed with a tool for that. This part in itself can be used as screencast-software.
 
-You can then extract images and sequences from the recording. For instance, call one image 'logo' and then you can initialize the save image and locate it as follows
+You can then extract images and sequences from the recording. For instance, call one image 'logo' and then you can initialize the saved image and locate it as follows
 
 ```
-register("software.xml") # loads saved variables (images/locations) in software.xml
+register("software.xml") # loads stored variables (images,locations,rects,etc.) in software.xml
 point=find(logo)
 print(point)
 ```
