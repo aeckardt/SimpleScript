@@ -1,5 +1,5 @@
 # Tasc
-Test Automation Script
+### Test Automation Script, created with QtCreator
 
 The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen.
 
