@@ -5,9 +5,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <QPoint>
-#include <QRect>
-#include <QDateTime>
 #include <QBrush>
 
 #include "lexer.h"
