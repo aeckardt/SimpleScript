@@ -13,6 +13,7 @@ The core parts what it can do is:
   - save images, videos in variables and load/save them
   - make calculations/decisions based on the information found in images/texts
 
+Example of the script language:
 ```
 rect=select() # Select a rectangle on the screen
 screen_rec=record(rect, 15) # the second parameter is the frame-rate
