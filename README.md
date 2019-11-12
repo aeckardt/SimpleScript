@@ -34,7 +34,7 @@ This should print out the coordinates (x, y) of the logo on the screen. You coul
 
 Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it. For that I will enhance the script language such that you can implement basic loops.
 
-On the other hand I consider to go another route entirely and instead embed python in my program by creating a plugin for that. That would probably be smarter, even now I have already created the whole toolchain of lexer, parser and syntax tree walker.
+For the scripting I consider to go another route entirely and instead embed python in my program by creating a plugin for that. That would probably be smarter, even now I have already created the whole toolchain of lexer, parser and syntax tree walker.
 
 To effectively automate GUI tests, there will be more to follow.
 
