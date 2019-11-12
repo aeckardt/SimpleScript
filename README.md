@@ -28,7 +28,9 @@ print(point)
 
 This should print out the coordinates (x, y) of the logo on the screen. You could use this information to click on it or to locate other buttons / images that have a fixed position relative to the logo. You can also always search the whole screen for an image, but be aware: Running pattern matching algorithms on the whole screen is a costly operation. So if your use case is performance critical, you should consider minimizing the usage of pattern-matching.
 
-Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it.
+Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it. For that I will enhance the script language such that you can implement basic loops.
+
+I consider to go another route and just use python in my program and to create a plugin for that. That would probably be better, even now I have already created the whole toolchain of lexer, parser as syntax tree walker.
 
 To effectively automate GUI tests, there will be more to follow.
 
