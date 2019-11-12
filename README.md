@@ -1,14 +1,17 @@
 # Tasc
 Test Automation Script
 
-The idea is to provide tools to automate test processes for GUI tests. For instance, push a button with a certain text and then something should appear on the screen.
+The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen.
 
 The core parts what it can do is:
 - Select Area on screen
 - Record screen in area
 - Extract images from recording
 - Use pattern matching to quickly find images on screen
-- Allow to customize as much as possible in a script language, somthing like
+- Use text recognition
+- Allow to customize as much as possible in a script language
+-> save images, videos in variables and load/save them
+-> make calculations/decisions based on the information found in images/texts
 
 ```
 rect=select() # Select a rectangle on the screen
