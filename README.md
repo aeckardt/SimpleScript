@@ -10,8 +10,8 @@ The core parts what it can do is:
 - Use pattern matching to quickly find images on screen
 - Use text recognition
 - Allow to customize as much as possible in a script language
--> save images, videos in variables and load/save them
--> make calculations/decisions based on the information found in images/texts
+  -> save images, videos in variables and load/save them
+  -> make calculations/decisions based on the information found in images/texts
 
 ```
 rect=select() # Select a rectangle on the screen
