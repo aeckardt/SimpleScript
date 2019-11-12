@@ -1,7 +1,7 @@
 # Tasc
-### Test Automation Script, created with QtCreator
+### Test Automation Script
 
-The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen.
+The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen. This project is created with QtCreator.
 
 I am well aware that there are probably 100 tools like that out there already! I don't usually like the idea of re-inventing the wheel. However, I set this challenge to myself to learn about different things, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
 
