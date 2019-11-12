@@ -3,7 +3,9 @@ Test Automation Script
 
 The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen.
 
-The core parts what it potentially should be doing:
+I am well aware that there are probably 100 tools like that out there already! I don't usually like the idea of re-inventing the wheel. However, I set this challenge to myself to learn about different things, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
+
+The core parts what it should be doing:
 - Select Area on screen
 - Record screen in area
 - Extract images from recording
@@ -37,9 +39,6 @@ Another thing to implement is text recognition, that can be used to do calculati
 For the scripting I consider to go another route entirely and instead embed python in my program by creating a plugin for that. That would probably be smarter, even now I have already created the whole toolchain of lexer, parser and syntax tree walker.
 
 To effectively automate GUI tests, there will be more to follow.
-
-I am well aware that there are probably 100 tools like that out there already! I don't usually like the idea of re-inventing the wheel. However, I set this challenge to myself to learn about different things, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
-
 Other than that, I am trying to solve one particular problem first and for that particular use-case, it will probably be the best tool there is. For other use-cases, I will look later if I can generalize the tool.
 
 Please note that I have just started with this project and that the above text represents the general idea and that most things are not implemented yet.
