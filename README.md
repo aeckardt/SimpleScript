@@ -15,7 +15,7 @@ The core parts what it should be doing:
 
 I know that there are probably 100 tools like that out there! On the one hand, I set this challenge to myself to learn something, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
 
-On the other hand, I want to do a tool that focuses on performance critical tasks. I have tested and drawn inspiration from other software, e.g. Sikuli, which uses pattern-matching algorithms from OpenCV and I realized those operations are very costly. It is entirely possible that your task of finding a specific image on the screen can be done in 1/1000 of the time that the algorithm of matchTemplate in OpenCV uses.
+On the other hand, I want to do a tool that focuses on performance critical tasks. I have tested and drawn inspiration from other software, e.g. Sikuli, which uses pattern-matching algorithms from OpenCV and I realized those operations are very costly. It is entirely possible that your task of finding a specific image on the screen can be done in 1/1000 of the time that the algorithm of matchTemplate in OpenCV uses. It is a very robust and fancy algorithm, which is fun to use, but unfortunately it is very slow and unsuited for a lot of tasks.
 
 Furthermore, the screen recording is going to be a critical part of this, because you will be able to gather all information you need from a recording without having to start the software, you want to test, over and over again. You will also be able to verify that the script works correctly.
 
