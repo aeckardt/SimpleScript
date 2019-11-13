@@ -44,7 +44,7 @@ This should either print out the coordinates (x, y) of the logo on the screen or
 
 Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it.
 
-Considering the scripting language I actually contemplate to go another route entirely and to embed python instead of my own parser in the program. That would probably be smarter, since you'd have way more options with that, e.g. testing with SQL queries. Even now I have already created the whole toolchain of lexer, parser and syntax tree walker.
+Considering the scripting language I actually contemplate to go another route entirely and to embed python instead of my own parser in the program. That would probably be smarter, since you'd have way more options with that, e.g. testing with SQL queries. Even now I have already implemented the whole toolchain of lexer, parser and syntax tree walker.
 
 To effectively automate GUI tests, there will be more to follow.
 Other than that, I am trying to solve one particular problem first and for that particular use-case, it will probably be the best tool there is. For other use-cases, I will look later if I can generalize the tool.
