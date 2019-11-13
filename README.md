@@ -13,7 +13,7 @@ The core parts what it should be doing:
   - save images, videos in variables and load/save them
   - make calculations/decisions based on the information found in images/texts
 
-I know that there are probably 100 tools like that out there! On the one hand, I set this challenge to myself to learn something, e.g. wiritng a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
+I know that there are probably 100 tools like that out there! On the one hand, I set this challenge to myself to learn something, e.g. writing a parser, making a video out of screenshots, threading, using pattern matching algorithms to detect images and using text recognition.
 
 On the other hand, I want to do a tool that focuses on performance critical tasks. I have tested and drawn inspiration from other software, e.g. Sikuli, which uses pattern-matching algorithms from OpenCV and I realized those operations are very costly. It is entirely possible that your task of finding a specific image on the screen can be done in 1/1000 of the time that the algorithm of matchTemplate in OpenCV uses.
 
