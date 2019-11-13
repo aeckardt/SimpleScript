@@ -19,7 +19,7 @@ On the other hand, I want to do a tool that focuses on performance critical task
 
 In exchange for better performance the tool is going to require from you that you actually know what you are doing, i.e. to know some background about which operations are best suited for your use-case. For instance, if your use-case is performance critical, you should consider minimizing the usage of pattern matching and teach your script to work smart. To make this easier, Tasc is providing a set of performance measurement tools.
 
-The screen recording is going to be a critical part of this project. You will be able to gather all information you need from a recording without having to start the software, you want to test, over and over again. Moreover, you will also be able to verify that the script works correctly.
+The screen recording is going to be an important part of this project. You will be able to gather all information you need from a recording without having to start the software, you want to test, over and over again. Moreover, you will also be able to verify that the script works correctly.
 
 The script language itself is inspired by python and allows for simple calculations, loops, storing variables and it provides useful functions. The follwing example shows how to select an area on the screen, to record the screen (until a hotkey is pressed, by now it is hardcoded as Ctrl+.) and to view the recording:
 
