@@ -4,7 +4,7 @@
 The idea is to provide tools to automate test processes for GUI tests. For instance, to verify that after pushing a button a certain text appears on the screen. This project is created with QtCreator.
 
 The core parts what it should be doing:
-- Record Screen in a selected area
+- Record screen in a selected area
 - Extract images from recording
 - Find images on screen using smart algorithms (e.g. pattern matching)
 - Identify images based on stored image lists
