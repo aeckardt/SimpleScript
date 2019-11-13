@@ -36,7 +36,7 @@ register("software.xml") # loads stored variables (images,locations,rects,etc.) 
 point=find(logo)
 if point is not None:
     print("Logo seen at " + str(point))
-else
+else:
     print("Logo not visible on screen")
 ```
 
