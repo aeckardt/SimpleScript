@@ -17,7 +17,9 @@ I know that there are probably 100 tools like that out there! On the one hand, I
 
 On the other hand, I want to do a tool that focuses on performance critical tasks. I have tested and drawn inspiration from other software, e.g. Sikuli, which uses pattern-matching algorithms from OpenCV and I realized those operations are very costly. It is entirely possible that your task of finding a specific image on the screen can be done in 1/1000 of the time that the algorithm of matchTemplate in OpenCV uses. It is a very robust and fancy algorithm, which is fun to use, but unfortunately it is very slow and unsuited for a lot of tasks.
 
-In exchange for better performance the tool is going to require from you that you actually know what you are doing, i.e. which operations are costly and which are fast. To make this easier, Tasc is providing a set of performance measurement tools.
+In exchange for better performance the tool is going to require from you that you actually know what you are doing, i.e. to know some background about which operations are best suited for your use-case. To make this easier, Tasc is providing a set of performance measurement tools.
+
+It is entirely possible to always search the whole screen with pattern matching for an image, but be aware: Running this algorithm on the whole screen is a costly operation. If your use-case is performance critical, you should consider minimizing the usage of pattern-matching and instead teach your script to work smart.
 
 The screen recording is going to be a critical part of this project. You will be able to gather all information you need from a recording without having to start the software, you want to test, over and over again. Moreover, you will also be able to verify that the script works correctly.
 
@@ -42,7 +44,7 @@ else:
     print("Logo not visible on screen")
 ```
 
-This should either print out the coordinates (x, y) of the logo on the screen or that the logo is not visible. You could then use this information to click on it or to locate other buttons / images which have a fixed position relative to the logo. It is possible to always search the whole screen for an image, but be aware: Running pattern matching algorithms on the whole screen is a costly operation. If your use-case is performance critical, you should consider minimizing the usage of pattern-matching and instead teach your script to work smart.
+This should either print out the coordinates (x, y) of the logo on the screen or that the logo is not visible. You could then use this information to click on it or to locate other buttons / images which have a fixed position relative to the logo.
 
 Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it.
 
