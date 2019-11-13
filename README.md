@@ -34,7 +34,7 @@ You can then extract images and sequences from the recording. For instance, call
 ```
 register("software.xml") # loads stored variables (images,locations,rects,etc.) in software.xml
 point=find(logo)
-if point != None:
+if point is not None:
     print("Logo seen at " + str(point))
 else
     print("Logo not visible on screen")
