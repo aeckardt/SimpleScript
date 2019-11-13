@@ -40,7 +40,7 @@ else
     print("Logo not visible on screen")
 ```
 
-This should either print out the coordinates (x, y) of the logo on the screen or that the logo is not visible. You could the use this information to click on it or to locate other buttons / images which have a fixed position relative to the logo. It is also posssible to always search the whole screen for an image, but be aware: Running pattern matching algorithms on the whole screen is a costly operation. So if your use case is performance critical, you should consider minimizing the usage of pattern-matching and instead teach your script to work smart.
+This should either print out the coordinates (x, y) of the logo on the screen or that the logo is not visible. You could the use this information to click on it or to locate other buttons / images which have a fixed position relative to the logo. It is possible to always search the whole screen for an image, but be aware: Running pattern matching algorithms on the whole screen is a costly operation. So if your use-case is performance critical, you should consider minimizing the usage of pattern-matching and instead teach your script to work smart.
 
 Another thing to implement is text recognition, that can be used to do calculations in the script and make decisions based on it.
 
