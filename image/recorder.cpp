@@ -15,10 +15,12 @@ void CompressionWorker1::run()
             QThread::msleep(1);
         }
 
-        if (recorder->last_frame == nullptr && recorder->finished)
-            break;
-
         recorder->mutex.lock();
+
+        if (recorder->last_frame == nullptr && recorder->finished) {
+            recorder->mutex.unlock();
+            break;
+        }
 
         recorder->worker1_frame = recorder->last_frame;
         int task = recorder->next_task;
@@ -57,10 +59,12 @@ void CompressionWorker2::run()
             QThread::msleep(1);
         }
 
-        if (recorder->last_frame == nullptr && recorder->finished)
-            break;
-
         recorder->mutex.lock();
+
+        if (recorder->last_frame == nullptr && recorder->finished) {
+            recorder->mutex.unlock();
+            break;
+        }
 
         recorder->worker2_frame = recorder->last_frame;
         int task = recorder->next_task;
