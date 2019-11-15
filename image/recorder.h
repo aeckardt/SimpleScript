@@ -13,29 +13,24 @@
 
 class Recorder;
 
-class CompressionWorker1 : public QThread
+class CompressionWorker : public QThread
 {
     Q_OBJECT
     void run() override;
 
 public:
     Recorder *recorder;
+    int _n;
+
+    char padding[4]; // silences compiler warning
 };
 
-class CompressionWorker2 : public QThread
-{
-    Q_OBJECT
-    void run() override;
-
-public:
-    Recorder *recorder;
-};
+#define COMPRESSION_WORKERS 2
 
 class Recorder : public QObject
 {
     Q_OBJECT
-    CompressionWorker1 worker1;
-    CompressionWorker2 worker2;
+    CompressionWorker worker[COMPRESSION_WORKERS];
     QMutex mutex;
 
 public:
@@ -69,8 +64,7 @@ private:
     bool finished;
 
     VideoFrame *last_frame;
-    VideoFrame *worker1_frame;
-    VideoFrame *worker2_frame;
+    VideoFrame *worker_frame[COMPRESSION_WORKERS];
     Video *video;
 
     QRect rect;
@@ -80,8 +74,7 @@ private:
     QHotkey hotkey;
     QElapsedTimer elapsed_timer;
 
-    friend CompressionWorker1;
-    friend CompressionWorker2;
+    friend CompressionWorker;
 };
 
 #endif // RECORDER_H

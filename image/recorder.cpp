@@ -3,16 +3,16 @@
 
 #include <QThread>
 
-void CompressionWorker1::run()
+void CompressionWorker::run()
 {
     while (!recorder->finished) {
 
-        while (recorder->next_task % 2 != 0 && !recorder->finished) {
-            QThread::msleep(1);
+        while (recorder->next_task % COMPRESSION_WORKERS != _n && !recorder->finished) {
+            QThread::usleep(100);
         }
 
         while (recorder->last_frame == nullptr && !recorder->finished) {
-            QThread::msleep(1);
+            QThread::usleep(100);
         }
 
         recorder->mutex.lock();
@@ -22,7 +22,8 @@ void CompressionWorker1::run()
             break;
         }
 
-        recorder->worker1_frame = recorder->last_frame;
+        // Consume next frame
+        recorder->worker_frame[_n] = recorder->last_frame;
         int task = recorder->next_task;
 
         recorder->last_frame = nullptr;
@@ -30,61 +31,17 @@ void CompressionWorker1::run()
 
         recorder->mutex.unlock();
 
-        recorder->worker1_frame->compress();
+        recorder->worker_frame[_n]->compress();
         while (recorder->compressed < task) {
-            QThread::msleep(1);
+            QThread::usleep(100);
         }
 
         recorder->mutex.lock();
 
-        recorder->video->addFrame(std::move(*recorder->worker1_frame));
+        recorder->video->addFrame(std::move(*recorder->worker_frame[_n]));
 
-        delete recorder->worker1_frame;
-        recorder->worker1_frame = nullptr;
-        recorder->compressed++;
-
-        recorder->mutex.unlock();
-    }
-}
-
-void CompressionWorker2::run()
-{
-    while (!recorder->finished) {
-
-        while (recorder->next_task % 2 != 1 && !recorder->finished) {
-            QThread::msleep(1);
-        }
-
-        while (recorder->last_frame == nullptr && !recorder->finished) {
-            QThread::msleep(1);
-        }
-
-        recorder->mutex.lock();
-
-        if (recorder->last_frame == nullptr && recorder->finished) {
-            recorder->mutex.unlock();
-            break;
-        }
-
-        recorder->worker2_frame = recorder->last_frame;
-        int task = recorder->next_task;
-
-        recorder->last_frame = nullptr;
-        recorder->next_task++;
-
-        recorder->mutex.unlock();
-
-        recorder->worker2_frame->compress();
-        while (recorder->compressed < task) {
-            QThread::msleep(1);
-        }
-
-        recorder->mutex.lock();
-
-        recorder->video->addFrame(std::move(*recorder->worker2_frame));
-
-        delete recorder->worker2_frame;
-        recorder->worker2_frame = nullptr;
+        delete recorder->worker_frame[_n];
+        recorder->worker_frame[_n] = nullptr;
         recorder->compressed++;
 
         recorder->mutex.unlock();
@@ -96,8 +53,11 @@ Recorder::Recorder()
     connect(&timer, &QTimer::timeout, this, &Recorder::captureFrame);
     connect(&hotkey, &QHotkey::activated, &loop, &QEventLoop::quit);
 
-    worker1.recorder = this;
-    worker2.recorder = this;
+    int i;
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker[i].recorder = this;
+        worker[i]._n = i;
+    }
 }
 
 void Recorder::captureFrame()
@@ -133,16 +93,20 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     compressed = 0;
     next_task = 0;
 
+    int i;
+
     last_frame = nullptr;
-    worker1_frame = nullptr;
-    worker2_frame = nullptr;
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker_frame[i] = nullptr;
+    }
 
     elapsed_timer.start();
 
     finished = false;
 
-    worker1.start();
-    worker2.start();
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker[i].start();
+    }
 
     captureFrame();
 
@@ -160,11 +124,10 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     finished = true;
     mutex.unlock();
 
-    worker2.wait();
-    worker2.quit();
-
-    worker1.wait();
-    worker1.quit();
+    for (i = COMPRESSION_WORKERS - 1; i >= 0; --i) {
+        worker[i].wait();
+        worker[i].quit();
+    }
 }
 
 #ifdef TEST_THREADING
@@ -178,18 +141,21 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
     compressed = 0;
     next_task = 0;
 
+    int i;
+
     last_frame = nullptr;
-    worker1_frame = nullptr;
-    worker2_frame = nullptr;
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker_frame[i] = nullptr;
+    }
 
     elapsed_timer.start();
 
     finished = false;
 
-    worker1.start();
-    worker2.start();
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker[i].start();
+    }
 
-    int i;
     for (i = 0; i < iterations; ++i) {
         captureFrame();
     }
@@ -198,10 +164,9 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
     finished = true;
     mutex.unlock();
 
-    worker1.wait();
-    worker1.quit();
-
-    worker2.wait();
-    worker2.quit();
+    for (i = COMPRESSION_WORKERS - 1; i >= 0; --i) {
+        worker[i].wait();
+        worker[i].quit();
+    }
 }
 #endif
