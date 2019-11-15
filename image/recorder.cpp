@@ -61,6 +61,44 @@ Recorder::Recorder()
     }
 }
 
+void Recorder::initRecording()
+{
+    // Except for elapsed_timer
+    // all the variables are used for
+    // the compression worker(s)
+    captured = 0;
+    compressed = 0;
+    next_task = 0;
+
+    int i;
+
+    last_frame = nullptr;
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker_frame[i] = nullptr;
+    }
+
+    elapsed_timer.start();
+
+    finished = false;
+
+    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
+        worker[i].start();
+    }
+}
+
+void Recorder::finishRecording()
+{
+    mutex.lock();
+    finished = true;
+    mutex.unlock();
+
+    int i;
+    for (i = COMPRESSION_WORKERS - 1; i >= 0; --i) {
+        worker[i].wait();
+        worker[i].quit();
+    }
+}
+
 void Recorder::captureFrame()
 {
     while (last_frame != nullptr) {
@@ -90,25 +128,9 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     else // if (frame_rate > 30)
         interval = 30;
 
-    captured = 0;
-    compressed = 0;
-    next_task = 0;
+    initRecording();
 
-    int i;
-
-    last_frame = nullptr;
-    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
-        worker_frame[i] = nullptr;
-    }
-
-    elapsed_timer.start();
-
-    finished = false;
-
-    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
-        worker[i].start();
-    }
-
+    // Capture one frame directly at start
     captureFrame();
 
     hotkey.setRegistered(true);
@@ -121,14 +143,7 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     timer.stop();
     hotkey.setRegistered(false);
 
-    mutex.lock();
-    finished = true;
-    mutex.unlock();
-
-    for (i = COMPRESSION_WORKERS - 1; i >= 0; --i) {
-        worker[i].wait();
-        worker[i].quit();
-    }
+    finishRecording();
 }
 
 #ifdef TEST_THREADING
@@ -137,36 +152,12 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
     this->rect = std::move(rect);
     this->video = &video;
 
-    captured = 0;
-    compressed = 0;
-    next_task = 0;
-
-    int i;
-
-    last_frame = nullptr;
-    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
-        worker_frame[i] = nullptr;
-    }
-
-    elapsed_timer.start();
-
-    finished = false;
-
-    for (i = 0; i < COMPRESSION_WORKERS; ++i) {
-        worker[i].start();
-    }
+    initRecording();
 
     for (i = 0; i < iterations; ++i) {
         captureFrame();
     }
 
-    mutex.lock();
-    finished = true;
-    mutex.unlock();
-
-    for (i = COMPRESSION_WORKERS - 1; i >= 0; --i) {
-        worker[i].wait();
-        worker[i].quit();
-    }
+    finishRecording();
 }
 #endif

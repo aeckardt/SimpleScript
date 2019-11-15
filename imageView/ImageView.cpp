@@ -236,19 +236,19 @@ ZoomToolButtons::ZoomToolButtons(ImageView *parent)
     , parent(parent)
 {
     zoomIn = {
-        QIcon(":/resources/Zoom_In.png"),
+        QIcon(":/Zoom_In.png"),
         QRect(50, 10, 40, 22), false, true};
 
     zoomOut = {
-        QIcon(":/resources/Zoom_Out.png"),
+        QIcon(":/Zoom_Out.png"),
         QRect(10, 10, 40, 22), false, true};
 
     zoomToFit = {
-        QIcon(":/resources/Zoom_To_Fit.png"),
+        QIcon(":/Zoom_To_Fit.png"),
         QRect(95, 10, 40, 22), false, true};
 
     zoomActualSize = {
-        QIcon(":/resources/Zoom_Actual_Size.png"),
+        QIcon(":/Zoom_Actual_Size.png"),
         QRect(135, 10, 40, 22), false, true};
 }
 

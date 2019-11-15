@@ -87,8 +87,9 @@ void VideoFrame::decompress()
     if (img != nullptr)
         delete img;
 
-    img = new QImage(compressed_data->size, QImage::Format_RGB32);
-    img->loadFromData(qUncompress(compressed_data->byte_array));
+    QByteArray *img_bits = new QByteArray(qUncompress(compressed_data->byte_array));
+    img = new QImage(reinterpret_cast<uchar *>(img_bits->data()), compressed_data->size.width(), compressed_data->size.height(),
+                     QImage::Format_RGB32, [](void *byte_array) { delete static_cast<QByteArray *>(byte_array); }, img_bits);
 
     delete compressed_data;
     compressed_data = nullptr;
@@ -118,7 +119,7 @@ bool Video::load(const QString &fileName)
 
             QImage img;
             img.loadFromData(ba, "PNG");
-            addFrame(VideoFrame(std::move(img), index * 500));
+            addFrame(VideoFrame(std::move(img), static_cast<qint64>(index * 500)));
 
             ba.clear();
         }

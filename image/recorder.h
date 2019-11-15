@@ -71,6 +71,9 @@ private:
     QHotkey hotkey;
     QElapsedTimer elapsed_timer;
 
+    void initRecording();
+    void finishRecording();
+
     friend CompressionWorker;
 };
 
