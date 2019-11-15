@@ -53,9 +53,6 @@ private:
     int captured;
     int compressed;
 
-#ifdef TEST_THREADING
-    int iterations;
-#endif
     int frame_rate;
     int interval;
 

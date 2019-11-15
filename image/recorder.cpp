@@ -64,7 +64,7 @@ Recorder::Recorder()
 void Recorder::captureFrame()
 {
     while (last_frame != nullptr) {
-        QThread::msleep(1);
+        QThread::usleep(100);
     }
 
     if (rect.size() == QSize(0, 0))
@@ -136,7 +136,6 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
 {
     this->rect = std::move(rect);
     this->video = &video;
-    this->iterations = iterations;
 
     captured = 0;
     compressed = 0;
