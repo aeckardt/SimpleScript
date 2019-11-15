@@ -31,6 +31,7 @@ void CompressionWorker::run()
 
         recorder->mutex.unlock();
 
+        // Compress frame
         recorder->worker_frame[_n]->compress();
         while (recorder->compressed < task) {
             QThread::usleep(100);
