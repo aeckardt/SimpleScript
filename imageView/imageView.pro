@@ -1,5 +1,7 @@
 QT += widgets
 
+CONFIG += sdk_no_version_check
+
 SOURCES += \
     main.cpp \
     ImageView.cpp
@@ -10,6 +12,6 @@ HEADERS += \
 DISTFILES +=
 
 RESOURCES += \
-    imageview.qrc
+    ../resources/resources.qrc
 
 

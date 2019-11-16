@@ -1,5 +1,7 @@
 QT += widgets
 
+CONFIG += sdk_no_version_check
+
 SOURCES += \
     main.cpp \
     VideoView.cpp \

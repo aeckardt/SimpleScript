@@ -40,7 +40,7 @@ private slots:
     void comboBoxChange();
 
 private:
-    void scaleImage(double factor);
+    void scaleImage(double factor, int zoomInOut);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     const QImage *image;
@@ -52,6 +52,9 @@ private:
     QLineEdit *scaleEdit;
     QComboBox *scaleComboBox;
     LabelEventFilter *labelEventFilter;
+
+    double originalFactor;
+    int zoomInOut;
 
     double scaleFactor;
     QString scaleStr;

@@ -11,7 +11,9 @@ ImageView::ImageView()
    , scaleEdit(new QLineEdit)
    , scaleComboBox(new QComboBox)
    , labelEventFilter(new LabelEventFilter(this))
-   , scaleFactor(1)
+   , originalFactor(1.0)
+   , zoomInOut(0)
+   , scaleFactor(1.0)
 {
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->horizontalScrollBar()->setSingleStep(15);
@@ -78,7 +80,7 @@ void ImageView::keyPressEvent(QKeyEvent *event)
             copy();
         else if (event->key() == Qt::Key_Plus  && scaleFactor < 8.0)
             zoomIn();
-        else if (event->key() == Qt::Key_Minus && scaleFactor > 0.125)
+        else if (event->key() == Qt::Key_Minus && scaleFactor > 0.126)
             zoomOut();
         else if (event->key() == Qt::Key_F)
             fitToWindow();
@@ -96,26 +98,26 @@ void ImageView::copy()
 
 void ImageView::zoomIn()
 {
-    scaleImage(1.259922);
+    scaleImage(originalFactor, ++zoomInOut);
 }
 
 void ImageView::zoomOut()
 {
-    scaleImage(0.793701);
+    scaleImage(originalFactor, --zoomInOut);
 }
 
 void ImageView::fitToWindow()
 {
     QSize totalArea = size() - QSize(2, toolBar->size().height() + 2);
-    scaleFactor = std::min(
+    originalFactor = std::min(
                 static_cast<double>(totalArea.width())  / static_cast<double>(scalableImage->pixmap()->size().width()),
                 static_cast<double>(totalArea.height()) / static_cast<double>(scalableImage->pixmap()->size().height()));
-    scaleImage(1.0);
+    scaleImage(originalFactor, 0);
 }
 
 void ImageView::actualSize()
 {
-    scaleImage(1.0 / scaleFactor);
+    scaleImage(1.0, 0);
 }
 
 void ImageView::comboBoxChange()
@@ -123,31 +125,8 @@ void ImageView::comboBoxChange()
     if (scaleStr == scaleEdit->text())
         return;
 
-    switch (scaleComboBox->currentIndex()) {
-    case 0:
-        scaleImage(0.125 / scaleFactor);
-        break;
-    case 1:
-        scaleImage(0.25 / scaleFactor);
-        break;
-    case 2:
-        scaleImage(0.5 / scaleFactor);
-        break;
-    case 3:
-        scaleImage(1.0 / scaleFactor);
-        break;
-    case 4:
-        scaleImage(2.0 / scaleFactor);
-        break;
-    case 5:
-        scaleImage(4.0 / scaleFactor);
-        break;
-    case 6:
-        scaleImage(8.0 / scaleFactor);
-        break;
-    default:
-        break;
-    }
+    if (scaleComboBox->currentIndex() != -1)
+        scaleImage(1.0 * pow(2, scaleComboBox->currentIndex() - 3), 0);
 }
 
 void ImageView::lineEditReturn()
@@ -156,19 +135,30 @@ void ImageView::lineEditReturn()
     sscanf(scaleEdit->text().toUtf8(), "%lf%%", &newScaleFactor);
     newScaleFactor /= 100.0;
     if (newScaleFactor >= 0.01 && newScaleFactor <= 100.0)
-        scaleImage(newScaleFactor / scaleFactor);
+        scaleImage(newScaleFactor, 0);
 }
 
-void ImageView::scaleImage(double factor)
+void ImageView::scaleImage(double factor, int zoomInOut)
 {
     Q_ASSERT(scalableImage->pixmap());
-    scaleFactor *= factor;
+
+    originalFactor = factor;
+    this->zoomInOut = zoomInOut;
+
+    // 1.259922 is ~ sqrt3(2)
+    // -> it takes three times zooming in to half the zoom factor
+    double newScaleFactor = factor * pow(1.259922, zoomInOut);
+
+    if (fabs(scaleFactor - newScaleFactor) < 0.001)
+        return;
+
+    double factorQuot = newScaleFactor / scaleFactor;
+    scaleFactor = newScaleFactor;
+
     scalableImage->resize(scaleFactor * scalableImage->pixmap()->size());
 
-    if (factor != 1.0) {
-        adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
-        adjustScrollBar(scrollArea->verticalScrollBar(), factor);
-    }
+    adjustScrollBar(scrollArea->horizontalScrollBar(), factorQuot);
+    adjustScrollBar(scrollArea->verticalScrollBar(), factorQuot);
 
     zoomToolButtons->setZoomInEnabled(scaleFactor < 8.0);
     zoomToolButtons->setZoomOutEnabled(scaleFactor > 0.126);
@@ -179,34 +169,21 @@ void ImageView::scaleImage(double factor)
         scaleStr.sprintf("%.1f%%", scaleFactor * 100.0);
     scaleEdit->setText(scaleStr);
 
-    if (scaleStr == "12.5%") {
+    if (scaleStr == "12.5%")
         scaleComboBox->setCurrentIndex(0);
-        scaleFactor = 0.125;
-    }
-    else if (scaleStr == "25%") {
+    else if (scaleStr == "25%")
         scaleComboBox->setCurrentIndex(1);
-        scaleFactor = 0.25;
-    }
-    else if (scaleStr == "50%") {
+    else if (scaleStr == "50%")
         scaleComboBox->setCurrentIndex(2);
-        scaleFactor = 0.5;
-    }
-    else if (scaleStr == "100%") {
+    else if (scaleStr == "100%")
         scaleComboBox->setCurrentIndex(3);
-        scaleFactor = 1.0;
-    }
-    else if (scaleStr == "200%") {
+    else if (scaleStr == "200%")
         scaleComboBox->setCurrentIndex(4);
-        scaleFactor = 2.0;
-    }
-    else if (scaleStr == "400%") {
+    else if (scaleStr == "400%")
         scaleComboBox->setCurrentIndex(5);
-        scaleFactor = 4.0;
-    }
-    else if (scaleStr == "800%") {
+    else if (scaleStr == "800%")
         scaleComboBox->setCurrentIndex(6);
-        scaleFactor = 8.0;
-    } else {
+    else {
         scaleComboBox->setCurrentIndex(-1);
         scaleComboBox->setCurrentText(scaleStr);
     }
