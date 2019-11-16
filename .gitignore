@@ -12,3 +12,4 @@
 /videoView/build/*
 /videoView/resources/* 
 /imageView/resources/*
+/imageView/imageview.qrc
