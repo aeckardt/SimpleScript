@@ -61,7 +61,7 @@ Recorder::Recorder()
     }
 }
 
-void Recorder::initRecording()
+void Recorder::startWorkers()
 {
     // Except for elapsed_timer
     // all the variables are used for
@@ -86,7 +86,7 @@ void Recorder::initRecording()
     }
 }
 
-void Recorder::finishRecording()
+void Recorder::stopWorkers()
 {
     mutex.lock();
     finished = true;
@@ -128,7 +128,7 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     else // if (frame_rate > 30)
         interval = 30;
 
-    initRecording();
+    startWorkers();
 
     // Capture one frame directly at start
     captureFrame();
@@ -143,7 +143,7 @@ void Recorder::exec(QRect rect, Video &video, int frame_rate, const QString &hot
     timer.stop();
     hotkey.setRegistered(false);
 
-    finishRecording();
+    stopWorkers();
 }
 
 #ifdef TEST_THREADING
@@ -152,13 +152,13 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
     this->rect = std::move(rect);
     this->video = &video;
 
-    initRecording();
+    startWorkers();
 
     int i;
     for (i = 0; i < iterations; ++i) {
         captureFrame();
     }
 
-    finishRecording();
+    stopWorkers();
 }
 #endif
