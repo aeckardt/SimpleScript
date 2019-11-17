@@ -66,6 +66,8 @@ private:
     qint64 ms;
 };
 
+QImage extractImage(const VideoFrame &frame);
+
 class Video
 {
 public:

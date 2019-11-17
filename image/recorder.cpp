@@ -154,6 +154,7 @@ void Recorder::iterate(QRect rect, Video &video, int iterations)
 
     initRecording();
 
+    int i;
     for (i = 0; i < iterations; ++i) {
         captureFrame();
     }

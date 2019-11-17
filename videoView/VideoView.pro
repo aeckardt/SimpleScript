@@ -6,7 +6,16 @@ SOURCES += \
     main.cpp \
     VideoView.cpp \
     ../hotkey/qhotkey.cpp \
+    ../image/recorder.cpp \
     ../image/video.cpp
+
+HEADERS += \
+    VideoView.h \
+    ../hotkey/qhotkey.h \
+    ../hotkey/qhotkey_p.h \
+    ../image/recorder.h \
+    ../image/screenshot.h \
+    ../image/video.h
 
 win32 {
     SOURCES += \
@@ -26,12 +35,11 @@ macx {
         -framework Carbon
 }
 
-HEADERS += \
-    VideoView.h \
-    ../hotkey/qhotkey.h \
-    ../hotkey/qhotkey_p.h \
-    ../image/screenshot.h \
-    ../image/video.h
+DEFINES += \
+    TEST_THREADING
 
 INCLUDEPATH += \
     ..
+
+RESOURCES += \
+    ../resources/resources.qrc

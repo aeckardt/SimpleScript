@@ -5,6 +5,7 @@
 #include "VideoView.h"
 
 #include "../image/screenshot.h"
+#include "../image/recorder.h"
 #include "../image/video.h"
 
 int main(int argc, char *argv[])
@@ -15,23 +16,21 @@ int main(int argc, char *argv[])
 
     QElapsedTimer elapsedTimer;
 
-    int i, iterations = 5000;
+    int iterations = 100;
 
-    qint64 ssms = 0;
-    qint64 last_elapsed = 0;
-
+    Recorder recorder;
     elapsedTimer.start();
-    for (i = 0; i < iterations; ++i) {
-        video.addFrame(VideoFrame(captureDesktop(), iterations * 500));
-        ssms += (elapsedTimer.elapsed() - last_elapsed);
-        video.frame(i).compress();
-        last_elapsed = elapsedTimer.elapsed();
-//        video.frame(i).decompress();
-    }
+    recorder.iterate({100, 100, 500, 300}, video, iterations);
 
-    qDebug() << "Capturing took" << (ssms / iterations) << "ms per frame";
-    qDebug() << "Compressing took" << ((elapsedTimer.elapsed() - ssms) / iterations) << "ms per frame";
-    qDebug() << "Capturing and compressing frames took" << (static_cast<double>(elapsedTimer.elapsed()) / static_cast<double>(iterations)) << "ms per frame";
+    qDebug() << "Capturing took" << (elapsedTimer.elapsed() / iterations) << "ms per frame";
+
+//    size_t i;
+//    for (i = 0; i < static_cast<size_t>(iterations); ++i) {
+//        qDebug() << "Frame" << i << "at" << video.frame(i).msFromStart() << "ms";
+//    }
+
+    VideoView videoView;
+    videoView.showVideo(video);
 
     return 0;
 }

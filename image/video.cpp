@@ -95,6 +95,19 @@ void VideoFrame::decompress()
     compressed_data = nullptr;
 }
 
+QImage extractImage(const VideoFrame &frame)
+{
+    if (!frame.isCompressed())
+        return frame.image();
+    if (frame.isEmpty())
+        return QImage();
+    QByteArray *img_bits = new QByteArray(qUncompress(frame.compressedData().byte_array));
+    return QImage(reinterpret_cast<uchar *>(img_bits->data()),
+                  frame.compressedData().size.width(),
+                  frame.compressedData().size.height(),
+                  QImage::Format_RGB32, [](void *byte_array) { delete static_cast<QByteArray *>(byte_array); }, img_bits);
+}
+
 bool Video::load(const QString &fileName)
 {
     frames.clear();

@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QIcon>
 #include <QTimer>
-#include <QElapsedTimer>
 
 QT_BEGIN_NAMESPACE
 class Video;
@@ -32,7 +31,8 @@ private slots:
     void play();
     void nextFrame();
 
-    void sliderMoved(int);
+    void sliderMoved(size_t);
+    void sliderReleased();
 
 private:
     const Video *video;
@@ -40,8 +40,6 @@ private:
     QTimer timer;
 
     size_t currentFrame;
-    QElapsedTimer elapsedTimer;
-    qint64 msecStart;
     bool play_active;
 
     FrameImage *frameImage;
@@ -60,7 +58,7 @@ class FrameImage : public QWidget
 public:
     FrameImage(QWidget *parent = nullptr) : QWidget(parent) {}
 
-    void setFrame(int frame);
+    void setFrame(size_t frame);
     void setVideo(const Video &video) { this->video = &video; }
 
 protected:

@@ -23,6 +23,7 @@ VideoView::VideoView()
     setWindowTitle("Video Viewer");
 
     connect(slider, &QSlider::sliderMoved, this, &VideoView::sliderMoved);
+    connect(slider, &QSlider::sliderReleased, this, &VideoView::sliderReleased);
 }
 
 void VideoView::showVideo(const Video &video)
@@ -32,9 +33,15 @@ void VideoView::showVideo(const Video &video)
     currentFrame = 0;
     frameImage->setVideo(video);
 
-    slider->setMaximum(video.size());
+    if (video.size() > 0)
+        slider->setMaximum(static_cast<int>(video.size() - 1));
+    else
+        slider->setMaximum(0);
 
     show();
+
+    if (video.size() > 0)
+        frameImage->setFrame(0);
 
     exec();
 }
@@ -43,12 +50,12 @@ void VideoView::nextFrame()
 {
     if (play_active) {
         frameImage->setFrame(currentFrame);
-        slider->setValue(currentFrame);
+        slider->setValue(static_cast<int>(currentFrame));
         currentFrame++;
 
         if (video->size() > currentFrame) {
-            qint64 msecsToNextFrame = video->frame(currentFrame).msFromStart() - elapsedTimer.elapsed();
-            timer.singleShot(msecsToNextFrame, this, &VideoView::nextFrame);
+            qint64 time_diff = video->frame(currentFrame).msFromStart() - video->frame(currentFrame - 1).msFromStart();
+            timer.singleShot(time_diff, this, &VideoView::nextFrame);
         } else {
             play_active = false;
             navigationButtons->setPlayActive(play_active);
@@ -61,25 +68,33 @@ void VideoView::play()
     play_active = !play_active;
 
     if (play_active) {
-        if (video->size() > currentFrame) {
-            elapsedTimer.start();
-            timer.singleShot(video->frame(0).msFromStart(), this, &VideoView::nextFrame);
-        } else
-            play_active = false;
+        if (video->size() > currentFrame)
+            nextFrame();
+        else {
+            // Start from the beginning
+            currentFrame = 0;
+            nextFrame();
+        }
     } else
         timer.stop();
 
     navigationButtons->setPlayActive(play_active);
 }
 
-void VideoView::sliderMoved(int value)
+void VideoView::sliderMoved(size_t value)
 {
     currentFrame = value;
 }
 
-void FrameImage::setFrame(int frame)
+void VideoView::sliderReleased()
 {
-    pixmap = QPixmap::fromImage(video->frame(frame).image());
+    currentFrame = static_cast<size_t>(slider->value());
+}
+
+void FrameImage::setFrame(size_t frame)
+{
+    pixmap = QPixmap::fromImage(extractImage(video->frame(frame)));
+
     update();
 }
 
@@ -105,7 +120,7 @@ NavigationButtons::NavigationButtons(VideoView *parent)
     : QWidget(parent), parent(parent)
 {
     play = {
-        QIcon(":/resources/Play.png"),
+        QIcon(":/Play.png"),
         QRect(10, 10, 26, 26), false, true, false};
 }
 
