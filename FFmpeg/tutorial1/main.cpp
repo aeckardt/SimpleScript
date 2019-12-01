@@ -77,7 +77,11 @@ int main(int /*argc*/, char **/*argv*/)
         return -1; // Could not open codec
     }
 
-    delete pCodecCtx;
+    // Close the codecs
+    avcodec_free_context(&pCodecCtx);
+
+    // Close the video file
+    avformat_close_input(&pFormatCtx);
 
     return 0;
 }
