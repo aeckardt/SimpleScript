@@ -10,4 +10,5 @@ LIBS += \
     -L/usr/local/lib \
     -lavcodec \
     -lavformat \
+    -lavutil \
     -lswscale \

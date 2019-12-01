@@ -1,6 +1,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 }
 
@@ -17,6 +18,9 @@ extern "C" {
 
 int main(int /*argc*/, char **/*argv*/)
 {
+    // av_register_all(); // -> deprecated
+    // see https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29
+
     AVFormatContext *pFormatCtx = nullptr;
     AVDictionary *opt = nullptr;
     int videoStream;
@@ -78,11 +82,32 @@ int main(int /*argc*/, char **/*argv*/)
     }
 
     AVFrame *pFrame = nullptr;
+    AVFrame *pFrameRGB = nullptr;
 
     // Allocate video frame
     pFrame = av_frame_alloc();
 
+    // Allocate an AVFrame structure
+    pFrameRGB = av_frame_alloc();
+    if (pFrameRGB == nullptr) {
+        std::cerr << "Could not allocate frame" << std::endl;
+        return -1;
+    }
+
+    uint8_t *buffer = nullptr;
+    int numBytes;
+    // Determine required buffer size and allocate buffer
+    // Remark: Not sure if align needs to be 1 or 32, see
+    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
+    numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, pCodecCtx->width,
+                                        pCodecCtx->height, 1);
+    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(numBytes) * sizeof(uint8_t)));
+
+    // Free buffer
+    av_free(buffer);
+
     // Free video frame
+    av_frame_free(&pFrameRGB);
     av_frame_free(&pFrame);
 
     // Close the codecs
