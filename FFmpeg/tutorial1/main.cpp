@@ -78,6 +78,9 @@ int main(int /*argc*/, char **/*argv*/)
     }
 
     // Close the codecs
+    avcodec_close(pCodecCtx);
+
+    // Free the codecs
     avcodec_free_context(&pCodecCtx);
 
     // Close the video file
