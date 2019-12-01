@@ -13,8 +13,33 @@ extern "C" {
 #define mp3_file_path \
     "/Users/albrecht/Downloads/Amanda Jenssen - Illusionist.mp3"
 
+#define guwu_file_path \
+    "/Users/albrecht/Downloads/Episode 1 - A Gurls Wurld Full Episode - Totes Amaze ❤️ - Teen TV Shows.mp4"
+
 #define current_file_path \
     video_file_path
+
+void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
+    FILE *pFile;
+    char szFilename[200];
+    int  y;
+
+    // Open file
+    sprintf(szFilename, "/Users/albrecht/Documents/Code/Tasc/FFmpeg/build/frames/frame%d.ppm", iFrame);
+    pFile = fopen(szFilename, "wb");
+    if (pFile == nullptr)
+        return;
+
+    // Write header
+    fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+
+    // Write pixel data
+    for(y = 0; y < height; y++)
+    fwrite(pFrame->data[0] + y * pFrame->linesize[0], 1, static_cast<size_t>(width * 3), pFile);
+
+    // Close file
+    fclose(pFile);
+}
 
 int main(int /*argc*/, char **/*argv*/)
 {
@@ -69,6 +94,8 @@ int main(int /*argc*/, char **/*argv*/)
         return -1; // Codec not found
     }
 
+    // Replace avcodec_copy_context -> deprecated
+    // with avcodec_parameters to context
     pCodecCtx = avcodec_alloc_context3(pCodec);
     if (avcodec_parameters_to_context(pCodecCtx, pCodecPar) < 0) {
         std::cerr << "Error: Could not copy context" << std::endl;
@@ -97,11 +124,91 @@ int main(int /*argc*/, char **/*argv*/)
     uint8_t *buffer = nullptr;
     int numBytes;
     // Determine required buffer size and allocate buffer
+    // Replace avpicture_get_size -> deprecated
+    // with av_image_get_buffer_size
+
     // Remark: Not sure if align needs to be 1 or 32, see
     // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
     numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, pCodecCtx->width,
                                         pCodecCtx->height, 1);
     buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(numBytes) * sizeof(uint8_t)));
+
+    // Assign appropriate parts of buffer to image planes in pFrameRGB
+    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+    // of AVPicture
+
+    // Replace avpicture_fill -> deprecated
+    // with av_image_fill_arrays
+
+    // Examples of av_image_fill_arrays from
+    // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
+    // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
+    av_image_fill_arrays(pFrameRGB->data, pFrameRGB->linesize, buffer, AV_PIX_FMT_RGB24,
+                         pCodecCtx->width, pCodecCtx->height, 1);
+
+    struct SwsContext *sws_ctx = nullptr;
+    int frameFinished;
+    AVPacket packet;
+
+    // initialize SWS context for software scaling
+    sws_ctx = sws_getContext(pCodecCtx->width,
+        pCodecCtx->height,
+        pCodecCtx->pix_fmt,
+        pCodecCtx->width,
+        pCodecCtx->height,
+        AV_PIX_FMT_RGB24,
+        SWS_BILINEAR,
+        nullptr,
+        nullptr,
+        nullptr
+        );
+
+    int averror;
+
+    i = 0;
+    while (av_read_frame(pFormatCtx, &packet) >= 0) {
+        // Is this a packet from the video stream?
+        if (packet.stream_index == videoStream) {
+            // Decode video frame
+            frameFinished = 0;
+
+            // Replace avcodec_decode_video2 -> deprecated
+            // with avcodec_send_packet and avcodec_receive_frame
+            // see https://github.com/pesintta/vdr-plugin-vaapidevice/issues/31
+             if (pCodecCtx->codec_type == AVMEDIA_TYPE_VIDEO ||
+                 pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO) {
+                 averror = avcodec_send_packet(pCodecCtx, &packet);
+                 if (averror < 0 && averror != AVERROR(EAGAIN) && averror != AVERROR_EOF) {
+                } else {
+                     if (averror >= 0) {
+                         packet.size = 0;
+                     }
+                     averror = avcodec_receive_frame(pCodecCtx, pFrame);
+                     if (averror >= 0)
+                         frameFinished = 1;
+                 }
+             }
+
+            // Did we get a video frame?
+            if (frameFinished) {
+                // Convert the image from its native format to RGB
+                sws_scale(sws_ctx, static_cast<uint8_t const * const *>(pFrame->data),
+                          pFrame->linesize, 0, pCodecCtx->height,
+                          pFrameRGB->data, pFrameRGB->linesize);
+
+                // Save the frame to disk
+                if (++i <= 1000) {
+                    std::cerr << "Save frame..." << std::endl;
+                    SaveFrame(pFrameRGB, pCodecCtx->width,
+                              pCodecCtx->height, i);
+                    std::cerr << "Frame saved!" << std::endl;
+                }
+            }
+        }
+    }
+
+    // Unref the packet that was allocated by av_read_frame
+    av_packet_unref(&packet);
 
     // Free buffer
     av_free(buffer);
