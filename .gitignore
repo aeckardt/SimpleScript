@@ -15,8 +15,3 @@
 /imageView/imageview.qrc
 /FFmpeg/build/*
 /FFmpeg/*.mp4
-/FFmpeg/screenshot_test/*
-/FFmpeg/moviemaker/*
-/FFmpegtest/*
-/VideoIOtest/*
-/FFmpeg/martinboehme/*

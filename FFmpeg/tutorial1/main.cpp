@@ -23,13 +23,13 @@ int main(int /*argc*/, char **/*argv*/)
 
     // Open video file
     if (avformat_open_input(&pFormatCtx, current_file_path, nullptr, &opt) != 0) {
-        std::cout << "Error: Could not open file" << std::endl;
+        std::cerr << "Error: Could not open file" << std::endl;
         return -1; // Couldn't open file
     }
 
     // Retrieve stream information
     if (avformat_find_stream_info(pFormatCtx, nullptr) < 0) {
-        std::cout << "Error: Could not find stream information" << std::endl;
+        std::cerr << "Error: Could not find stream information" << std::endl;
         return -1; // Couldn't find stream information
     }
 
@@ -76,6 +76,14 @@ int main(int /*argc*/, char **/*argv*/)
         std::cerr << "Error: Could not open codec" << std::endl;
         return -1; // Could not open codec
     }
+
+    AVFrame *pFrame = nullptr;
+
+    // Allocate video frame
+    pFrame = av_frame_alloc();
+
+    // Free video frame
+    av_frame_free(&pFrame);
 
     // Close the codecs
     avcodec_close(pCodecCtx);
