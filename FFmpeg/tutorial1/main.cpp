@@ -197,7 +197,7 @@ int main(int /*argc*/, char **/*argv*/)
                           pFrameRGB->data, pFrameRGB->linesize);
 
                 // Save the frame to disk
-                if (++i <= 1000) {
+                if (++i <= 100) {
                     std::cerr << "Save frame..." << std::endl;
                     SaveFrame(pFrameRGB, pCodecCtx->width,
                               pCodecCtx->height, i);
@@ -205,6 +205,9 @@ int main(int /*argc*/, char **/*argv*/)
                 }
             }
         }
+
+        // Unref the packet that was allocated by av_read_frame
+        av_packet_unref(&packet);
     }
 
     // Unref the packet that was allocated by av_read_frame
