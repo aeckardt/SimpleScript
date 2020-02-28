@@ -35,7 +35,7 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
 
     // Write pixel data
     for(y = 0; y < height; y++)
-    fwrite(pFrame->data[0] + y * pFrame->linesize[0], 1, static_cast<size_t>(width * 3), pFile);
+        fwrite(pFrame->data[0] + y * pFrame->linesize[0], 1, static_cast<size_t>(width * 3), pFile);
 
     // Close file
     fclose(pFile);
@@ -47,11 +47,10 @@ int main(int /*argc*/, char **/*argv*/)
     // see https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29
 
     AVFormatContext *pFormatCtx = nullptr;
-    AVDictionary *opt = nullptr;
-    int videoStream;
+    int             videoStream;
 
     // Open video file
-    if (avformat_open_input(&pFormatCtx, current_file_path, nullptr, &opt) != 0) {
+    if (avformat_open_input(&pFormatCtx, current_file_path, nullptr, nullptr) != 0) {
         std::cerr << "Error: Could not open file" << std::endl;
         return -1; // Couldn't open file
     }
@@ -84,8 +83,8 @@ int main(int /*argc*/, char **/*argv*/)
     // Get a pointer to the codec context for the video stream
     pCodecPar = pFormatCtx->streams[videoStream]->codecpar;
 
-    AVCodec *pCodec = nullptr;
-    AVCodecContext *pCodecCtx = nullptr;
+    AVCodecContext  *pCodecCtx = nullptr;
+    AVCodec         *pCodec = nullptr;
 
     // Find the decoder for the video stream
     pCodec = avcodec_find_decoder(pCodecPar->codec_id);
@@ -94,16 +93,17 @@ int main(int /*argc*/, char **/*argv*/)
         return -1; // Codec not found
     }
 
-    // Replace avcodec_copy_context -> deprecated
-    // with avcodec_parameters to context
+    // Copy context
+    // -> Replace avcodec_copy_context -> deprecated
+    //    with avcodec_parameters to context
     pCodecCtx = avcodec_alloc_context3(pCodec);
     if (avcodec_parameters_to_context(pCodecCtx, pCodecPar) < 0) {
-        std::cerr << "Error: Could not copy context" << std::endl;
+        std::cerr << "Error: Could not copy codec context" << std::endl;
         return -1; // Couldn't copy context
     }
 
     // Open codec
-    if (avcodec_open2(pCodecCtx, pCodec, &opt) < 0) {
+    if (avcodec_open2(pCodecCtx, pCodec, nullptr) < 0) {
         std::cerr << "Error: Could not open codec" << std::endl;
         return -1; // Could not open codec
     }
@@ -147,21 +147,21 @@ int main(int /*argc*/, char **/*argv*/)
                          pCodecCtx->width, pCodecCtx->height, 1);
 
     struct SwsContext *sws_ctx = nullptr;
-    int frameFinished;
-    AVPacket packet;
+    int               frameFinished;
+    AVPacket          packet;
 
     // initialize SWS context for software scaling
     sws_ctx = sws_getContext(pCodecCtx->width,
-        pCodecCtx->height,
-        pCodecCtx->pix_fmt,
-        pCodecCtx->width,
-        pCodecCtx->height,
-        AV_PIX_FMT_RGB24,
-        SWS_BILINEAR,
-        nullptr,
-        nullptr,
-        nullptr
-        );
+                             pCodecCtx->height,
+                             pCodecCtx->pix_fmt,
+                             pCodecCtx->width,
+                             pCodecCtx->height,
+                             AV_PIX_FMT_RGB24,
+                             SWS_BILINEAR,
+                             nullptr,
+                             nullptr,
+                             nullptr
+                             );
 
     int averror;
 
@@ -175,19 +175,18 @@ int main(int /*argc*/, char **/*argv*/)
             // Replace avcodec_decode_video2 -> deprecated
             // with avcodec_send_packet and avcodec_receive_frame
             // see https://github.com/pesintta/vdr-plugin-vaapidevice/issues/31
-             if (pCodecCtx->codec_type == AVMEDIA_TYPE_VIDEO ||
-                 pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO) {
-                 averror = avcodec_send_packet(pCodecCtx, &packet);
-                 if (averror < 0 && averror != AVERROR(EAGAIN) && averror != AVERROR_EOF) {
+            if (pCodecCtx->codec_type == AVMEDIA_TYPE_VIDEO ||
+                pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO) {
+                averror = avcodec_send_packet(pCodecCtx, &packet);
+                if (averror < 0 && averror != AVERROR(EAGAIN) && averror != AVERROR_EOF) {
                 } else {
-                     if (averror >= 0) {
-                         packet.size = 0;
-                     }
-                     averror = avcodec_receive_frame(pCodecCtx, pFrame);
-                     if (averror >= 0)
-                         frameFinished = 1;
-                 }
-             }
+                    if (averror >= 0)
+                        packet.size = 0;
+                    averror = avcodec_receive_frame(pCodecCtx, pFrame);
+                    if (averror >= 0)
+                        frameFinished = 1;
+                }
+            }
 
             // Did we get a video frame?
             if (frameFinished) {
@@ -216,14 +215,16 @@ int main(int /*argc*/, char **/*argv*/)
     // Free buffer
     av_free(buffer);
 
-    // Free video frame
-    av_frame_free(&pFrameRGB);
+    // Free the YUV frame
     av_frame_free(&pFrame);
 
-    // Close the codecs
+    // Free the RGB frame
+    av_frame_free(&pFrameRGB);
+
+    // Close the codec
     avcodec_close(pCodecCtx);
 
-    // Free the codecs
+    // Free the codec
     avcodec_free_context(&pCodecCtx);
 
     // Close the video file

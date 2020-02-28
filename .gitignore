@@ -15,3 +15,5 @@
 /imageView/imageview.qrc
 /FFmpeg/build/*
 /FFmpeg/*.mp4
+/FFmpeg/tutorial2/*.cpp
+/FFmpeg/tutorial2/*.h
