@@ -1,5 +1,5 @@
-#ifndef TOKENIZER_H
-#define TOKENIZER_H
+#ifndef LEXER_H
+#define LEXER_H
 
 #include <list>
 #include <string>
@@ -92,6 +92,6 @@ private:
     void readComment(token_pos &it, const token_pos &end);
 };
 
-} // namespace tn
+} // namespace lx
 
-#endif // TOKENIZER_H
+#endif // LEXER_H
