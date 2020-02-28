@@ -71,7 +71,8 @@ class Parser
 public:
     void run(const lx::TokenList &tokens, Node &root);
 
-    const std::string &getLastError() const { return error_msg; }
+    const std::string &getLastError() const
+    { return error_msg; }
 
 private:
     std::string error_msg;
