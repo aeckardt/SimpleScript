@@ -1,5 +1,5 @@
-#ifndef SCRIPTENGINE_H
-#define SCRIPTENGINE_H
+#ifndef ASTWALKER_H
+#define ASTWALKER_H
 
 #include <string>
 #include <vector>
@@ -82,4 +82,4 @@ private:
 
 } // namespace tw
 
-#endif // SCRIPTENGINE_H
+#endif // ASTWALKER_H
