@@ -8,7 +8,7 @@ using namespace lx;
 using namespace ps;
 
 static const std::unordered_map<uint32_t, std::string> token_desc = {
-    {Term,    "Term"}, {Integer, "Integer"}, {Float,   "Float"}, {String,    "String"},
+    {AlphaNumeric, "AlphaNumeric"}, {Integer, "Integer"}, {Float,   "Float"}, {String,    "String"},
     {Comma,    "','"}, {Colon,       "':'"}, {LeftParen, "'('"}, {RightParen,   "')'"},
     {Equal,    "'='"}, {EqualEqual, "'=='"}, {Not,       "'!'"}, {NotEqual,    "'!='"},
     {Star,     "'*'"}, {StarEqual,  "'*='"}, {Slash,     "'/'"}, {SlashEqual,  "'/='"},
@@ -61,9 +61,9 @@ inline void Parser::readOperator(Node &node)
 
 inline void Parser::readParam(Node &node)
 {
-    ASSERT(expectToken({Term, Integer, Float, String}))
+    ASSERT(expectToken({AlphaNumeric, Integer, Float, String}))
 
-    if (cur_token.id() != Term) {
+    if (cur_token.id() != AlphaNumeric) {
         node.rule = ConstValue;
         node.param = cur_token++;
         return;
@@ -132,7 +132,7 @@ void Parser::parseExpr(Node &node)
 
         Node it_node;
         it_node.param = cur_token;
-        if (cur_token.id() == Term  || cur_token.id() == Integer ||
+        if (cur_token.id() == AlphaNumeric  || cur_token.id() == Integer ||
             cur_token.id() == Float || cur_token.id() == String) {
 
             ASSERT(readParam(it_node))
@@ -207,7 +207,7 @@ void Parser::parseFunction(Node &node)
     ++cur_token;
 
     // check next token
-    ASSERT(expectToken({Term, Integer, Float, String, LeftParen, RightParen}))
+    ASSERT(expectToken({AlphaNumeric, Integer, Float, String, LeftParen, RightParen}))
 
     if (cur_token.id() != RightParen)
         ASSERT(parseExpr(node)) // add next parameter
@@ -249,7 +249,7 @@ void Parser::parseIfStatement(Node &node)
     }
     cur_token = lineBegin();
 
-    ASSERT(expectToken({Term}))
+    ASSERT(expectToken({AlphaNumeric}))
     const std::string &name = (cur_token++).getText();
 
     if (name == "else") {
@@ -271,7 +271,7 @@ void Parser::parseLine(Node &parent)
 {
     cur_token = lineBegin();
 
-    ASSERT(expectToken({Term}))
+    ASSERT(expectToken({AlphaNumeric}))
     const std::string &name = cur_token.getText();
 
     if (name == "if")

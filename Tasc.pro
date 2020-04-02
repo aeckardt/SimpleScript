@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = "Test Automation Script"
+TARGET = "Simple Script"
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -29,44 +29,34 @@ CONFIG += \
 SOURCES += \
     mainWindow/main.cpp \
     mainWindow/mainwindow.cpp \
-    hotkey/qhotkey.cpp \
-    image/video.cpp \
-    image/recorder.cpp \
-    imageView/ImageView.cpp \
     script/engine.cpp \
     script/highlighter.cpp \
     script/parameter.cpp \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
-    selectFrame/SelectFrameWidget.cpp \
-    videoView/VideoView.cpp
+    imageView/ImageView.cpp \
+    selectFrame/SelectFrameWidget.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
     mainWindow/ui_mainwindow.h \
-    script/parameter.h \
-    script/types.h \
-    hotkey/qhotkey.h \
-    hotkey/qhotkey_p.h \
-    image/screenshot.h \
-    image/video.h \
-    image/recorder.h \
-    imageView/ImageView.h \
     script/engine.h \
     script/highlighter.h \
     script/parser.h \
     script/lexer.h \
     script/astwalker.h \
-    selectFrame/SelectFrameWidget.h \
-    videoView/VideoView.h
+    script/parameter.h \
+    script/types.h \
+    image/screenshot.h \
+    imageView/ImageView.h \
+    selectFrame/SelectFrameWidget.h
 
 INCLUDEPATH += \
     /usr/local/include
 
 win32 {
     SOURCES += \
-        hotkey/qhotkey_win.cpp \
         image/screenshot_win.cpp
 
     LIBS += \
@@ -74,12 +64,10 @@ win32 {
 }
 macx {
     SOURCES += \
-        hotkey/qhotkey_mac.cpp \
         image/screenshot_mac.cpp
 
     LIBS += \
-        -framework ApplicationServices \
-        -framework Carbon
+        -framework ApplicationServices
 }
 
 # Default rules for deployment.

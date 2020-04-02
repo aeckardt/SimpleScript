@@ -3,7 +3,6 @@
 #include "qscrollbar.h"
 
 #include <QtWidgets>
-#include "hotkey/qhotkey.h"
 #include "script/highlighter.h"
 
 #include <sstream>
@@ -32,9 +31,8 @@ void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
     cursor.insertText(ss.str().c_str());
     cursor.endEditBlock();
 
-    //scroll scrollarea to bottom if it was at bottom when we started
-    //(we don't want to force scrolling to bottom if user is looking at a
-    //higher position)
+    // Move scrollarea to bottom if it was at bottom when the output was printed
+    // (not to force scrolling to bottom if user is looking at a higher position)
     if (atBottom) {
         QScrollBar* bar = main_ui->textBrowser->verticalScrollBar();
         bar->setValue(bar->maximum());
@@ -124,16 +122,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             ui->textEdit->setTextCursor(cursor);
         } else if (event->key() == Qt::Key_5) {
             ui->textEdit->setText(
-                "# Record selected region\n"
-                "\n"
-                "rect=select()\n"
-                "video=record(rect, 20)\n"
-                "view(video)");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_6) {
-            ui->textEdit->setText(
                 "# Sleep test 1\n"
                 "\n"
                 "a = now()\n"
@@ -151,7 +139,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_7) {
+        } else if (event->key() == Qt::Key_6) {
             ui->textEdit->setText(
                 "# Sleep test 2\n"
                 "\n"

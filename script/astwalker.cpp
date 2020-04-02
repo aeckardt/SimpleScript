@@ -218,7 +218,8 @@ bool ASTWalker::traverseFunction(const Node &node)
 
     const std::string &cmd_name = node.param.getText();
 
-    // existance of the command is already proven in validityCheck
+    // existance of the command and correct types of the parameters
+    // is already proven in the validity check
     if (!commands[cmd_name].callback_fnc(params, return_value))
         return false;
 
@@ -854,7 +855,7 @@ inline bool ASTWalker::validateParamType(const Node &node, ParameterTypeList *pa
     }
 
     switch (node.param.id()) {
-    case lx::Term: {
+    case lx::AlphaNumeric: {
         if (node.rule == ps::ConstValue) {
             errorMsg("Token name cannot be used as parameter");
             return false;

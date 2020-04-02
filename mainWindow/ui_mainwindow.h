@@ -40,7 +40,7 @@ public:
         MainWindow->setFont(font);
         MainWindow->setDocumentMode(false);
         MainWindow->setDockOptions(QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks);
-        MainWindow->setWindowTitle("Test Automation Script V1.0");
+        MainWindow->setWindowTitle("Simple Script");
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         gridLayout = new QGridLayout(centralWidget);

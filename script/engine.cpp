@@ -2,10 +2,11 @@
 
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
-#include "image/video.h"
-#include "image/recorder.h"
 #include "imageView/ImageView.h"
-#include "videoView/VideoView.h"
+#include "video/encoder.h"
+
+#include <QEventLoop>
+#include <QTimer>
 
 using namespace tw;
 
@@ -18,86 +19,66 @@ enum : ObjectReference
 };
 
 template<> ObjectReference ParameterObjectBase<QImage>::ref = ImageRef;
-template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
+template<> ObjectReference ParameterObjectBase<VideoEncoder>::ref = VideoRef;
 
-bool cmdCapture(const ParameterList &params, Parameter &param)
+bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
 {
-    if (params.empty())
-        param.createObject<QImage>(captureDesktop());
+    if (in_params.empty())
+        out_param.createObject<QImage>(captureDesktop());
     else {
-        const QRect &rect = params[0].asRect();
-        param.createObject<QImage>(captureRect(rect));
+        const QRect &rect = in_params[0].asRect();
+        out_param.createObject<QImage>(captureRect(rect));
     }
-    return param.asObject<QImage>().size() != QSize(0, 0);
+    return out_param.asObject<QImage>().size() != QSize(0, 0);
 }
 
-bool cmdMsecsBetween(const ParameterList &params, Parameter &param)
+bool cmdMsecsBetween(const ParameterList &in_params, Parameter &out_param)
 {
-    const QDateTime &dt1 = params[0].asDateTime();
-    const QDateTime &dt2 = params[1].asDateTime();
+    const QDateTime &dt1 = in_params[0].asDateTime();
+    const QDateTime &dt2 = in_params[1].asDateTime();
 
-    param.assign(static_cast<int>(dt1.msecsTo(dt2)));
+    out_param.assign(static_cast<int>(dt1.msecsTo(dt2)));
 
     return true;
 }
 
-bool cmdNow(const ParameterList &, Parameter &param)
+bool cmdNow(const ParameterList &, Parameter &out_param)
 {
-    param.assign(QDateTime::currentDateTime());
+    out_param.assign(QDateTime::currentDateTime());
     return true;
 }
 
-bool cmdPrint(const ParameterList &params, Parameter &)
+bool cmdPrint(const ParameterList &in_params, Parameter &)
 {
-    if (params.empty()) {
+    if (in_params.empty()) {
         engine->print(Parameter());
         return true;
     }
 
-    engine->print(params[0]);
+    engine->print(in_params[0]);
     return true;
 }
 
-bool cmdRecord(const ParameterList &params, Parameter &param)
+bool cmdSelect(const ParameterList &, Parameter &out_param)
 {
-    const QRect &rect = params[0].asRect();
-    const int frame_rate = params[1].asInt();
-
-    if (frame_rate < 1 || frame_rate > 30) {
-        engine->printError("Frame rate needs to be between 1 and 30");
-        return false;
-    }
-
     engine->mainWindow->hide();
 
-    Recorder recorder;
-    recorder.exec(rect, param.createObject<Video>(), frame_rate);
+    out_param.assign(SelectFrameWidget().selectRect());
 
     engine->mainWindow->show();
 
     return true;
 }
 
-bool cmdSelect(const ParameterList &, Parameter &param)
-{
-    engine->mainWindow->hide();
-
-    param.assign(SelectFrameWidget().selectRect());
-
-    engine->mainWindow->show();
-
-    return true;
-}
-
-bool cmdSleep(const ParameterList &params, Parameter &)
+bool cmdSleep(const ParameterList &in_params, Parameter &)
 {
     useconds_t msec;
-    switch (params[0].type()) {
+    switch (in_params[0].type()) {
     case Int:
-        msec = static_cast<useconds_t>(params[0].asInt());
+        msec = static_cast<useconds_t>(in_params[0].asInt());
         break;
     case Float:
-        msec = static_cast<useconds_t>(params[0].asFloat());
+        msec = static_cast<useconds_t>(in_params[0].asFloat());
         break;
     default:
         msec = 0;
@@ -107,37 +88,31 @@ bool cmdSleep(const ParameterList &params, Parameter &)
     QTimer timer;
     QEventLoop loop;
 
+    // Not very accurate, usually off by 3-10 milliseconds
+    // TODO: Find a better way of implementing 'sleep'
     timer.singleShot(msec, &loop, &QEventLoop::quit);
     loop.exec();
 
     return true;
 }
 
-bool cmdStr(const ParameterList &params, Parameter &param)
+bool cmdStr(const ParameterList &in_params, Parameter &out_param)
 {
     std::stringstream ss;
-    ss << params[0];
-    param.assign(ss.str());
+    ss << in_params[0];
+    out_param.assign(ss.str());
 
     return true;
 }
 
-bool cmdView(const ParameterList &params, Parameter &)
+bool cmdView(const ParameterList &in_params, Parameter &)
 {
-    switch (params[0].objectRef()) {
+    switch (in_params[0].objectRef()) {
     case ImageRef: {
-        const QImage &image = params[0].asObject<QImage>();
+        const QImage &image = in_params[0].asObject<QImage>();
 
         ImageView imageView;
         imageView.showImage(image);
-
-        return true;
-    }
-    case VideoRef: {
-        const Video &video = params[0].asObject<Video>();
-
-        VideoView videoView;
-        videoView.showVideo(video);
 
         return true;
     }
@@ -150,7 +125,7 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
     tw.registerObject<QImage>("Image");
-    tw.registerObject<Video>("Video");
+    tw.registerObject<VideoEncoder>("Video");
 
     tw.registerCommand("capture", cmdCapture,
         {{Empty, Rect}}, ImageRef);
@@ -163,9 +138,6 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
 
     tw.registerCommand("print", cmdPrint,
         {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
-
-    tw.registerCommand("record", cmdRecord,
-        {{Empty, Rect}, {Int}}, VideoRef);
 
     tw.registerCommand("select", cmdSelect,
         {}, Rect);

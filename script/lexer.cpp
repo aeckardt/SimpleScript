@@ -1,7 +1,4 @@
-#include <array>
 #include <iostream>
-#include <list>
-#include <map>
 #include <string>
 #include <unordered_set>
 
@@ -9,23 +6,28 @@
 
 using namespace lx;
 
+#define AlphabetChar AlphaNumeric
+#define Digit        Integer
+#define Dot          Float
+#define Quote        String
+
 static TokenId char_def[UCHAR_MAX + 1] = {
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Whitespace, Newline, Other, Other, Return, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
-    Whitespace, Not, String, Comment, Other, Other, Other, Other,
-    LeftParen, RightParen, Star, Plus, Comma, Minus, Float, Slash,
-    Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer,
-    Integer, Integer, Colon, Other, Other, Equal, Other, Other,
-    Other, Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Other, Other, Other, Other, Term,
-    Other, Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Term,  Term,  Term,  Term,  Term,
-    Term,  Term,  Term,  Other, Other, Other, Other, Other,
+    Whitespace, Not, Quote, Comment, Other, Other, Other, Other,
+    LeftParen, RightParen, Star, Plus, Comma, Minus, Dot, Slash,
+    Digit, Digit, Digit, Digit, Digit, Digit, Digit, Digit,
+    Digit, Digit, Colon, Other, Other, Equal, Other, Other,
+    Other, AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  Other, Other, Other, Other, AlphabetChar,
+    Other, AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,  AlphabetChar,
+    AlphabetChar,  AlphabetChar,  AlphabetChar,  Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
     Other, Other, Other, Other, Other, Other, Other, Other,
@@ -47,7 +49,7 @@ const std::unordered_set<uint32_t> lx::operators = {
     EqualEqual, NotEqual, Plus, Minus, Star, Slash};
 
 const std::unordered_set<uint32_t> lx::expr_tokens = {
-    Term, Integer, Float, String, LeftParen, RightParen,
+    AlphabetChar, Digit, Dot, Quote, LeftParen, RightParen,
     EqualEqual, NotEqual, Plus, Minus, Star, Slash};
 
 inline TokenId token_at(const token_pos it)
@@ -75,39 +77,49 @@ inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spa
     }
 }
 
-inline void Lexer::readName(token_pos &it, const token_pos &end, Token &token)
+inline Token Lexer::readName(token_pos &it, const token_pos &end)
 {
+    Token token;
+
     // *it is in [A-Za-z_]
     token.begin = it++;
-    while (it != end && (token_at(it) == Term || token_at(it) == Integer))
+    while (it != end && (token_at(it) == AlphabetChar || token_at(it) == Digit))
         it++;
-    token.id = Term;
+    token.id = AlphaNumeric;
     token.end = it;
+
+    return token;
 }
 
-inline void Lexer::readNumber(token_pos &it, const token_pos &end, Token &token)
+inline Token Lexer::readNumber(token_pos &it, const token_pos &end)
 {
     // *it is in [0-9.]
     bool contains_dot = *it == '.';
+
+    Token token;
     token.begin = it++;
     if (!contains_dot) {
-        while (it != end && token_at(it) == Integer)
+        while (it != end && token_at(it) == Digit)
             ++it;
         if (it != end && *it == '.') {
             ++it;
             contains_dot = true;
         }
     }
-    while (it != end && token_at(it) == Integer)
+    while (it != end && token_at(it) == Digit)
         ++it;
     if (it == token.begin + 1 && contains_dot)
         pushError("A number needs to have at least one digit");
     token.id = contains_dot ? Float : Integer;
     token.end = it;
+
+    return token;
 }
 
-inline void Lexer::readString(token_pos &it, const token_pos &end, Token &token)
+inline Token Lexer::readString(token_pos &it, const token_pos &end)
 {
+    Token token;
+
     // *it is '"'
     token.begin = it++;
     while (it != end && *it != '"' && *it != '\n')
@@ -117,28 +129,32 @@ inline void Lexer::readString(token_pos &it, const token_pos &end, Token &token)
     it++;
     token.id = String;
     token.end = it;
+
+    return token;
 }
 
-inline void Lexer::readSingleChar(token_pos &it, Token &token)
+inline Token Lexer::readSingleChar(token_pos &it)
 {
-    token.begin = it;
-    token.id = token_at(it);
-    token.end = ++it;
+    return {token_at(it), it, ++it};
 }
 
-inline void Lexer::readOperator(token_pos &it, const token_pos &end, Token &token)
+inline Token Lexer::readOperator(token_pos &it, const token_pos &end)
 {
+    Token token;
+
     token.begin = it;
     token.id = token_at(it);
     token.end = ++it;
 
     if (it != end && *it == '=') {
-        token.id = static_cast<TokenId>(static_cast<uint8_t>(token.id) + 1);
+        token.id = static_cast<TokenId>(static_cast<uint32_t>(token.id) + 1);
         token.end = ++it;
     }
+
+    return token;
 }
 
-inline void Lexer::readComment(token_pos &it, const token_pos &end)
+inline void Lexer::skipComment(token_pos &it, const token_pos &end)
 {
     // *it is '#'
     ++it;
@@ -173,47 +189,35 @@ void Lexer::run(const std::string &context, TokenList &tokens)
         while (it != end && *it != '\n') {
 
             switch (token_at(it)) {
-            case Term: {
-                line->tokens.push_back(Token());
-                readName(it, end, *line->tokens.rbegin());
-                continue;
-            }
-            case Integer:
-            case Float: {
-                line->tokens.push_back(Token());
-                readNumber(it, end, *line->tokens.rbegin());
+            case AlphabetChar:
+                line->tokens.push_back(readName(it, end));
                 break;
-            }
-            case String: {
-                line->tokens.push_back(Token());
-                readString(it, end, *line->tokens.rbegin());
+            case Digit:
+            case Dot:
+                line->tokens.push_back(readNumber(it, end));
                 break;
-            }
+            case Quote:
+                line->tokens.push_back(readString(it, end));
+                break;
             case Comma:
             case Colon:
             case LeftParen:
-            case RightParen: {
-                line->tokens.push_back(Token());
-                readSingleChar(it, *line->tokens.rbegin());
+            case RightParen:
+                line->tokens.push_back(readSingleChar(it));
                 break;
-            }
             case Equal:      // Equal or EqualEqual
             case Not:        // Not or NotEqual
             case Star:       // Star or StarEqual
             case Slash:      // Slash or SlashEqual
             case Plus:       // Plus or PlusEqual
-            case Minus: {    // Minus or MinusEqual
-                line->tokens.push_back(Token());
-                readOperator(it, end, *line->tokens.rbegin());
+            case Minus:      // Minus or MinusEqual
+                line->tokens.push_back(readOperator(it, end));
                 break;
-            }
             case Comment:
-                readComment(it, end);
+                skipComment(it, end);
                 break;
-            case Whitespace: // ' ' or '\t' -> skip
-                ++it;
-                break;
-            case Return:     // '\r' -> skip
+            case Whitespace: // ' '  or '\t' -> skip
+            case Return:     // '\r'         -> skip
                 ++it;
                 break;
             case Other: // not allowed

@@ -50,7 +50,7 @@ void ImageView::showImage(const QImage &image)
     scrollArea->setWidget(scalableImage);
 
     const QSize &availableSize = QGuiApplication::primaryScreen()->availableSize();
-    const QSize &unusuableSize = QSize(2, 55 + 4);
+    const QSize &unusuableSize = QSize(2, 55 + 4); // is only true for testing on MacOS -> TODO: Generalize this figure
     const QSize &maxImageSize  = availableSize - unusuableSize;
     const QSize &imageSize     = image.size();
 

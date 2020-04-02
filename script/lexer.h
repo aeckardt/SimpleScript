@@ -10,7 +10,7 @@ namespace lx
 
 enum TokenId : uint32_t
 {
-    Term,
+    AlphaNumeric,
     Integer,
     Float,
     String,
@@ -84,12 +84,12 @@ private:
     void pushError(const std::string &msg);
 
     void readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs);
-    void readName(token_pos &it, const token_pos &end, Token &token);
-    void readNumber(token_pos &it, const token_pos &end, Token &token);
-    void readString(token_pos &it, const token_pos &end, Token &token);
-    void readSingleChar(token_pos &it, Token &token);
-    void readOperator(token_pos &it, const token_pos &end, Token &token);
-    void readComment(token_pos &it, const token_pos &end);
+    Token readName(token_pos &it, const token_pos &end);
+    Token readNumber(token_pos &it, const token_pos &end);
+    Token readString(token_pos &it, const token_pos &end);
+    Token readSingleChar(token_pos &it);
+    Token readOperator(token_pos &it, const token_pos &end);
+    void skipComment(token_pos &it, const token_pos &end);
 };
 
 } // namespace lx
