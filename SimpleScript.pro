@@ -35,6 +35,7 @@ SOURCES += \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
+    image/screenshot.cpp \
     imageView/ImageView.cpp \
     selectFrame/SelectFrameWidget.cpp
 
@@ -56,19 +57,20 @@ INCLUDEPATH += \
     /usr/local/include
 
 win32 {
-    SOURCES += \
-        image/screenshot_win.cpp
-
     LIBS += \
         -lgdi32
 }
 macx {
-    SOURCES += \
-        image/screenshot_mac.cpp
-
     LIBS += \
         -framework ApplicationServices
 }
+
+LIBS += \
+    -L/usr/local/lib \
+    -lavcodec \
+    -lavformat \
+    -lavutil \
+    -lswscale
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
