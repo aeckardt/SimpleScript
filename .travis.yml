@@ -1,15 +1,25 @@
 language: cpp
 os: osx
 
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      brew update > /dev/null
+      ;
+    fi
+
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-       brew update > /dev/null
-    && brew install qt5
-    && brew unlink python@2
-    && brew install ffmpeg
-    ; 
+         brew install qt5
+      && brew unlink python@2
+      && brew install ffmpeg
+      ; 
     fi
 
 script:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+         QTDIR="/usr/local/opt/qt5"
+      && PATH="$QTDIR/bin:$PATH"
+      ;
+    fi
   - qmake SimpleScript.pro
   - make
