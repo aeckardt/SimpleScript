@@ -37,7 +37,8 @@ SOURCES += \
     script/astwalker.cpp \
     image/screenshot.cpp \
     imageView/ImageView.cpp \
-    selectFrame/SelectFrameWidget.cpp
+    selectFrame/SelectFrameWidget.cpp \
+    video/encoder.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -51,7 +52,8 @@ HEADERS += \
     script/types.h \
     image/screenshot.h \
     imageView/ImageView.h \
-    selectFrame/SelectFrameWidget.h
+    selectFrame/SelectFrameWidget.h \
+    video/encoder.h
 
 INCLUDEPATH += \
     /usr/local/include
@@ -79,3 +81,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     "resources/resources.qrc"
+
+DISTFILES += \
+    .travis.yml
