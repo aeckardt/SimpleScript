@@ -2,10 +2,13 @@ language: cpp
 os: osx
 
 install:
-  - brew update > /dev/null
-  - brew install qt5
-  - brew unlink python@2
-  - brew install ffmpeg
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+    - brew update > /dev/null
+    - brew install qt5
+    - brew unlink python@2
+    - brew install ffmpeg
+    ; 
+    fi
 
 script:
   -    QTDIR="/usr/local/opt/qt5"
