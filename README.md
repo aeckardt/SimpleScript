@@ -1,5 +1,7 @@
 # Simple Script
 
+## Build Status
+
 Project build on MacOS:
 
 [![Build Status](https://travis-ci.org/aeckardt/SimpleScript.svg?branch=master)](https://travis-ci.org/aeckardt/SimpleScript)
