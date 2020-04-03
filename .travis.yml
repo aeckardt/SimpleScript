@@ -1,10 +1,11 @@
 language: cpp
-os: osx
+os: 
+  - osx
+  - windows
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
          brew update > /dev/null
-      && brew cleanup
       && brew unlink python@2
       ;
     fi
