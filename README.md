@@ -1,5 +1,7 @@
 # Simple Script
 
+!https://travis-ci.org/aeckardt/SimpleScript.svg?branch=master!:https://travis-ci.org/aeckardt/SimpleScript
+
 ## Goal of the project
 
 The goal of this project is to provide tools to capture screen information and effectively utilize it to automate testing or to log information.
