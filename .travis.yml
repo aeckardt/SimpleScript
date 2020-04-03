@@ -5,6 +5,7 @@ install:
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
          brew update > /dev/null
       && brew install qt5
+      ;
 
 script:
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
