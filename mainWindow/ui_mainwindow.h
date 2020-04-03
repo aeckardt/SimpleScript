@@ -89,7 +89,7 @@ public:
         textEdit->setTabChangesFocus(false);
 
         QFontMetrics metrics(textEdit->font());
-        textEdit->setTabStopDistance(4 * metrics.width(' '));
+        textEdit->setTabStopDistance(4 * metrics.horizontalAdvance(' '));
 
         gridLayout->addWidget(textEdit, 1, 0, 1, 1);
 
