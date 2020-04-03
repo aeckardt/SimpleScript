@@ -1,2 +1,16 @@
 language: cpp
 os: osx
+
+install:
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+         brew update > /dev/null
+      && brew install qt5
+
+script:
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+         QTDIR="/usr/local/opt/qt5"
+      && PATH="$QTDIR/bin:$PATH"
+      && LDFLAGS=-L$QTDIR/lib
+      && CPPFLAGS=-I$QTDIR/include
+      ;
+  - qmake SimpleScript.pro
