@@ -4,10 +4,10 @@
 #include <string>
 #include <QImage>
 
-class AVCodecContext;
-class AVCodec;
-class AVFrame;
-class AVPacket;
+struct AVCodecContext;
+struct AVCodec;
+struct AVFrame;
+struct AVPacket;
 
 class VideoEncoder
 {
