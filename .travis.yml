@@ -3,15 +3,16 @@ os: osx
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-      brew update > /dev/null
+         brew update > /dev/null
+      && brew cleanup
+      && brew unlink python@2
       ;
     fi
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
          brew install qt5
-      && brew unlink python@2
-      && brew install ffmpeg
+      && brew install ffmpeg 
       ; 
     fi
 
