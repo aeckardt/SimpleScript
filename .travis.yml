@@ -1,23 +1,17 @@
 language: cpp
+os: osx
+compiler: clang
 
-jobs:
-  include:
-    - name: "Windows"
-      os: windows
-      install:
-        - curl -vLO http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
-      script: echo
-    - name: "MacOS"
-      os: osx
-      compiler: clang
-      before_install:
-        - brew update > /dev/null
-        - brew unlink python@2
-      install:
-        - brew install qt5
-        - brew install ffmpeg
-      script:
-        -    QTDIR="/usr/local/opt/qt5"
-          && PATH="$QTDIR/bin:$PATH"
-        - qmake SimpleScript.pro
-        - make
+before_install:
+  - brew update > /dev/null
+  - brew unlink python@2
+
+install:
+  - brew install qt5
+  - brew install ffmpeg
+
+script:
+  -    QTDIR="/usr/local/opt/qt5"
+    && PATH="$QTDIR/bin:$PATH"
+  - qmake SimpleScript.pro
+  - make

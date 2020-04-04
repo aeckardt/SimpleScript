@@ -2,7 +2,7 @@
 
 ## Build Status
 
-Project build for Windows and MacOS:
+Project build for MacOS:
 
 [![Build Status](https://travis-ci.org/aeckardt/SimpleScript.svg?branch=master)](https://travis-ci.org/aeckardt/SimpleScript)
 
