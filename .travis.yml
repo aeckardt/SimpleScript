@@ -2,19 +2,20 @@ language: cpp
 
 jobs:
   include:
-    - name: "MacOS"
+    - name: "Windows Build"
+      os: windows
+      script: echo
+    - name: "MacOS Build"
+      os: osx
+      compiler: clang
       before_install:
         - brew update > /dev/null
         - brew unlink python@2
       install:
         - brew install qt5
         - brew install ffmpeg
-      os: osx
       script:
         -    QTDIR="/usr/local/opt/qt5"
           && PATH="$QTDIR/bin:$PATH"
         - qmake SimpleScript.pro
         - make
-    - name: "Windows"
-      os: windows
-      script: echo
