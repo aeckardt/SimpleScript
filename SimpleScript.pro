@@ -38,7 +38,8 @@ SOURCES += \
     image/screenshot.cpp \
     imageView/ImageView.cpp \
     selectFrame/SelectFrameWidget.cpp \
-    video/encoder.cpp
+    video/recorder.cpp \
+    video/video.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -53,7 +54,8 @@ HEADERS += \
     image/screenshot.h \
     imageView/ImageView.h \
     selectFrame/SelectFrameWidget.h \
-    video/encoder.h
+    video/recorder.h \
+    video/video.h
 
 INCLUDEPATH += \
     /usr/local/include

@@ -1,4 +1,4 @@
-#include "encoder.h"
+#include "video.h"
 
 extern "C"
 {
@@ -9,27 +9,43 @@ extern "C"
 static const char* codec_name      = "libx264rgb";
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 
-AVCodecContext *VideoEncoder::allocContext(int width, int height, int framerate)
+Video::Video(int width, int height, int frame_rate)
+    : av_error(0),
+      width(width),
+      height(height),
+      frame_rate(frame_rate),
+      ctx(nullptr),
+      codec(nullptr),
+      frame(nullptr),
+      pkt(nullptr),
+      pts(0),
+      file(nullptr)
+{
+    av_log_set_level(AV_LOG_ERROR);
+
+    initialize();
+}
+
+void Video::allocContext()
 {
     const AVCodec *codec;
-    AVCodecContext *ctx = nullptr;
 
     codec = avcodec_find_encoder_by_name(codec_name);
     if (codec == nullptr) {
         last_error = "Codec '" + std::string(codec_name) + "' not found";
-        return nullptr;
+        return;
     }
 
     ctx = avcodec_alloc_context3(codec);
     if (ctx == nullptr) {
         last_error = "Could not allocate video codec context";
-        return nullptr;
+        return;
     }
 
     ctx->bit_rate = 400000;
     ctx->width = width;
     ctx->height = height;
-    ctx->time_base = {1, framerate};
+    ctx->time_base = {1, frame_rate};
     ctx->gop_size = 10;
     ctx->max_b_frames = 1;
     ctx->pix_fmt = pix_fmt;
@@ -46,18 +62,16 @@ AVCodecContext *VideoEncoder::allocContext(int width, int height, int framerate)
         last_error = "Could not open codec: '" + std::string(codec_name) + "' -> " +
                   av_make_error_string(ch, AV_ERROR_MAX_STRING_SIZE, av_error);
         avcodec_free_context(&ctx);
-        return nullptr;
+        return;
     }
-
-    return ctx;
 }
 
-AVFrame *VideoEncoder::allocFrame()
+void Video::allocFrame()
 {
-    AVFrame *frame = av_frame_alloc();
+    frame = av_frame_alloc();
     if (frame == nullptr) {
         last_error = "Could not allocate video frame";
-        return nullptr;
+        return;
     }
 
     frame->format = ctx->pix_fmt;
@@ -68,31 +82,22 @@ AVFrame *VideoEncoder::allocFrame()
     if (av_error < 0) {
         last_error = "Could not allocate the video frame data";
         av_frame_free(&frame);
-        return nullptr;
+        return;
     }
-
-    return frame;
 }
 
-void VideoEncoder::create(int width, int height, int frameRate, const char *fileName)
+void Video::initialize()
 {
-    av_log_set_level(AV_LOG_ERROR);
-
-    clear();
-
-    ctx = allocContext(width, height, frameRate);
+    allocContext();
     if (ctx == nullptr)
-        // Error message is created in allocContext
         return;
 
     codec = ctx->codec;
 
-    frame = allocFrame();
+    allocFrame();
     if (frame == nullptr)
-        // Error message is created in allocFrame
         return;
 
-    // Image bits are stored in same place as AVFrame data
     image = QImage(frame->data[0], ctx->width, ctx->height, QImage::Format_RGB32);
 
     pkt = av_packet_alloc();
@@ -100,31 +105,36 @@ void VideoEncoder::create(int width, int height, int frameRate, const char *file
         last_error = "Could not allocate packet";
         return;
     }
-
-    file = fopen(fileName, "wb");
-    if (file == nullptr) {
-        last_error = "Could not open file";
-        return;
-    }
 }
 
-void VideoEncoder::clear()
+void Video::cleanUp()
 {
     if (ctx != nullptr)
         avcodec_free_context(&ctx);
     if (frame != nullptr)
         av_frame_free(&frame);
+    image = QImage();
     if (pkt != nullptr)
         av_packet_free(&pkt);
     pts = 0;
-    image = QImage();
     if (file != nullptr) {
         fclose(file);
         file = nullptr;
     }
 }
 
-void VideoEncoder::encodeFrame()
+void Video::create()
+{
+    temp_file.open();
+
+    file = fopen(temp_file.fileName().toStdString().c_str(), "wb");
+    if (file == nullptr) {
+        last_error = "Could not open file";
+        return;
+    }
+}
+
+void Video::encodeFrame()
 {
     if (ctx == nullptr || frame == nullptr || file == nullptr) {
         last_error = "Error initializing encoder";

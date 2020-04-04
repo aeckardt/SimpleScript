@@ -3,8 +3,9 @@
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
 #include "imageView/ImageView.h"
-#include "video/encoder.h"
+#include "video/video.h"
 
+#include <QDir>
 #include <QEventLoop>
 #include <QTimer>
 
@@ -19,7 +20,7 @@ enum : ObjectReference
 };
 
 template<> ObjectReference ParameterObjectBase<QImage>::ref = ImageRef;
-template<> ObjectReference ParameterObjectBase<VideoEncoder>::ref = VideoRef;
+template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
 {
@@ -56,6 +57,11 @@ bool cmdPrint(const ParameterList &in_params, Parameter &)
     }
 
     engine->print(in_params[0]);
+    return true;
+}
+
+bool cmdRecord(const ParameterList &, Parameter &)
+{
     return true;
 }
 
@@ -125,7 +131,7 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
     tw.registerObject<QImage>("Image");
-    tw.registerObject<VideoEncoder>("Video");
+    tw.registerObject<Video>("Video");
 
     tw.registerCommand("capture", cmdCapture,
         {{Empty, Rect}}, ImageRef);
@@ -138,6 +144,9 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
 
     tw.registerCommand("print", cmdPrint,
         {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
+
+    tw.registerCommand("record", cmdRecord,
+        {{Empty, Rect}}, VideoRef);
 
     tw.registerCommand("select", cmdSelect,
         {}, Rect);
