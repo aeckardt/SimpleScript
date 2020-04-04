@@ -1,37 +1,20 @@
 language: cpp
-os: 
-  - osx
-  - windows
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-         brew update > /dev/null
-      && brew unlink python@2
-      ;
-    fi
-
-install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-         brew install qt5
-      && brew install ffmpeg 
-      ; 
-    fi
-    
 jobs:
   include:
+    - name: "MacOS"
+      before_install:
+        - brew update > /dev/null
+        - brew unlink python@2
+      install:
+        - brew install qt5
+        - brew install ffmpeg
+      os: osx
+      script:
+        -    QTDIR="/usr/local/opt/qt5"
+          && PATH="$QTDIR/bin:$PATH"
+        - qmake SimpleScript.pro
+        - make
     - name: "Windows"
       os: windows
-    - name: "MacOS"
-      os: osx
-
-script:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-         QTDIR="/usr/local/opt/qt5"
-      && PATH="$QTDIR/bin:$PATH"
-      ;
-    fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
-         qmake SimpleScript.pro
-      && make
-      ;
-    fi
+      script: echo
