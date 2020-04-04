@@ -16,6 +16,13 @@ install:
       && brew install ffmpeg 
       ; 
     fi
+    
+jobs:
+  include:
+    - name: "Windows"
+      os: windows
+    - name: "MacOS"
+      os: osx
 
 script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
@@ -23,5 +30,8 @@ script:
       && PATH="$QTDIR/bin:$PATH"
       ;
     fi
-  - qmake SimpleScript.pro
-  - make
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+         qmake SimpleScript.pro
+      && make
+      ;
+    fi
