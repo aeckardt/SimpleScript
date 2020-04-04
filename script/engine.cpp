@@ -5,7 +5,6 @@
 #include "imageView/ImageView.h"
 #include "video/video.h"
 
-#include <QDir>
 #include <QEventLoop>
 #include <QTimer>
 

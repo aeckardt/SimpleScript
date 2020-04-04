@@ -4,20 +4,24 @@
 
 void ScreenRecorder::captureFrame()
 {
-    captureRect(rect, encoder.nextFrame());
+    captureRect(rect, video->currentFrame());
+    video->encodeFrame();
 }
 
-void ScreenRecorder::exec(QRect rect, int framerate)
+void ScreenRecorder::exec(QRect rect, Video &video)
 {
     this->rect = rect;
-    this->framerate = framerate;
+    this->video = &video;
+    frame_rate = video.frameRate();
 
-    if (framerate > 0 && framerate <= 30)
-        interval = 1000 / framerate;
-    else if (framerate <= 0)
+    if (frame_rate > 0 && frame_rate <= 30)
+        interval = 1000 / frame_rate;
+    else if (frame_rate <= 0)
         interval = 1000;
     else // if (frame_rate > 30)
         interval = 30;
+
+    video.create();
 
 //    encoder.init(rect.width(), rect.height(), framerate, fileName);
 
@@ -26,7 +30,7 @@ void ScreenRecorder::exec(QRect rect, int framerate)
 //    startWorkers();
 
     // Capture one frame directly at start
-//    captureFrame();
+    captureFrame();
 
 //    hotkey.setRegistered(true);
 

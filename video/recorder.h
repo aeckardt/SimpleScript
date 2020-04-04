@@ -1,7 +1,7 @@
 #ifndef RECORDER_H
 #define RECORDER_H
 
-#include "encoder.h"
+#include "video.h"
 
 #include <QObject>
 #include <QThread>
@@ -9,16 +9,14 @@
 class ScreenRecorder
 {
 public:
-    ScreenRecorder();
-
-    void exec(QRect rect, int framerate);
+    void exec(QRect rect, Video &video);
 
 private:
     QRect rect;
-    int framerate;
+    int frame_rate;
     int interval;
 
-    VideoEncoder encoder;
+    Video *video;
 
     void captureFrame();
 };

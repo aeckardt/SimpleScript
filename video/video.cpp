@@ -125,6 +125,11 @@ void Video::cleanUp()
 
 void Video::create()
 {
+    if (file != nullptr) {
+        fclose(file);
+        file = nullptr;
+    }
+
     temp_file.open();
 
     file = fopen(temp_file.fileName().toStdString().c_str(), "wb");

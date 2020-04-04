@@ -18,6 +18,7 @@ public:
     ~Video() { cleanUp(); }
 
     QImage &currentFrame() { return image; }
+    int frameRate() { return frame_rate; }
 
     void create();
     void encodeFrame();
