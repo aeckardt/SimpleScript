@@ -2,10 +2,12 @@ language: cpp
 
 jobs:
   include:
-    - name: "Windows Build"
+    - name: "Windows"
       os: windows
+      install:
+        - curl -vLO http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
       script: echo
-    - name: "MacOS Build"
+    - name: "MacOS"
       os: osx
       compiler: clang
       before_install:
