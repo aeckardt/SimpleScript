@@ -25,6 +25,8 @@ public:
 
     QImage &nextFrame() { return image; }
 
+    const QString &path() const { return file_path; }
+
     int av_error;
     std::string last_error;
 
@@ -53,6 +55,7 @@ private:
 
     QTemporaryFile temp_file;
     FILE *file;
+    QString file_path;
 };
 
 #endif // VIDEO_H

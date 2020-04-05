@@ -107,6 +107,7 @@ void Video::create(int width, int height, int frame_rate)
     initialize();
 
     temp_file.open();
+    file_path = temp_file.fileName();
 
     file = fopen(temp_file.fileName().toStdString().c_str(), "wb");
     if (file == nullptr)
@@ -134,8 +135,13 @@ void Video::encodeFrames(bool flush)
 
     while (av_error >= 0) {
         av_error = avcodec_receive_packet(ctx, pkt);
-        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
+        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF) {
+            if (flush) {
+                fclose(file);
+                file = nullptr;
+            }
             return;
+        }
 
         else if (av_error < 0)
             return errorMsg("Error during encoding");
@@ -150,6 +156,7 @@ void Video::encodeFrames(bool flush)
 void Video::errorMsg(const char *msg)
 {
     last_error = msg;
+    qDebug() << msg;
 }
 
 void Video::initialize()

@@ -39,7 +39,9 @@ SOURCES += \
     imageView/ImageView.cpp \
     selectFrame/SelectFrameWidget.cpp \
     video/recorder.cpp \
-    video/video.cpp
+    video/video.cpp \
+    videoView/VideoReader.cpp \
+    videoView/VideoView.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -55,7 +57,9 @@ HEADERS += \
     imageView/ImageView.h \
     selectFrame/SelectFrameWidget.h \
     video/recorder.h \
-    video/video.h
+    video/video.h \
+    videoView/VideoReader.h \
+    videoView/VideoView.h
 
 INCLUDEPATH += \
     /usr/local/include

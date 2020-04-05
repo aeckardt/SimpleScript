@@ -160,7 +160,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 "# Recording test\n"
                 "\n"
                 "rect=select()\n"
-                "video=record(rect, 10)");
+                "video=record(rect, 10)\n"
+                "view(video)");
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
