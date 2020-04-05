@@ -2,6 +2,7 @@
 #include "VideoView.h"
 
 #include <QPainter>
+#include <QtWidgets>
 
 VideoView::VideoView(QWidget *parent) : QDialog(parent)
 {
@@ -29,6 +30,15 @@ void VideoView::runVideo(const QString &fileName)
     show();
 
     exec();
+}
+
+void VideoView::keyPressEvent(QKeyEvent *event)
+{
+    if (event->modifiers() & Qt::ControlModifier) {
+        if (event->key() == Qt::Key_W)
+            // Close when Ctrl+W is pressed
+            close();
+    }
 }
 
 void VideoView::receiveFrame(const QImage *image)

@@ -19,6 +19,9 @@ public:
 
     void runVideo(const QString &fileName);
 
+protected:
+    void keyPressEvent(QKeyEvent *) override;
+
 private slots:
     void receiveFrame(const QImage *image);
     void error(const QString &msg);

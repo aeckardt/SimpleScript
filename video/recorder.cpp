@@ -10,6 +10,9 @@ void ScreenRecorder::captureFrame()
 
 void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 {
+    // Make size divisible by 4
+    rect.setSize(QSize(rect.width() & 0xfffc, rect.height() & 0xfffc));
+
     this->rect = rect;
     this->video = &video;
     this->frame_rate = frame_rate;
