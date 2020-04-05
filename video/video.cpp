@@ -178,34 +178,3 @@ void Video::initialize()
         return;
     }
 }
-
-Video &Video::operator=(Video &&src)
-{
-    cleanUp();
-
-    width = src.width;
-    height = src.height;
-    frame_rate = src.frame_rate;
-
-    ctx = src.ctx;
-    codec = src.codec;
-    frame = src.frame;
-    pkt = src.pkt;
-    pts = src.pts;
-
-    if (frame != nullptr) {
-        image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
-    }
-
-    file = src.file;
-
-    src.ctx = nullptr;
-    src.codec = nullptr;
-    src.frame = nullptr;
-    src.pkt = nullptr;
-    src.pts = 0;
-    src.image = QImage();
-    src.file = nullptr;
-
-    return *this;
-}

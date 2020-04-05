@@ -17,7 +17,6 @@ class Video
 {
 public:
     Video();
-    Video(Video &&src) : Video() { operator=(std::move(src)); }
     ~Video() { cleanUp(); }
 
     void create(int width, int height, int frame_rate);
@@ -25,8 +24,6 @@ public:
     void flush() { encodeFrames(true); }
 
     QImage &nextFrame() { return image; }
-
-    Video &operator=(Video &&src);
 
     int av_error;
     std::string last_error;
