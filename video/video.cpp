@@ -9,6 +9,10 @@ extern "C"
 static const char* codec_name      = "libx264rgb";
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 
+// void(0) is used to enforce semicolon after the macro
+#define errorMsgf(format, ...) \
+{ char *buffer = new char[strlen(format) * 2 + 50]; sprintf(buffer, format, __VA_ARGS__); errorMsg(buffer); } (void)0
+
 Video::Video()
     : av_error(0),
       width(0),
@@ -30,15 +34,13 @@ void Video::allocContext()
 
     codec = avcodec_find_encoder_by_name(codec_name);
     if (codec == nullptr) {
-        last_error = "Codec '" + std::string(codec_name) + "' not found";
+        errorMsgf("Codec '%s' not found", codec_name);
         return;
     }
 
     ctx = avcodec_alloc_context3(codec);
-    if (ctx == nullptr) {
-        last_error = "Could not allocate video codec context";
-        return;
-    }
+    if (ctx == nullptr)
+        return errorMsg("Could not allocate video codec context");
 
     ctx->bit_rate = 400000;
     ctx->width = width;
@@ -57,8 +59,7 @@ void Video::allocContext()
     av_error = avcodec_open2(ctx, codec, nullptr);
     if (av_error < 0) {
         char ch[AV_ERROR_MAX_STRING_SIZE] = {0};
-        last_error = "Could not open codec: '" + std::string(codec_name) + "' -> " +
-                  av_make_error_string(ch, AV_ERROR_MAX_STRING_SIZE, av_error);
+        errorMsgf("Could not open codec: '%s' -> %s", codec_name, av_make_error_string(ch, AV_ERROR_MAX_STRING_SIZE, av_error));
         avcodec_free_context(&ctx);
         return;
     }
@@ -67,10 +68,8 @@ void Video::allocContext()
 void Video::allocFrame()
 {
     frame = av_frame_alloc();
-    if (frame == nullptr) {
-        last_error = "Could not allocate video frame";
-        return;
-    }
+    if (frame == nullptr)
+        return errorMsg("Could not allocate video frame");
 
     frame->format = pix_fmt;
     frame->width  = width;
@@ -78,9 +77,8 @@ void Video::allocFrame()
 
     av_error = av_frame_get_buffer(frame, 32);
     if (av_error < 0) {
-        last_error = "Could not allocate the video frame data";
         av_frame_free(&frame);
-        return;
+        return errorMsg("Could not allocate the video frame data");
     }
 }
 
@@ -111,16 +109,14 @@ void Video::create(int width, int height, int frame_rate)
     temp_file.open();
 
     file = fopen(temp_file.fileName().toStdString().c_str(), "wb");
-    if (file == nullptr) {
-        last_error = "Could not open file";
-        return;
-    }
+    if (file == nullptr)
+        return errorMsg("Could not open file");
 }
 
 void Video::encodeFrame()
 {
     if (ctx == nullptr || frame == nullptr || file == nullptr) {
-        last_error = "Error initializing encoder";
+        errorMsg("Error initializing encoder");
         return;
     }
 
@@ -128,24 +124,52 @@ void Video::encodeFrame()
 
     // Send the frame to the encoder
     av_error = avcodec_send_frame(ctx, frame);
-    if (av_error < 0) {
-        last_error = "Error sending a frame for encoding";
-        return;
-    }
+    if (av_error < 0)
+        return errorMsg("Error sending a frame for encoding");
 
     while (av_error >= 0) {
         av_error = avcodec_receive_packet(ctx, pkt);
-        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF) {
-            av_packet_unref(pkt);
+        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
             return;
-        } else if (av_error < 0) {
-            last_error = "Error during encoding";
-            return;
-        }
+        else if (av_error < 0)
+            return errorMsg("Error during encoding");
 
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
     }
+}
+
+void Video::flush()
+{
+    if (ctx == nullptr || file == nullptr) {
+        errorMsg("Error initializing encoder");
+        return;
+    }
+
+    frame->pts = pts++;
+
+    // Enter draining mode by sending empty buffer
+    av_error = avcodec_send_frame(ctx, nullptr);
+    if (av_error < 0)
+        return errorMsg("Error flushing");
+
+    while (av_error >= 0) {
+        av_error = avcodec_receive_packet(ctx, pkt);
+        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
+            return;
+        else if (av_error < 0)
+            return errorMsg("Error during encoding");
+
+        fwrite(pkt->data, 1, pkt->size, file);
+        av_packet_unref(pkt);
+    }
+
+    cleanUp();
+}
+
+void Video::errorMsg(const char *msg)
+{
+    last_error = msg;
 }
 
 void Video::initialize()
@@ -162,11 +186,15 @@ void Video::initialize()
     if (frame == nullptr)
         return;
 
+    av_error = av_frame_make_writable(frame);
+    if (av_error < 0)
+        return errorMsg("Could not make frame writable");
+
     image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {
-        last_error = "Could not allocate packet";
+        errorMsg("Could not allocate packet");
         return;
     }
 }

@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <QDebug>
+
 struct AVCodecContext;
 struct AVCodec;
 struct AVFrame;
@@ -20,6 +22,7 @@ public:
 
     void create(int width, int height, int frame_rate);
     void encodeFrame();
+    void flush();
 
     QImage &currentFrame() { return image; }
 
@@ -34,6 +37,8 @@ private:
 
     void initialize();
     void cleanUp();
+
+    void errorMsg(const char *msg);
 
     int width;
     int height;

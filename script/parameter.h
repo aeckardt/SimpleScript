@@ -57,25 +57,13 @@ class ParameterObjectBase : public ParameterObject
 public:
     typedef T ObjectType;
 
-    ObjectType obj;
+    template<class... _Args>
+    inline ParameterObjectBase(_Args... __args) : obj(__args...) {}
+
+    T obj;
 
     static ObjectReference ref;
     inline ObjectReference objRef() const override { return ref; }
-};
-
-template<class T>
-class MoveableParameterObjectBase : public ParameterObjectBase<T>
-{
-public:
-    inline MoveableParameterObjectBase() {}
-    inline MoveableParameterObjectBase(MoveableParameterObjectBase &&src) { this->obj = std::move(src.obj); }
-    inline MoveableParameterObjectBase(T &&src) { this->obj = std::move(src); }
-    virtual inline ~MoveableParameterObjectBase() override {}
-
-    inline MoveableParameterObjectBase &operator=(MoveableParameterObjectBase &&src) { this->obj = move(src.obj); return *this; }
-    inline MoveableParameterObjectBase &operator=(T &&src) { this->obj = move(src); return *this; }
-
-    inline void moveTo(void *&ptr) override { ptr = new MoveableParameterObjectBase(std::move(*this)); }
 };
 
 class Parameter
@@ -104,8 +92,8 @@ public:
     void assign(ParameterObject &&);
 
     template<class T, class... _Args>
-    inline typename ParameterObjectBase<T>::ObjectType &createObject(_Args... __args)
-    { assign(MoveableParameterObjectBase<T>(T(__args...))); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+    inline T &createObject(_Args... __args)
+    { clear(); value = new ParameterObjectBase<T>(__args...); _type = Object; return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
     inline const std::string &asString() const   { return *static_cast<std::string*>(value); }
            int32_t            asInt() const;

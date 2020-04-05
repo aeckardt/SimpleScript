@@ -49,4 +49,6 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 //    hotkey.setRegistered(false);
 
 //    stopWorkers();
+
+    video.flush();
 }

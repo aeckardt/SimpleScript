@@ -155,6 +155,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
+        } else if (event->key() == Qt::Key_7) {
+            ui->textEdit->setText(
+                "# Recording test\n"
+                "\n"
+                "rect=select()\n"
+                "video=record(rect, 10)");
+            QTextCursor cursor = ui->textEdit->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            ui->textEdit->setTextCursor(cursor);
         }
     }
 }
