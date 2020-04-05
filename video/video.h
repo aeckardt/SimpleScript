@@ -21,10 +21,10 @@ public:
     ~Video() { cleanUp(); }
 
     void create(int width, int height, int frame_rate);
-    void encodeFrame();
-    void flush();
+    void encodeFrame() { encodeFrames(false); }
+    void flush() { encodeFrames(true); }
 
-    QImage &currentFrame() { return image; }
+    QImage &nextFrame() { return image; }
 
     Video &operator=(Video &&src);
 
@@ -37,6 +37,8 @@ private:
 
     void initialize();
     void cleanUp();
+
+    void encodeFrames(bool flush);
 
     void errorMsg(const char *msg);
 

@@ -4,7 +4,7 @@
 
 void ScreenRecorder::captureFrame()
 {
-    captureRect(rect, video->currentFrame());
+    captureRect(rect, video->nextFrame());
     video->encodeFrame();
 }
 

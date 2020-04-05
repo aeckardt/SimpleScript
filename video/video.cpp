@@ -113,17 +113,24 @@ void Video::create(int width, int height, int frame_rate)
         return errorMsg("Could not open file");
 }
 
-void Video::encodeFrame()
+void Video::encodeFrames(bool flush)
 {
     if (ctx == nullptr || frame == nullptr || file == nullptr) {
         errorMsg("Error initializing encoder");
         return;
     }
 
-    // Send the frame to the encoder
-    av_error = avcodec_send_frame(ctx, frame);
-    if (av_error < 0)
-        return errorMsg("Error sending a frame for encoding");
+    if (!flush) {
+        // Send the frame to the encoder
+        av_error = avcodec_send_frame(ctx, frame);
+        if (av_error < 0)
+            return errorMsg("Error sending a frame for encoding");
+    } else {
+        // Enter draining mode by sending empty buffer
+        av_error = avcodec_send_frame(ctx, nullptr);
+        if (av_error < 0)
+            return errorMsg("Error flushing");
+    }
 
     while (av_error >= 0) {
         av_error = avcodec_receive_packet(ctx, pkt);
@@ -138,34 +145,6 @@ void Video::encodeFrame()
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
     }
-}
-
-void Video::flush()
-{
-    if (ctx == nullptr || file == nullptr) {
-        errorMsg("Error initializing encoder");
-        return;
-    }
-
-    // Enter draining mode by sending empty buffer
-    av_error = avcodec_send_frame(ctx, nullptr);
-    if (av_error < 0)
-        return errorMsg("Error flushing");
-
-    while (av_error >= 0) {
-        av_error = avcodec_receive_packet(ctx, pkt);
-        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
-            return;
-        else if (av_error < 0)
-            return errorMsg("Error during encoding");
-
-        frame->pts = pts++;
-
-        fwrite(pkt->data, 1, pkt->size, file);
-        av_packet_unref(pkt);
-    }
-
-    cleanUp();
 }
 
 void Video::errorMsg(const char *msg)
