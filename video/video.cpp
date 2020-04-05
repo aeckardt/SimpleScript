@@ -84,6 +84,10 @@ void Video::allocFrame()
 
 void Video::cleanUp()
 {
+    if (file != nullptr) {
+        fclose(file);
+        file = nullptr;
+    }
     if (ctx != nullptr)
         avcodec_free_context(&ctx);
     if (frame != nullptr)
@@ -92,10 +96,6 @@ void Video::cleanUp()
     if (pkt != nullptr)
         av_packet_free(&pkt);
     pts = 0;
-    if (file != nullptr) {
-        fclose(file);
-        file = nullptr;
-    }
 }
 
 void Video::create(int width, int height, int frame_rate)
@@ -120,8 +120,6 @@ void Video::encodeFrame()
         return;
     }
 
-    frame->pts = pts++;
-
     // Send the frame to the encoder
     av_error = avcodec_send_frame(ctx, frame);
     if (av_error < 0)
@@ -131,8 +129,11 @@ void Video::encodeFrame()
         av_error = avcodec_receive_packet(ctx, pkt);
         if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
             return;
+
         else if (av_error < 0)
             return errorMsg("Error during encoding");
+
+        frame->pts = pts++;
 
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
@@ -146,8 +147,6 @@ void Video::flush()
         return;
     }
 
-    frame->pts = pts++;
-
     // Enter draining mode by sending empty buffer
     av_error = avcodec_send_frame(ctx, nullptr);
     if (av_error < 0)
@@ -159,6 +158,8 @@ void Video::flush()
             return;
         else if (av_error < 0)
             return errorMsg("Error during encoding");
+
+        frame->pts = pts++;
 
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
