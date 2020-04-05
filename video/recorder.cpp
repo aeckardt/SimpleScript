@@ -8,11 +8,11 @@ void ScreenRecorder::captureFrame()
     video->encodeFrame();
 }
 
-void ScreenRecorder::exec(QRect rect, Video &video)
+void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 {
     this->rect = rect;
     this->video = &video;
-    frame_rate = video.frameRate();
+    this->frame_rate = frame_rate;
 
     if (frame_rate > 0 && frame_rate <= 30)
         interval = 1000 / frame_rate;
@@ -21,7 +21,15 @@ void ScreenRecorder::exec(QRect rect, Video &video)
     else // if (frame_rate > 30)
         interval = 30;
 
-    video.create();
+    int width = rect.width();
+    int height = rect.height();
+
+#ifdef __APPLE__
+    width  *= 2;
+    height *= 2;
+#endif
+
+    video.create(width, height, frame_rate);
 
 //    encoder.init(rect.width(), rect.height(), framerate, fileName);
 

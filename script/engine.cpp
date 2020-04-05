@@ -3,6 +3,7 @@
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
 #include "imageView/ImageView.h"
+#include "video/recorder.h"
 #include "video/video.h"
 
 #include <QEventLoop>
@@ -59,8 +60,23 @@ bool cmdPrint(const ParameterList &in_params, Parameter &)
     return true;
 }
 
-bool cmdRecord(const ParameterList &, Parameter &)
+bool cmdRecord(const ParameterList &in_params, Parameter &out_param)
 {
+    const QRect &rect = in_params[0].asRect();
+    int frame_rate    = in_params[1].asInt();
+
+    if (frame_rate < 1 || frame_rate > 30) {
+        engine->printError("Frame rate needs to be between 1 and 30");
+        return false;
+    }
+
+    engine->mainWindow->hide();
+
+    ScreenRecorder recorder;
+    recorder.exec(rect, out_param.createObject<Video>(), frame_rate);
+
+    engine->mainWindow->show();
+
     return true;
 }
 
@@ -145,7 +161,7 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
         {{Empty, String, Int, Float, Boolean, Point, Rect, DateTime}}, Empty);
 
     tw.registerCommand("record", cmdRecord,
-        {{Empty, Rect}}, VideoRef);
+        {{Rect}, {Int}}, VideoRef);
 
     tw.registerCommand("select", cmdSelect,
         {}, Rect);

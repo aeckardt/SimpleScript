@@ -14,14 +14,18 @@ struct AVPacket;
 class Video
 {
 public:
-    Video(int width, int height, int frame_rate);
+    Video();
+    Video(const Video &src);
+    Video(Video &&src);
     ~Video() { cleanUp(); }
 
-    QImage &currentFrame() { return image; }
-    int frameRate() { return frame_rate; }
-
-    void create();
+    void create(int width, int height, int frame_rate);
     void encodeFrame();
+
+    QImage &currentFrame() { return image; }
+
+    Video &operator=(const Video &src);
+    Video &operator=(Video &&src);
 
     int av_error;
     std::string last_error;

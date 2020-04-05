@@ -9,11 +9,11 @@ extern "C"
 static const char* codec_name      = "libx264rgb";
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 
-Video::Video(int width, int height, int frame_rate)
+Video::Video()
     : av_error(0),
-      width(width),
-      height(height),
-      frame_rate(frame_rate),
+      width(0),
+      height(0),
+      frame_rate(0),
       ctx(nullptr),
       codec(nullptr),
       frame(nullptr),
@@ -22,8 +22,16 @@ Video::Video(int width, int height, int frame_rate)
       file(nullptr)
 {
     av_log_set_level(AV_LOG_ERROR);
+}
 
-    initialize();
+Video::Video(const Video &src)
+{
+    Q_UNUSED(src)
+}
+
+Video::Video(Video &&src)
+{
+    Q_UNUSED(src)
 }
 
 void Video::allocContext()
@@ -86,27 +94,6 @@ void Video::allocFrame()
     }
 }
 
-void Video::initialize()
-{
-    allocContext();
-    if (ctx == nullptr)
-        return;
-
-    codec = ctx->codec;
-
-    allocFrame();
-    if (frame == nullptr)
-        return;
-
-    image = QImage(frame->data[0], ctx->width, ctx->height, QImage::Format_RGB32);
-
-    pkt = av_packet_alloc();
-    if (pkt == nullptr) {
-        last_error = "Could not allocate packet";
-        return;
-    }
-}
-
 void Video::cleanUp()
 {
     if (ctx != nullptr)
@@ -123,12 +110,13 @@ void Video::cleanUp()
     }
 }
 
-void Video::create()
+void Video::create(int width, int height, int frame_rate)
 {
-    if (file != nullptr) {
-        fclose(file);
-        file = nullptr;
-    }
+    this->width = width;
+    this->height = height;
+    this->frame_rate = frame_rate;
+
+    initialize();
 
     temp_file.open();
 
@@ -168,4 +156,39 @@ void Video::encodeFrame()
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
     }
+}
+
+void Video::initialize()
+{
+    cleanUp();
+
+    allocContext();
+    if (ctx == nullptr)
+        return;
+
+    codec = ctx->codec;
+
+    allocFrame();
+    if (frame == nullptr)
+        return;
+
+    image = QImage(frame->data[0], ctx->width, ctx->height, QImage::Format_RGB32);
+
+    pkt = av_packet_alloc();
+    if (pkt == nullptr) {
+        last_error = "Could not allocate packet";
+        return;
+    }
+}
+
+Video &Video::operator=(const Video &src)
+{
+    Q_UNUSED(src)
+    return *this;
+}
+
+Video &Video::operator=(Video &&src)
+{
+    Q_UNUSED(src)
+    return *this;
 }

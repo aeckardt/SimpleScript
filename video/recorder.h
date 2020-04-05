@@ -9,7 +9,7 @@
 class ScreenRecorder
 {
 public:
-    void exec(QRect rect, Video &video);
+    void exec(QRect rect, Video &video, int frame_rate);
 
 private:
     QRect rect;
