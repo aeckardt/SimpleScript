@@ -550,6 +550,11 @@ bool ASTWalker::validateAssignment(const Node &node)
             errorMsgf("Variable '%s' not found", rvar_name.c_str());
             return false;
         }
+        ParameterType param_type = var_types.find(rvar_name)->second;
+        if (param_type.basic_type == Object && !obj_types[param_type.obj_ref].copyable) {
+            errorMsgf("Object of type '%s' is not copyable", obj_types[param_type.obj_ref].name.c_str());
+            return false;
+        }
         return_value_type = var_types[var_name];
     }
     else // rule is Int, Float or String
@@ -603,7 +608,7 @@ bool ASTWalker::validateCommand(const std::string &command, const ParameterTypeL
                 if (type.basic_type != Object)
                     ss << type_names.at(type.basic_type);
                 else
-                    ss << obj_names[type.obj_ref];
+                    ss << obj_types[type.obj_ref].name;
                 first = false;
             }
             if (cmd.param_types[index].size() > 1)

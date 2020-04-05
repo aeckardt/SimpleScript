@@ -15,8 +15,8 @@ class Video
 {
 public:
     Video();
-    Video(const Video &src);
-    Video(Video &&src);
+    Video(const Video &src) : Video() { operator=(src); }
+    Video(Video &&src) : Video() { operator=(std::move(src)); }
     ~Video() { cleanUp(); }
 
     void create(int width, int height, int frame_rate);
@@ -24,7 +24,7 @@ public:
 
     QImage &currentFrame() { return image; }
 
-    Video &operator=(const Video &src);
+    Video &operator=(const Video &) { throw "Video cannot be copied"; }
     Video &operator=(Video &&src);
 
     int av_error;

@@ -145,8 +145,8 @@ bool cmdView(const ParameterList &in_params, Parameter &)
 ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
-    tw.registerObject<QImage>("Image");
-    tw.registerObject<Video>("Video");
+    tw.registerObject<QImage>("Image", true, false);
+    tw.registerObject<Video>("Video", true, false);
 
     tw.registerCommand("capture", cmdCapture,
         {{Empty, Rect}}, ImageRef);

@@ -24,16 +24,6 @@ Video::Video()
     av_log_set_level(AV_LOG_ERROR);
 }
 
-Video::Video(const Video &src)
-{
-    Q_UNUSED(src)
-}
-
-Video::Video(Video &&src)
-{
-    Q_UNUSED(src)
-}
-
 void Video::allocContext()
 {
     const AVCodec *codec;
@@ -82,9 +72,9 @@ void Video::allocFrame()
         return;
     }
 
-    frame->format = ctx->pix_fmt;
-    frame->width  = ctx->width;
-    frame->height = ctx->height;
+    frame->format = pix_fmt;
+    frame->width  = width;
+    frame->height = height;
 
     av_error = av_frame_get_buffer(frame, 32);
     if (av_error < 0) {
@@ -172,7 +162,7 @@ void Video::initialize()
     if (frame == nullptr)
         return;
 
-    image = QImage(frame->data[0], ctx->width, ctx->height, QImage::Format_RGB32);
+    image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {
@@ -181,14 +171,33 @@ void Video::initialize()
     }
 }
 
-Video &Video::operator=(const Video &src)
-{
-    Q_UNUSED(src)
-    return *this;
-}
-
 Video &Video::operator=(Video &&src)
 {
-    Q_UNUSED(src)
+    cleanUp();
+
+    width = src.width;
+    height = src.height;
+    frame_rate = src.frame_rate;
+
+    ctx = src.ctx;
+    codec = src.codec;
+    frame = src.frame;
+    pkt = src.pkt;
+    pts = src.pts;
+
+    if (frame != nullptr) {
+        image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
+    }
+
+    file = src.file;
+
+    src.ctx = nullptr;
+    src.codec = nullptr;
+    src.frame = nullptr;
+    src.pkt = nullptr;
+    src.pts = 0;
+    src.image = QImage();
+    src.file = nullptr;
+
     return *this;
 }

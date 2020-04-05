@@ -26,6 +26,13 @@ struct Command
     ParameterType return_type;
 };
 
+struct ObjectType
+{
+    std::string name;
+    bool moveable;
+    bool copyable;
+};
+
 class ASTWalker
 {
 public:
@@ -38,8 +45,8 @@ public:
     { commands[name] = {callback_fnc, param_types, return_type}; }
 
     template<class T>
-    inline void registerObject(const std::string &name)
-    { obj_names[ParameterObjectBase<T>::ref] = name; }
+    inline void registerObject(const std::string &name, bool moveable, bool copyable)
+    { obj_types[ParameterObjectBase<T>::ref] = {name, moveable, copyable}; }
 
     inline void setErrorOutput(const OutputFnc &fnc)
     { output_fnc = fnc; }
@@ -50,7 +57,7 @@ private:
     void errorMsg(const char *msg) const;
 
     std::unordered_map<std::string, Command> commands;
-    std::unordered_map<ObjectReference, std::string> obj_names;
+    std::unordered_map<ObjectReference, ObjectType> obj_types;
 
     std::unordered_map<std::string, Parameter> vars;
     Parameter return_value;

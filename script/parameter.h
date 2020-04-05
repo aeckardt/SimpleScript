@@ -45,8 +45,8 @@ class ParameterObject
 {
 public:
     virtual ~ParameterObject();
-    virtual void copyTo(void *&) const = 0;
-    virtual void moveTo(void *&) = 0;
+    virtual void copyTo(void *&) const {}
+    virtual void moveTo(void *&) {}
 
     virtual ObjectReference objRef() const = 0;
 };
@@ -57,25 +57,25 @@ class ParameterObjectBase : public ParameterObject
 public:
     typedef T ObjectType;
 
-    inline ParameterObjectBase() {}
-    inline ParameterObjectBase(const ParameterObjectBase &src) { obj = src.obj; }
-    inline ParameterObjectBase(ParameterObjectBase &&src) { obj = std::move(src.obj); }
-    inline ParameterObjectBase(const T &src) { obj = src; }
-    inline ParameterObjectBase(T &&src) { obj = std::move(src); }
-    virtual inline ~ParameterObjectBase() override {}
-
-    inline ParameterObjectBase &operator=(const ParameterObjectBase &src) { obj = src.obj; return *this; }
-    inline ParameterObjectBase &operator=(ParameterObjectBase &&src) { obj = move(src.obj); return *this; }
-    inline ParameterObjectBase &operator=(const T &src) { obj = src; return *this; }
-    inline ParameterObjectBase &operator=(T &&src) { obj = move(src); return *this; }
-
-    inline void copyTo(void *&ptr) const override { ptr = new ParameterObjectBase(*this); }
-    inline void moveTo(void *&ptr) override { ptr = new ParameterObjectBase(std::move(*this)); }
-
     ObjectType obj;
 
     static ObjectReference ref;
     inline ObjectReference objRef() const override { return ref; }
+};
+
+template<class T>
+class MoveableParameterObjectBase : public ParameterObjectBase<T>
+{
+public:
+    inline MoveableParameterObjectBase() {}
+    inline MoveableParameterObjectBase(MoveableParameterObjectBase &&src) { this->obj = std::move(src.obj); }
+    inline MoveableParameterObjectBase(T &&src) { this->obj = std::move(src); }
+    virtual inline ~MoveableParameterObjectBase() override {}
+
+    inline MoveableParameterObjectBase &operator=(MoveableParameterObjectBase &&src) { this->obj = move(src.obj); return *this; }
+    inline MoveableParameterObjectBase &operator=(T &&src) { this->obj = move(src); return *this; }
+
+    inline void moveTo(void *&ptr) override { ptr = new MoveableParameterObjectBase(std::move(*this)); }
 };
 
 class Parameter
@@ -105,7 +105,7 @@ public:
 
     template<class T, class... _Args>
     inline typename ParameterObjectBase<T>::ObjectType &createObject(_Args... __args)
-    { assign(ParameterObjectBase<T>(__args...)); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
+    { assign(MoveableParameterObjectBase<T>(T(__args...))); return static_cast<ParameterObjectBase<T>*>(value)->obj; }
 
     inline const std::string &asString() const   { return *static_cast<std::string*>(value); }
            int32_t            asInt() const;
