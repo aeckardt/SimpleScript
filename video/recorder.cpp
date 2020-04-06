@@ -57,8 +57,6 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 
     hotkey.setShortcut(hotkeySequence);
 
-//    startWorkers();
-
     // Capture one frame directly at start
     captureFrame();
 
@@ -71,8 +69,6 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 
     timer.stop();
     hotkey.setRegistered(false);
-
-//    stopWorkers();
 
     video.flush();
 }
