@@ -6,8 +6,6 @@
 
 #include <string>
 
-#include <QDebug>
-
 struct AVCodecContext;
 struct AVCodec;
 struct AVFrame;

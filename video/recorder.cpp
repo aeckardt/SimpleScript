@@ -10,10 +10,11 @@ void ScreenRecorder::captureFrame()
 
 void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 {
-    // Make size divisible by 4
-    // TODO: Figure out what byte alignment the
-    // codec h264 has (or which padding it needs)
-    rect.setSize(QSize(rect.width() & 0xfffc, rect.height() & 0xfffc));
+#ifndef __APPLE
+    // Make size divisible by 2
+    // -> not necessary for MacOS, because the size is doubled later!
+    rect.setSize(QSize(rect.width() & 0xfffe, rect.height() & 0xfffe));
+#endif
 
     if (rect.width() == 0 || rect.height() == 0)
         // Cannot record empty frames

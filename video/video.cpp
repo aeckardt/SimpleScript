@@ -156,7 +156,7 @@ void Video::encodeFrames(bool flush)
 void Video::errorMsg(const char *msg)
 {
     last_error = msg;
-    qDebug() << msg;
+    fprintf(stderr, "%s", msg);
 }
 
 void Video::initialize()

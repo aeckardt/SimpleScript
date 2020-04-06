@@ -86,7 +86,7 @@ inline void captureFromRef(QImage &dest, CGImageRef &image_ref, QImage::Format f
     CFDataRef dataref = CGDataProviderCopyData(provider);
 
     size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
-    size_t bpr = CGImageGetBytesPerRow(image_ref);
+    size_t bpr = width * 4;
 
     if (bpp != 4) {
         CFRelease(dataref);
