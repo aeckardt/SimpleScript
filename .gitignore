@@ -4,5 +4,4 @@
 /build*/*
 /output/*
 /external/*
-
 /*.sh
