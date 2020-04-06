@@ -196,8 +196,8 @@ void VideoReader::run()
 
             // Did we get a video frame?
             if (frameFinished) {
-                // Wait for VideoWidget to be ready
-                // (this is necessary, since the image pointer is shared with VideoWidget!)
+                // Wait for VideoView to be ready
+                // (this is necessary, since the image pointer is shared with VideoView!)
                 mutex.lock();
                 if (!continueReading && !quit) {
                     condition.wait(&mutex);
@@ -210,7 +210,7 @@ void VideoReader::run()
                               pFrame->linesize, 0, pCodecCtx->height,
                               pFrameRGB->data, pFrameRGB->linesize);
 
-                    // At this point, the widget has already finished the update
+                    // At this point, the view has already finished the update
                     // and can not interfere with the flow in this section
                     continueReading = false;
 

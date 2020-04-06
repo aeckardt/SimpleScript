@@ -28,9 +28,7 @@ public:
 
 signals:
     void error(const QString &msg);
-    void newFrame(uchar *bits, int width, int height, int format);
     void newFrame(const QImage *image);
-    void newFrame(const QImage &image);
     void finished();
 
 protected:

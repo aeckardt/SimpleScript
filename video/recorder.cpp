@@ -11,7 +11,13 @@ void ScreenRecorder::captureFrame()
 void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 {
     // Make size divisible by 4
+    // TODO: Figure out what byte alignment the
+    // codec h264 has (or which padding it needs)
     rect.setSize(QSize(rect.width() & 0xfffc, rect.height() & 0xfffc));
+
+    if (rect.width() == 0 || rect.height() == 0)
+        // Cannot record empty frames
+        return;
 
     this->rect = rect;
     this->video = &video;
@@ -22,7 +28,7 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
     else if (frame_rate <= 0)
         interval = 1000;
     else // if (frame_rate > 30)
-        interval = 30;
+        interval = 33;
 
     int width = rect.width();
     int height = rect.height();
