@@ -173,10 +173,6 @@ void Video::initialize()
     if (frame == nullptr)
         return;
 
-    av_error = av_frame_make_writable(frame);
-    if (av_error < 0)
-        return errorMsg("Could not make frame writable");
-
     image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
 
     pkt = av_packet_alloc();
