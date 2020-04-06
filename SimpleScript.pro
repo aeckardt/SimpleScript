@@ -41,7 +41,8 @@ SOURCES += \
     video/recorder.cpp \
     video/video.cpp \
     videoView/VideoReader.cpp \
-    videoView/VideoView.cpp
+    videoView/VideoView.cpp \
+    external/QHotkey/qhotkey.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -59,18 +60,27 @@ HEADERS += \
     video/recorder.h \
     video/video.h \
     videoView/VideoReader.h \
-    videoView/VideoView.h
+    videoView/VideoView.h \
+    external/QHotkey/qhotkey.h \
+    external/QHotkey/qhotkey_p.h
 
 INCLUDEPATH += \
     /usr/local/include
 
 win32 {
+    SOURCES += \
+        external/QHotkey/qhotkey_win.cpp
+
     LIBS += \
         -lgdi32
 }
 macx {
+    SOURCES += \
+        external/QHotkey/qhotkey_mac.cpp
+
     LIBS += \
-        -framework ApplicationServices
+        -framework ApplicationServices \
+        -framework Carbon
 }
 
 LIBS += \
