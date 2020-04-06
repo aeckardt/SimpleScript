@@ -3,15 +3,4 @@
 *.pro.user
 /build*/*
 /output/*
-/hotkey/*
-/tempData/*
-/imageView/build/*
-/selectFrame/build/*
-/videoView/build/*
-/videoView/resources/* 
-/imageView/resources/*
-/imageView/imageview.qrc
-/FFmpeg/*
-/decompressTest/*
-/performanceTest/*
-/threadtest/*
+/external/*

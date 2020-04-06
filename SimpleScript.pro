@@ -89,4 +89,5 @@ RESOURCES += \
     "resources/resources.qrc"
 
 DISTFILES += \
+    .gitignore \
     .travis.yml
