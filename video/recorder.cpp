@@ -2,6 +2,14 @@
 
 #include "image/screenshot.h"
 
+static const QString hotkeySequence = "Ctrl+.";
+
+ScreenRecorder::ScreenRecorder()
+{
+    connect(&timer, &QTimer::timeout, this, &ScreenRecorder::captureFrame);
+    connect(&hotkey, &QHotkey::activated, &loop, &QEventLoop::quit);
+}
+
 void ScreenRecorder::captureFrame()
 {
     // The linesize needs to be aligned with 32 bytes
@@ -47,20 +55,22 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 
     video.create(width, height, frame_rate);
 
-//    hotkey.setShortcut(hotkeySequence);
+    hotkey.setShortcut(hotkeySequence);
 
 //    startWorkers();
 
     // Capture one frame directly at start
     captureFrame();
 
-//    hotkey.setRegistered(true);
+    hotkey.setRegistered(true);
 
-//    timer.setInterval(interval);
-//    timer.start();
+    timer.setInterval(interval);
+    timer.start();
 
-//    timer.stop();
-//    hotkey.setRegistered(false);
+    loop.exec();
+
+    timer.stop();
+    hotkey.setRegistered(false);
 
 //    stopWorkers();
 
