@@ -35,7 +35,6 @@ SOURCES += \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
-    image/screenshot.cpp \
     imageView/ImageView.cpp \
     selectFrame/SelectFrameWidget.cpp \
     video/recorder.cpp \
@@ -74,8 +73,10 @@ win32 {
     LIBS += \
         -lgdi32
 }
+
 macx {
     SOURCES += \
+        image/screenshot_mac.cpp \
         external/QHotkey/qhotkey_mac.cpp
 
     LIBS += \

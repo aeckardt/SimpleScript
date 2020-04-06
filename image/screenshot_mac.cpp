@@ -1,6 +1,6 @@
-#include "screenshot.h"
-
 #ifdef __APPLE__
+
+#include "screenshot.h"
 
 #include <ApplicationServices/ApplicationServices.h>
 
