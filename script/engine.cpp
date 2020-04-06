@@ -112,7 +112,7 @@ bool cmdSleep(const ParameterList &in_params, Parameter &)
 
     // Not very accurate, usually off by 3-10 milliseconds
     // TODO: Find a better way of implementing 'sleep'
-    timer.singleShot(msec, &loop, &QEventLoop::quit);
+    timer.singleShot(msec, Qt::PreciseTimer, &loop, &QEventLoop::quit);
     loop.exec();
 
     return true;
