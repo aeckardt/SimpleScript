@@ -47,6 +47,7 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 
     video.create(width, height, frame_rate);
 
+
 //    hotkey.setShortcut(hotkeySequence);
 
 //    startWorkers();
