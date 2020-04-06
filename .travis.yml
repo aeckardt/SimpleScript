@@ -9,6 +9,14 @@ before_install:
 install:
   - brew install qt5
   - brew install ffmpeg
+  
+  - git clone https://github.com/QtPlay/QHotkey
+  - cd QHotkey
+  - git reset --hard e1f90f15bcf472e112061ad36ecb213a8637c975
+  - cd ..
+  - mkdir external
+  - mv QHotkey/QHotkey external
+  - rm -rf QHotkey
 
 script:
   -    QTDIR="/usr/local/opt/qt5"
