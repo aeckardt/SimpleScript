@@ -4,15 +4,20 @@
 
 void ScreenRecorder::captureFrame()
 {
-    captureRect(rect, video->nextFrame());
+    // The linesize needs to be aligned with 32 bytes
+    // Unfortunately that corrupts the QImage,
+    // you see it for instance when you save it as png
+    // it becomes erroneous!
+    captureRect(rect, video->nextFrame(), 32);
     video->encodeFrame();
 }
 
 void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 {
 #ifndef __APPLE
-    // Make size divisible by 2
-    // -> not necessary for MacOS, because the size is doubled later!
+    // Width / height need to be aligned by a factor of 2 for video encoding
+    // -> on MacOS this step can be skipped
+    //    as to why see further down this function!
     rect.setSize(QSize(rect.width() & 0xfffe, rect.height() & 0xfffe));
 #endif
 
@@ -35,6 +40,7 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
     int height = rect.height();
 
 #ifdef __APPLE__
+    // On MacOS, the size of the screenshot is 2x the area of the screen
     width  *= 2;
     height *= 2;
 #endif

@@ -1,75 +1,14 @@
 #include "screenshot.h"
 
-#ifdef _WIN32
-
-#include <windef.h>
-#include <wingdi.h>
-#include <winuser.h>
-
-void captureDesktop(QImage &dest, QImage::Format format)
-{
-    HDC hScreenDC = GetDC(nullptr);
-    int width = GetDeviceCaps(hScreenDC, HORZRES);
-    int height = GetDeviceCaps(hScreenDC, VERTRES);
-    ReleaseDC(nullptr, hScreenDC);
-
-    return captureRect({0, 0, width, height}, dest, format);
-}
-
-void captureRect(const QRect &rect, QImage &dest, QImage::Format format)
-{
-    if (rect.width() < 1 || rect.height() < 1 ||
-        (format != QImage::Format_RGB888 && format != QImage::Format_RGB32)) {
-        dest = QImage();
-        return;
-    }
-
-    HDC hScreenDC = GetDC(nullptr);
-    HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
-
-    int bytes_per_line = 0;
-
-    BITMAPINFOHEADER bih;
-    memset(&bih, 0, sizeof(BITMAPINFOHEADER));
-    bih.biWidth = rect.width();
-    bih.biHeight = -rect.height(); // force top-down
-    bih.biSize = sizeof(BITMAPINFOHEADER);
-    bih.biPlanes = 1;
-
-    if (format == QImage::Format_RGB888) {
-        bytes_per_line = ((rect.width() * 3) + 3) & 0xfffffc;
-        bih.biBitCount = 24;
-    } else if (format == QImage::Format_RGB32) {
-        bytes_per_line = rect.width() * 4;
-        bih.biBitCount = 32;
-    } else {
-        dest = QImage();
-        return;
-    }
-
-    bih.biSizeImage = static_cast<DWORD>(rect.height() * bytes_per_line);
-
-    char* data;
-
-    HBITMAP hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&data), nullptr, 0);
-
-    HGDIOBJ hOldObj = SelectObject(hMemoryDC, static_cast<HGDIOBJ>(hbmp));
-    BitBlt(hMemoryDC, 0, 0, rect.width(), rect.height(), hScreenDC, rect.x(), rect.y(), SRCCOPY | CAPTUREBLT);
-    SelectObject(hMemoryDC, hOldObj);
-
-    DeleteDC(hMemoryDC);
-    ReleaseDC(nullptr, hScreenDC);
-
-    dest = QImage(reinterpret_cast<uchar *>(data), rect.width(), rect.height(), format, [](void *hbmp) { DeleteObject(hbmp); }, hbmp);
-}
-
-#elif __APPLE__
+#ifdef __APPLE__
 
 #include <ApplicationServices/ApplicationServices.h>
 
-inline void captureFromRef(QImage &dest, CGImageRef &image_ref, QImage::Format format)
+inline void captureFromRef(QImage &dest, CGImageRef &image_ref, int linesize_align, QImage::Format format)
 {
     if (format != QImage::Format_RGB32) {
+        // Can only capture in one format with the following routines
+        // In case another format is needed, convert later!
         dest = QImage();
         return;
     }
@@ -86,7 +25,7 @@ inline void captureFromRef(QImage &dest, CGImageRef &image_ref, QImage::Format f
     CFDataRef dataref = CGDataProviderCopyData(provider);
 
     size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
-    size_t bpr = width * 4;
+    size_t bpr = CGImageGetBytesPerRow(image_ref);
 
     if (bpp != 4) {
         CFRelease(dataref);
@@ -101,27 +40,33 @@ inline void captureFromRef(QImage &dest, CGImageRef &image_ref, QImage::Format f
     const UInt8 *bits = CFDataGetBytePtr(dataref);
 
     size_t h;
-    for (h = 0; h < height; ++h)
-        memcpy(dest.scanLine(static_cast<int>(h)), bits + h * bpr, width * bpp);
+    if (linesize_align == 0) {
+        for (h = 0; h < height; ++h)
+            memcpy(dest.scanLine(static_cast<int>(h)), bits + h * bpr, width * bpp);
+    } else {
+        size_t dest_bpr = ((width * bpp - 1) / linesize_align) * linesize_align + linesize_align;
+        for (h = 0; h < height; ++h)
+            memcpy(dest.bits() + h * dest_bpr, bits + h * bpr, width * bpp);
+    }
 
     CFRelease(dataref);
     CGImageRelease(image_ref);
 }
 
-void captureDesktop(QImage &dest, QImage::Format format)
+void captureDesktop(QImage &dest, int linesize_align, QImage::Format format)
 {
     CGDirectDisplayID main_display = CGMainDisplayID();
     CGImageRef image_ref = CGDisplayCreateImage(main_display);
 
-    captureFromRef(dest, image_ref, format);
+    captureFromRef(dest, image_ref, linesize_align, format);
 }
 
-void captureRect(const QRect &rect, QImage &dest, QImage::Format format)
+void captureRect(const QRect &rect, QImage &dest, int linesize_align, QImage::Format format)
 {
     CGDirectDisplayID main_display = CGMainDisplayID();
     CGImageRef image_ref = CGDisplayCreateImageForRect(main_display, CGRectMake(rect.x(), rect.y(), rect.width(), rect.height()));
 
-    captureFromRef(dest, image_ref, format);
+    captureFromRef(dest, image_ref, linesize_align, format);
 }
 
 #endif
