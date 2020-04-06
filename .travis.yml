@@ -13,7 +13,7 @@ install:
 script:
   -    QTDIR="/usr/local/opt/qt5"
     && PATH="$QTDIR/bin:$PATH"
-  -    mkdir build-Release
-    && qmake SimpleScript.pro -o build-Release
-    && cd build-Release
+  - mkdir build-Release
+  - qmake SimpleScript.pro -o build-Release
+  - cd build-Release
   - make
