@@ -61,16 +61,13 @@ void VideoPlayer::receiveFrame(const QImage *image)
     // Determine time till next frame and reconfigure interval
     qint64 interval = frame_index * 1000 / frame_rate - elapsed_timer.elapsed();
     if (interval <= 0) {
-        reader.next();
-        return;
-    }
-
-    if (interval > 1000) {
-        // In case the player lags, reset the frame_index
-        interval = 1000;
+        // In case the player lags, reset the frame counter and timer
         frame_index = 0;
         elapsed_timer.start();
-    }
+        reader.next();
+        return;
+    } else if (interval > 1000)
+        interval = 1000;
     QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &reader, &VideoReader::next);
 }
 
