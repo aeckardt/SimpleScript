@@ -39,8 +39,8 @@ SOURCES += \
     selectFrame/SelectFrameWidget.cpp \
     video/recorder.cpp \
     video/video.cpp \
-    videoView/VideoReader.cpp \
-    videoView/VideoView.cpp \
+    videoPlayer/VideoReader.cpp \
+    videoPlayer/VideoPlayer.cpp \
     external/QHotkey/qhotkey.cpp
 
 HEADERS += \
@@ -58,8 +58,8 @@ HEADERS += \
     selectFrame/SelectFrameWidget.h \
     video/recorder.h \
     video/video.h \
-    videoView/VideoReader.h \
-    videoView/VideoView.h \
+    videoPlayer/VideoReader.h \
+    videoPlayer/VideoPlayer.h \
     external/QHotkey/qhotkey.h \
     external/QHotkey/qhotkey_p.h
 

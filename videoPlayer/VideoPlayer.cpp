@@ -1,10 +1,10 @@
 #include "VideoReader.h"
-#include "VideoView.h"
+#include "VideoPlayer.h"
 
 #include <QPainter>
 #include <QtWidgets>
 
-VideoView::VideoView(QWidget *parent) : QDialog(parent)
+VideoPlayer::VideoPlayer(QWidget *parent) : QDialog(parent)
 {
     image = nullptr;
 
@@ -12,7 +12,7 @@ VideoView::VideoView(QWidget *parent) : QDialog(parent)
     connect(&reader, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
 }
 
-void VideoView::paintEvent(QPaintEvent *)
+void VideoPlayer::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     if (image != nullptr) {
@@ -20,7 +20,7 @@ void VideoView::paintEvent(QPaintEvent *)
     }
 }
 
-void VideoView::runVideo(const QString &fileName)
+void VideoPlayer::runVideo(const QString &fileName)
 {
     reader.setFileName(fileName);
     reader.start();
@@ -35,7 +35,7 @@ void VideoView::runVideo(const QString &fileName)
     exec();
 }
 
-void VideoView::keyPressEvent(QKeyEvent *event)
+void VideoPlayer::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
         if (event->key() == Qt::Key_W)
@@ -44,7 +44,7 @@ void VideoView::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void VideoView::receiveFrame(const QImage *image)
+void VideoPlayer::receiveFrame(const QImage *image)
 {
     this->image = image;
 
@@ -67,7 +67,7 @@ void VideoView::receiveFrame(const QImage *image)
     QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &reader, &VideoReader::next);
 }
 
-void VideoView::error(const QString &msg)
+void VideoPlayer::error(const QString &msg)
 {
     fflush(stderr);
     fprintf(stderr, "%s\n", msg.toStdString().c_str());

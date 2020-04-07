@@ -5,7 +5,7 @@
 #include "imageView/ImageView.h"
 #include "video/recorder.h"
 #include "video/video.h"
-#include "videoView/VideoView.h"
+#include "videoPlayer/VideoPlayer.h"
 
 #include <QEventLoop>
 #include <QTimer>
@@ -132,16 +132,16 @@ bool cmdView(const ParameterList &in_params, Parameter &)
     case ImageRef: {
         const QImage &image = in_params[0].asObject<QImage>();
 
-        ImageView imageView;
-        imageView.showImage(image);
+        ImageView image_view;
+        image_view.showImage(image);
 
         return true;
     }
     case VideoRef: {
         const Video &video = in_params[0].asObject<Video>();
 
-        VideoView videoView;
-        videoView.runVideo(video.path());
+        VideoPlayer video_player;
+        video_player.runVideo(video.path());
 
         return true;
     }

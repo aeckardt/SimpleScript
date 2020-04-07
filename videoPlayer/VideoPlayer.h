@@ -1,5 +1,5 @@
-#ifndef VIDEOVIEW_H
-#define VIDEOVIEW_H
+#ifndef VIDEOPLAYER_H
+#define VIDEOPLAYER_H
 
 #include <QDialog>
 #include <QThread>
@@ -9,12 +9,12 @@
 
 #include "VideoReader.h"
 
-class VideoView : public QDialog
+class VideoPlayer : public QDialog
 {
     Q_OBJECT
 
 public:
-    VideoView(QWidget *parent = nullptr);
+    VideoPlayer(QWidget *parent = nullptr);
 
     void paintEvent(QPaintEvent *event) override;
 
@@ -37,4 +37,4 @@ private:
     QElapsedTimer elapsed_timer;
 };
 
-#endif // VIDEOVIEW_H
+#endif // VIDEOPLAYER_H
