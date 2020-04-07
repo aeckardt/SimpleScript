@@ -1,4 +1,4 @@
-#include "VideoReader.h"
+#include "VideoDecoder.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -7,7 +7,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-VideoReader::VideoReader(QObject *parent) : QThread(parent)
+VideoDecoder::VideoDecoder(QObject *parent) : QThread(parent)
 {
     format_ctx = nullptr;
     codec_par = nullptr;
@@ -27,13 +27,13 @@ VideoReader::VideoReader(QObject *parent) : QThread(parent)
     continue_reading = true;
 }
 
-VideoReader::~VideoReader()
+VideoDecoder::~VideoDecoder()
 {
     stop();
     wait();
 }
 
-void VideoReader::setFileName(const QString &fileName)
+void VideoDecoder::setFileName(const QString &fileName)
 {
     QMutexLocker locker(&mutex);
 
@@ -44,7 +44,7 @@ void VideoReader::setFileName(const QString &fileName)
 #include <QDebug>
 #endif
 
-void VideoReader::run()
+void VideoDecoder::run()
 {
     // av_register_all(); // -> deprecated
     // see https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29
@@ -252,7 +252,7 @@ void VideoReader::run()
     emit finished();
 }
 
-void VideoReader::next()
+void VideoDecoder::next()
 {
     QMutexLocker locker(&mutex);
 
@@ -260,7 +260,7 @@ void VideoReader::next()
     condition.wakeOne();
 }
 
-void VideoReader::stop()
+void VideoDecoder::stop()
 {
     QMutexLocker locker(&mutex);
 

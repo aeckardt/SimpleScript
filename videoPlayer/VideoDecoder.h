@@ -1,5 +1,5 @@
-#ifndef VIDEOREADER_H
-#define VIDEOREADER_H
+#ifndef VIDEODECODER_H
+#define VIDEODECODER_H
 
 #include <QThread>
 #include <QMutex>
@@ -13,13 +13,13 @@ struct AVCodec;
 struct AVFrame;
 struct AVPacket;
 
-class VideoReader : public QThread
+class VideoDecoder : public QThread
 {
     Q_OBJECT
 
 public:
-    VideoReader(QObject *parent = nullptr);
-    ~VideoReader() override;
+    VideoDecoder(QObject *parent = nullptr);
+    ~VideoDecoder() override;
 
     void setFileName(const QString &fileName);
 
@@ -70,4 +70,4 @@ private:
     bool quit;
 };
 
-#endif // VIDEOREADER_H
+#endif // VIDEODECODER_H

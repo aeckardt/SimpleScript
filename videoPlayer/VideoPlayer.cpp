@@ -1,4 +1,4 @@
-#include "VideoReader.h"
+#include "VideoDecoder.h"
 #include "VideoPlayer.h"
 
 #include <QPainter>
@@ -8,8 +8,8 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QDialog(parent)
 {
     image = nullptr;
 
-    connect(&reader, SIGNAL(newFrame(const QImage *)), this, SLOT(receiveFrame(const QImage *)));
-    connect(&reader, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
+    connect(&decoder, SIGNAL(newFrame(const QImage *)), this, SLOT(receiveFrame(const QImage *)));
+    connect(&decoder, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
 }
 
 void VideoPlayer::paintEvent(QPaintEvent *)
@@ -22,8 +22,8 @@ void VideoPlayer::paintEvent(QPaintEvent *)
 
 void VideoPlayer::runVideo(const QString &fileName)
 {
-    reader.setFileName(fileName);
-    reader.start();
+    decoder.setFileName(fileName);
+    decoder.start();
 
     first_frame = true;
     frame_index = 0;
@@ -51,7 +51,7 @@ void VideoPlayer::receiveFrame(const QImage *image)
     if (first_frame && isVisible()) {
         setFixedSize(image->size());
         first_frame = false;
-        frame_rate = reader.frameRate();
+        frame_rate = decoder.frameRate();
     }
 
     frame_index++;
@@ -64,11 +64,11 @@ void VideoPlayer::receiveFrame(const QImage *image)
         // In case the player lags, reset the frame counter and timer
         frame_index = 0;
         elapsed_timer.start();
-        reader.next();
+        decoder.next();
         return;
     } else if (interval > 1000)
         interval = 1000;
-    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &reader, &VideoReader::next);
+    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoder, &VideoDecoder::next);
 }
 
 void VideoPlayer::error(const QString &msg)

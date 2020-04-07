@@ -7,7 +7,7 @@
 #include <QImage>
 #include <QElapsedTimer>
 
-#include "VideoReader.h"
+#include "VideoDecoder.h"
 
 class VideoPlayer : public QDialog
 {
@@ -28,7 +28,7 @@ private slots:
     void error(const QString &msg);
 
 private:
-    VideoReader reader;
+    VideoDecoder decoder;
     const QImage *image;
     bool first_frame;
     int frame_index;

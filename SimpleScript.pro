@@ -39,7 +39,7 @@ SOURCES += \
     imageViewer/ImageViewer.cpp \
     video/recorder.cpp \
     video/video.cpp \
-    videoPlayer/VideoReader.cpp \
+    videoPlayer/VideoDecoder.cpp \
     videoPlayer/VideoPlayer.cpp \
     external/QHotkey/qhotkey.cpp
 
@@ -58,7 +58,7 @@ HEADERS += \
     imageViewer/ImageViewer.h \
     video/recorder.h \
     video/video.h \
-    videoPlayer/VideoReader.h \
+    videoPlayer/VideoDecoder.h \
     videoPlayer/VideoPlayer.h \
     external/QHotkey/qhotkey.h \
     external/QHotkey/qhotkey_p.h
