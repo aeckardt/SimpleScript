@@ -29,7 +29,7 @@ private slots:
 private:
     VideoReader reader;
     const QImage *image;
-    bool firstFrame;
+    bool first_frame;
 };
 
 #endif // VIDEOVIEW_H

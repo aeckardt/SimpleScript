@@ -37,23 +37,23 @@ protected:
 private:
     QString fileName;
 
-    AVFormatContext *pFormatCtx;
-    int              videoStream;
+    AVFormatContext *format_ctx;
+    int              video_stream;
 
-    int frame;
-    AVCodecParameters *pCodecPar;
+    int frame_counter;
+    AVCodecParameters *codec_par;
 
-    AVCodecContext  *pCodecCtx;
-    AVCodec         *pCodec;
+    AVCodecContext  *codec_ctx;
+    AVCodec         *codec;
 
-    AVFrame *pFrame;
-    AVFrame *pFrameRGB;
+    AVFrame *frame;
+    AVFrame *frame_rgb;
 
     uint8_t *buffer;
-    int numBytes;
+    int num_bytes;
 
     struct SwsContext *sws_ctx;
-    int                frameFinished;
+    int                frame_finished;
     AVPacket          *packet;
 
     int av_error;
@@ -63,7 +63,7 @@ private:
     QMutex mutex;
     QWaitCondition condition;
 
-    bool continueReading;
+    bool continue_reading;
     bool quit;
 };
 
