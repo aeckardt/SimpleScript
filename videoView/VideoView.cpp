@@ -25,7 +25,7 @@ void VideoView::runVideo(const QString &fileName)
     reader.setFileName(fileName);
     reader.start();
 
-    firstFrame = true;
+    first_frame = true;
 
     show();
 
@@ -45,9 +45,9 @@ void VideoView::receiveFrame(const QImage *image)
 {
     this->image = image;
 
-    if (firstFrame && isVisible()) {
+    if (first_frame && isVisible()) {
         setFixedSize(image->size());
-        firstFrame = false;
+        first_frame = false;
     }
 
     update();

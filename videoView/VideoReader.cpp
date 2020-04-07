@@ -9,22 +9,22 @@ extern "C" {
 
 VideoReader::VideoReader(QObject *parent) : QThread(parent)
 {
-    pFormatCtx = nullptr;
-    pCodecPar = nullptr;
+    format_ctx = nullptr;
+    codec_par = nullptr;
 
-    pCodecCtx = nullptr;
-    pCodec = nullptr;
+    codec_ctx = nullptr;
+    codec = nullptr;
 
-    pFrame = nullptr;
-    pFrameRGB = nullptr;
+    frame = nullptr;
+    frame_rgb = nullptr;
 
     buffer = nullptr;
     sws_ctx = nullptr;
 
-    frame = 0;
+    frame_counter = 0;
 
     quit = false;
-    continueReading = true;
+    continue_reading = true;
 }
 
 VideoReader::~VideoReader()
@@ -54,7 +54,7 @@ void VideoReader::run()
 #endif
 
     // Open video file
-    if (avformat_open_input(&pFormatCtx, fileName.toStdString().c_str(), nullptr, nullptr) < 0) {
+    if (avformat_open_input(&format_ctx, fileName.toStdString().c_str(), nullptr, nullptr) < 0) {
         emit error("Could not open file");
         return;
     }
@@ -64,43 +64,43 @@ void VideoReader::run()
 #endif
 
     // Retrieve stream information
-    if (avformat_find_stream_info(pFormatCtx, nullptr) < 0) {
+    if (avformat_find_stream_info(format_ctx, nullptr) < 0) {
         emit error("Error: Could not find stream information");
         return; // Couldn't find stream information
     }
 
     // Dump information about file onto standard error
-//    av_dump_format(pFormatCtx, 0, current_file_path, 0);
+//    av_dump_format(format_ctx, 0, current_file_path, 0);
 
 #ifdef PRINT_DEBUG_LOG
     qDebug() << ("-> 'find first video stream'");
 #endif
 
     // Find the first video stream
-    videoStream = -1;
-    for (frame = 0; frame < static_cast<int>(pFormatCtx->nb_streams); frame++)
-        if (pFormatCtx->streams[frame]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            videoStream = frame;
+    video_stream = -1;
+    for (frame_counter = 0; frame_counter < static_cast<int>(format_ctx->nb_streams); frame_counter++)
+        if (format_ctx->streams[frame_counter]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            video_stream = frame_counter;
             break;
         }
 
-    if (videoStream == -1) {
+    if (video_stream == -1) {
         emit error("Error: Did not find a video stream");
         return; // Didn't find a video stream
     }
 
     // Get a pointer to the codec context for the video stream
-    pCodecPar = pFormatCtx->streams[videoStream]->codecpar;
+    codec_par = format_ctx->streams[video_stream]->codecpar;
 
 #ifdef PRINT_DEBUG_LOG
     qDebug() << ("-> avcodec_find_decoder");
 #endif
 
     // Find the decoder for the video stream
-    pCodec = avcodec_find_decoder(pCodecPar->codec_id);
-//    pCodec = avcodec_find_decoder_by_name("ffv1");
+    codec = avcodec_find_decoder(codec_par->codec_id);
+//    codec = avcodec_find_decoder_by_name("ffv1");
 //    codec = avcodec_find_encoder_by_name(codec_name);
-    if (pCodec == nullptr) {
+    if (codec == nullptr) {
         emit error("Error: Unsupported codec!");
         return; // Codec not found
     }
@@ -112,24 +112,24 @@ void VideoReader::run()
     // Copy context
     // -> Replace avcodec_copy_context -> deprecated
     //    with avcodec_parameters to context
-    pCodecCtx = avcodec_alloc_context3(pCodec);
-    if (avcodec_parameters_to_context(pCodecCtx, pCodecPar) < 0) {
+    codec_ctx = avcodec_alloc_context3(codec);
+    if (avcodec_parameters_to_context(codec_ctx, codec_par) < 0) {
         emit error("Error: Could not copy codec parameters to context");
         return; // Couldn't copy parameters
     }
 
     // Open codec
-    if (avcodec_open2(pCodecCtx, pCodec, nullptr) < 0) {
+    if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
         emit error("Error: Could not open codec");
         return; // Could not open codec
     }
 
     // Allocate video frame
-    pFrame = av_frame_alloc();
+    frame = av_frame_alloc();
 
     // Allocate an AVFrame structure
-    pFrameRGB = av_frame_alloc();
-    if (pFrameRGB == nullptr) {
+    frame_rgb = av_frame_alloc();
+    if (frame_rgb == nullptr) {
         emit error("Could not allocate frame");
         return;
     }
@@ -142,12 +142,12 @@ void VideoReader::run()
 
     // Remark: Not sure if align needs to be 1 or 32, see
     // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
-    numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, pCodecCtx->width,
-                                        pCodecCtx->height, 1);
-    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(numBytes) * sizeof(uint8_t)));
+    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, codec_ctx->width,
+                                        codec_ctx->height, 1);
+    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes) * sizeof(uint8_t)));
 
-    // Assign appropriate parts of buffer to image planes in pFrameRGB
-    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+    // Assign appropriate parts of buffer to image planes in frame_rgb
+    // Note that frame_rgb is an AVFrame, but AVFrame is a superset
     // of AVPicture
 
     // Replace avpicture_fill -> deprecated
@@ -156,15 +156,15 @@ void VideoReader::run()
     // Examples of av_image_fill_arrays from
     // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
     // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
-    av_image_fill_arrays(pFrameRGB->data, pFrameRGB->linesize, buffer, AV_PIX_FMT_RGB32,
-                         pCodecCtx->width, pCodecCtx->height, 1);
+    av_image_fill_arrays(frame_rgb->data, frame_rgb->linesize, buffer, AV_PIX_FMT_RGB32,
+                         codec_ctx->width, codec_ctx->height, 1);
 
     // initialize SWS context for software scaling
-    sws_ctx = sws_getContext(pCodecCtx->width,
-                             pCodecCtx->height,
-                             pCodecCtx->pix_fmt,
-                             pCodecCtx->width,
-                             pCodecCtx->height,
+    sws_ctx = sws_getContext(codec_ctx->width,
+                             codec_ctx->height,
+                             codec_ctx->pix_fmt,
+                             codec_ctx->width,
+                             codec_ctx->height,
                              AV_PIX_FMT_RGB32,
                              SWS_BILINEAR,
                              nullptr,
@@ -172,52 +172,52 @@ void VideoReader::run()
                              nullptr
                              );
 
-    while (av_read_frame(pFormatCtx, packet) >= 0 && !quit) {
+    while (av_read_frame(format_ctx, packet) >= 0 && !quit) {
         // Is this a packet from the video stream?
-        if (packet->stream_index == videoStream) {
+        if (packet->stream_index == video_stream) {
             // Decode video frame
-            frameFinished = 0;
+            frame_finished = 0;
 
             // Replace avcodec_decode_video2 -> deprecated
             // with avcodec_send_packet and avcodec_receive_frame
             // see https://github.com/pesintta/vdr-plugin-vaapidevice/issues/31
-            if (pCodecCtx->codec_type == AVMEDIA_TYPE_VIDEO ||
-                pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO) {
-                av_error = avcodec_send_packet(pCodecCtx, packet);
+            if (codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ||
+                codec_ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
+                av_error = avcodec_send_packet(codec_ctx, packet);
                 if (av_error < 0 && av_error != AVERROR(EAGAIN) && av_error != AVERROR_EOF) {
                 } else {
                     if (av_error >= 0)
                         packet->size = 0;
-                    av_error = avcodec_receive_frame(pCodecCtx, pFrame);
+                    av_error = avcodec_receive_frame(codec_ctx, frame);
                     if (av_error >= 0)
-                        frameFinished = 1;
+                        frame_finished = 1;
                 }
             }
 
             // Did we get a video frame?
-            if (frameFinished) {
+            if (frame_finished) {
                 // Wait for VideoView to be ready
                 // (this is necessary, since the image pointer is shared with VideoView!)
                 mutex.lock();
-                if (!continueReading && !quit) {
+                if (!continue_reading && !quit) {
                     condition.wait(&mutex);
                 }
                 mutex.unlock();
 
                 if (!quit) {
                     // Convert the image from its native format to RGB
-                    sws_scale(sws_ctx, static_cast<uint8_t const * const *>(pFrame->data),
-                              pFrame->linesize, 0, pCodecCtx->height,
-                              pFrameRGB->data, pFrameRGB->linesize);
+                    sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame->data),
+                              frame->linesize, 0, codec_ctx->height,
+                              frame_rgb->data, frame_rgb->linesize);
 
                     // At this point, the view has already finished the update
                     // and can not interfere with the flow in this section
-                    continueReading = false;
+                    continue_reading = false;
 
-                    image = QImage((uchar*)pFrameRGB->data[0], pCodecCtx->width, pCodecCtx->height, QImage::Format_RGB32);
+                    image = QImage((uchar*)frame_rgb->data[0], codec_ctx->width, codec_ctx->height, QImage::Format_RGB32);
                     emit newFrame(&image);
 
-                    frame++;
+                    frame_counter++;
                 }
             }
         }
@@ -232,14 +232,14 @@ void VideoReader::run()
     av_packet_free(&packet);
 
     // Free the original frame(s)
-    av_frame_free(&pFrame);
-    av_frame_free(&pFrameRGB);
+    av_frame_free(&frame);
+    av_frame_free(&frame_rgb);
 
     // Close the codec
-    avcodec_close(pCodecCtx);
+    avcodec_close(codec_ctx);
 
     // Close the video file
-    avformat_close_input(&pFormatCtx);
+    avformat_close_input(&format_ctx);
 
     emit finished();
 }
@@ -248,7 +248,7 @@ void VideoReader::next()
 {
     QMutexLocker locker(&mutex);
 
-    continueReading = true;
+    continue_reading = true;
     condition.wakeOne();
 }
 
