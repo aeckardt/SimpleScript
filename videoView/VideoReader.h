@@ -23,6 +23,8 @@ public:
 
     void setFileName(const QString &fileName);
 
+    int frameRate() const { return frame_rate; }
+
     void next();
     void stop();
 
@@ -59,6 +61,7 @@ private:
     int av_error;
 
     QImage image;
+    int frame_rate;
 
     QMutex mutex;
     QWaitCondition condition;

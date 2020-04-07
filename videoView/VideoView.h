@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QPixmap>
 #include <QImage>
+#include <QElapsedTimer>
 
 #include "VideoReader.h"
 
@@ -30,6 +31,10 @@ private:
     VideoReader reader;
     const QImage *image;
     bool first_frame;
+    int frame_index;
+    int frame_rate;
+
+    QElapsedTimer elapsed_timer;
 };
 
 #endif // VIDEOVIEW_H

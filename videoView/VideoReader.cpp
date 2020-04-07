@@ -70,7 +70,7 @@ void VideoReader::run()
     }
 
     // Dump information about file onto standard error
-//    av_dump_format(format_ctx, 0, current_file_path, 0);
+//    av_dump_format(format_ctx, 0, fileName.toStdString().c_str(), 0);
 
 #ifdef PRINT_DEBUG_LOG
     qDebug() << ("-> 'find first video stream'");
@@ -78,11 +78,19 @@ void VideoReader::run()
 
     // Find the first video stream
     video_stream = -1;
-    for (frame_counter = 0; frame_counter < static_cast<int>(format_ctx->nb_streams); frame_counter++)
-        if (format_ctx->streams[frame_counter]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+    for (frame_counter = 0; frame_counter < static_cast<int>(format_ctx->nb_streams); frame_counter++) {
+        const AVStream *stream = format_ctx->streams[frame_counter];
+        if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             video_stream = frame_counter;
+            if (stream->avg_frame_rate.den != 0)
+                frame_rate =  static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.5);
+            else {
+                emit error("Error: Could not determine framerate");
+                return;
+            }
             break;
         }
+    }
 
     if (video_stream == -1) {
         emit error("Error: Did not find a video stream");
