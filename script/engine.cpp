@@ -1,6 +1,6 @@
 #include "engine.h"
 
-#include "selectFrame/SelectFrameWidget.h"
+#include "frameSelector/SelectFrameWidget.h"
 #include "image/screenshot.h"
 #include "imageViewer/ImageViewer.h"
 #include "video/recorder.h"
