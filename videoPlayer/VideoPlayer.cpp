@@ -58,7 +58,7 @@ void VideoPlayer::receiveFrame(const QImage *image)
 
     update();
 
-    // Determine time till next frame and reconfigure interval
+    // Determine interval till next frame
     qint64 interval = frame_index * 1000 / frame_rate - elapsed_timer.elapsed();
     if (interval <= 0) {
         // In case the player lags, reset the frame counter and timer
