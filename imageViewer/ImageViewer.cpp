@@ -1,8 +1,8 @@
 #include <QtWidgets>
 
-#include "ImageView.h"
+#include "ImageViewer.h"
 
-ImageView::ImageView()
+ImageViewer::ImageViewer()
    : scalableImage(new ScalableImage)
    , scrollArea(new QScrollArea)
    , toolBar(new QToolBar)
@@ -41,7 +41,7 @@ ImageView::ImageView()
     setWindowTitle("Image Viewer");
 }
 
-void ImageView::showImage(const QImage &image)
+void ImageViewer::showImage(const QImage &image)
 {
     this->image = &image;
 
@@ -71,7 +71,7 @@ void ImageView::showImage(const QImage &image)
     exec();
 }
 
-void ImageView::keyPressEvent(QKeyEvent *event)
+void ImageViewer::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
         if (event->key() == Qt::Key_W)
@@ -89,24 +89,24 @@ void ImageView::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void ImageView::copy()
+void ImageViewer::copy()
 {
 #ifndef QT_NO_CLIPBOARD
     QGuiApplication::clipboard()->setImage(*image);
 #endif // !QT_NO_CLIPBOARD
 }
 
-void ImageView::zoomIn()
+void ImageViewer::zoomIn()
 {
     scaleImage(originalFactor, ++zoomInOut);
 }
 
-void ImageView::zoomOut()
+void ImageViewer::zoomOut()
 {
     scaleImage(originalFactor, --zoomInOut);
 }
 
-void ImageView::fitToWindow()
+void ImageViewer::fitToWindow()
 {
     QSize totalArea = size() - QSize(2, toolBar->size().height() + 2);
     originalFactor = std::min(
@@ -115,12 +115,12 @@ void ImageView::fitToWindow()
     scaleImage(originalFactor, 0);
 }
 
-void ImageView::actualSize()
+void ImageViewer::actualSize()
 {
     scaleImage(1.0, 0);
 }
 
-void ImageView::comboBoxChange()
+void ImageViewer::comboBoxChange()
 {
     if (scaleStr == scaleEdit->text())
         return;
@@ -129,7 +129,7 @@ void ImageView::comboBoxChange()
         scaleImage(1.0 * pow(2, scaleComboBox->currentIndex() - 3), 0);
 }
 
-void ImageView::lineEditReturn()
+void ImageViewer::lineEditReturn()
 {
     double newScaleFactor;
     sscanf(scaleEdit->text().toUtf8(), "%lf%%", &newScaleFactor);
@@ -138,7 +138,7 @@ void ImageView::lineEditReturn()
         scaleImage(newScaleFactor, 0);
 }
 
-void ImageView::scaleImage(double factor, int zoomInOut)
+void ImageViewer::scaleImage(double factor, int zoomInOut)
 {
     Q_ASSERT(scalableImage->pixmap());
 
@@ -189,7 +189,7 @@ void ImageView::scaleImage(double factor, int zoomInOut)
     }
 }
 
-void ImageView::adjustScrollBar(QScrollBar *scrollBar, double factor)
+void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(static_cast<int>(factor * scrollBar->value()
                             + ((factor - 1) * scrollBar->pageStep()/2)));
@@ -208,7 +208,7 @@ void ScalableImage::paintEvent(QPaintEvent *event)
     painter.drawPixmap(QRectF(event->rect()), _pixmap, pixmapRect);
 }
 
-ZoomToolButtons::ZoomToolButtons(ImageView *parent)
+ZoomToolButtons::ZoomToolButtons(ImageViewer *parent)
     : QWidget(parent)
     , parent(parent)
 {

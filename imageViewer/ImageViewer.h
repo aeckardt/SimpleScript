@@ -1,5 +1,5 @@
-#ifndef IMAGEVIEW_H
-#define IMAGEVIEW_H
+#ifndef IMAGEVIEWER_H
+#define IMAGEVIEWER_H
 
 #include <QDialog>
 #include <QIcon>
@@ -18,12 +18,12 @@ class ScalableImage;
 class LabelEventFilter;
 class ZoomToolButtons;
 
-class ImageView : public QDialog
+class ImageViewer : public QDialog
 {
     Q_OBJECT
 
 public:
-    ImageView();
+    ImageViewer();
 
     void showImage(const QImage &image);
 
@@ -85,13 +85,13 @@ class LabelEventFilter : public QObject
     Q_OBJECT
 
 public:
-    LabelEventFilter(ImageView *parent) : QObject() { this->parent = parent; }
+    LabelEventFilter(ImageViewer *parent) : QObject() { this->parent = parent; }
 
 protected:
     bool eventFilter(QObject *, QEvent *) override;
 
 private:
-    ImageView *parent;
+    ImageViewer *parent;
 
     QPoint dragPosition;
 };
@@ -101,7 +101,7 @@ class ZoomToolButtons : public QWidget
     Q_OBJECT
 
 public:
-    ZoomToolButtons(ImageView *parent);
+    ZoomToolButtons(ImageViewer *parent);
 
     void setZoomInEnabled(bool enabled) { zoomIn.enabled = enabled; }
     void setZoomOutEnabled(bool enabled) { zoomOut.enabled = enabled; }
@@ -127,7 +127,7 @@ private:
     void drawButton(QPainter &painter, const ToolButton &toolButton) const;
     bool buttonPressed(const QPoint &pos, ToolButton &toolButton);
 
-    ImageView *parent;
+    ImageViewer *parent;
 
     ToolButton zoomIn;
     ToolButton zoomOut;
@@ -135,4 +135,4 @@ private:
     ToolButton zoomActualSize;
 };
 
-#endif // IMAGEVIEW_H
+#endif // IMAGEVIEWER_H

@@ -2,7 +2,7 @@
 
 #include "selectFrame/SelectFrameWidget.h"
 #include "image/screenshot.h"
-#include "imageView/ImageView.h"
+#include "imageViewer/ImageViewer.h"
 #include "video/recorder.h"
 #include "video/video.h"
 #include "videoPlayer/VideoPlayer.h"
@@ -132,8 +132,8 @@ bool cmdView(const ParameterList &in_params, Parameter &)
     case ImageRef: {
         const QImage &image = in_params[0].asObject<QImage>();
 
-        ImageView image_view;
-        image_view.showImage(image);
+        ImageViewer image_viewer;
+        image_viewer.showImage(image);
 
         return true;
     }

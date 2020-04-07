@@ -35,8 +35,8 @@ SOURCES += \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
-    imageView/ImageView.cpp \
     selectFrame/SelectFrameWidget.cpp \
+    imageViewer/ImageViewer.cpp \
     video/recorder.cpp \
     video/video.cpp \
     videoPlayer/VideoReader.cpp \
@@ -53,9 +53,9 @@ HEADERS += \
     script/astwalker.h \
     script/parameter.h \
     script/types.h \
-    image/screenshot.h \
-    imageView/ImageView.h \
     selectFrame/SelectFrameWidget.h \
+    image/screenshot.h \
+    imageViewer/ImageViewer.h \
     video/recorder.h \
     video/video.h \
     videoPlayer/VideoReader.h \
