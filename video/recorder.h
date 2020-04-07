@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <QTimer>
+#include <QElapsedTimer>
 #include <QEventLoop>
 
 #include "video.h"
@@ -16,16 +17,17 @@ class ScreenRecorder : public QObject
 public:
     ScreenRecorder();
 
-    void exec(QRect rect, Video &video, int frame_rate);
+    void exec(QRect rect, Video &video, int frame_rate, QString hotkeySequence = "Ctrl+.");
 
 private:
     QRect rect;
     int frame_rate;
-    int interval;
+    int captured;
 
     Video *video;
 
     QTimer timer;
+    QElapsedTimer elapsed_timer;
     QHotkey hotkey;
     QEventLoop loop;
 

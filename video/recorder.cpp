@@ -2,8 +2,6 @@
 
 #include "image/screenshot.h"
 
-static const QString hotkeySequence = "Ctrl+.";
-
 ScreenRecorder::ScreenRecorder()
 {
     connect(&timer, &QTimer::timeout, this, &ScreenRecorder::captureFrame);
@@ -13,14 +11,22 @@ ScreenRecorder::ScreenRecorder()
 void ScreenRecorder::captureFrame()
 {
     // The linesize needs to be aligned with 32 bytes
-    // Unfortunately that corrupts the QImage,
-    // you see it for instance when you save it as png
-    // it becomes erroneous!
+    // Unfortunately that corrupts the QImage, you see it for instance,
+    // when you save it as png, it becomes erroneous!
     captureRect(rect, video->nextFrame(), 32);
     video->encodeFrame();
+    captured++;
+
+    // Determine time till next frame and reconfigure interval
+    qint64 interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
+    if (interval < 10)
+        interval = 10;
+    else if (interval > 1000)
+        interval = 1000;
+    timer.setInterval(static_cast<int>(interval));
 }
 
-void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
+void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotkeySequence)
 {
 #ifndef __APPLE
     // Width / height need to be aligned by a factor of 2 for video encoding
@@ -37,12 +43,7 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
     this->video = &video;
     this->frame_rate = frame_rate;
 
-    if (frame_rate > 0 && frame_rate <= 30)
-        interval = 1000 / frame_rate;
-    else if (frame_rate <= 0)
-        interval = 1000;
-    else // if (frame_rate > 30)
-        interval = 33;
+    captured = 0;
 
     int width = rect.width();
     int height = rect.height();
@@ -54,15 +55,13 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate)
 #endif
 
     video.create(width, height, frame_rate);
-
     hotkey.setShortcut(hotkeySequence);
+    elapsed_timer.start();
 
     // Capture one frame directly at start
     captureFrame();
 
     hotkey.setRegistered(true);
-
-    timer.setInterval(interval);
     timer.start();
 
     loop.exec();

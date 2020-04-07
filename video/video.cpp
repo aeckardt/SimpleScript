@@ -42,7 +42,6 @@ void Video::allocContext()
     if (ctx == nullptr)
         return errorMsg("Could not allocate video codec context");
 
-    ctx->bit_rate = 400000;
     ctx->width = width;
     ctx->height = height;
     ctx->time_base = {1, frame_rate};
@@ -50,10 +49,15 @@ void Video::allocContext()
     ctx->max_b_frames = 1;
     ctx->pix_fmt = pix_fmt;
 
+    // Use optimal number of threads
+    // see https://superuser.com/questions/155305/how-many-threads-does-ffmpeg-use-by-default
+    ctx->thread_count = 0;
+
     // Set optimal compression / speed ratio for this use-case
     av_opt_set(ctx->priv_data, "preset", "fast", 0);
 
-    // Set codec to lossless
+    // Set constant rate factor to lossless
+    // see https://trac.ffmpeg.org/wiki/Encode/H.264
     av_opt_set(ctx->priv_data, "crf",    "0",    0);
 
     av_error = avcodec_open2(ctx, codec, nullptr);
@@ -173,6 +177,9 @@ void Video::initialize()
     if (frame == nullptr)
         return;
 
+    // Be careful: The image can only be used as regular QImage,
+    // if its linesize is aligned with 32 bytes, which in this case
+    // is equivalent to its width being divisble by 8
     image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
 
     pkt = av_packet_alloc();
