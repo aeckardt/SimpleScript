@@ -35,6 +35,7 @@ Overview:
 * Rect,
 * Datetime,
 * Image
+* Video
 
 ## Functions
 
@@ -44,6 +45,8 @@ Overview:
 * msecsbetween
 * now
 * print
+* record
+* save
 * select
 * sleep
 * str
@@ -76,6 +79,32 @@ Example 2 - capture rectangular area:
 # Captures selected area
 image = capture(select())
 view(image)
+```
+
+### record / view
+With 'record', you can encode your screenshots with the libx264rgb codec losslessly to a video file. You need to specify a screen area and a framerate (between 1 and 30) for this command.
+
+Example:
+
+```
+# Record area of screen
+rect = select()
+print('Selected rectangle: ' + str(rect))
+video = record(rect, 15)
+view(video)
+```
+
+### save
+
+Save your image or video to a file.
+
+Example:
+
+```
+# Record area of screen and save recording
+rect = select()
+video = record(rect, 15)
+save(video)
 ```
 
 ### sleep / msecsbetween / now
