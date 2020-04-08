@@ -213,7 +213,7 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
         {{Rect}, {Int}}, VideoRef);
 
     tw.registerCommand("save", cmdSave,
-    {{ImageRef}, {Empty, String}}, Empty);
+        {{ImageRef, VideoRef}, {Empty, String}}, Empty);
 
     tw.registerCommand("select", cmdSelect,
         {}, Rect);
