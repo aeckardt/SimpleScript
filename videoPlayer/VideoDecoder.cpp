@@ -40,28 +40,16 @@ void VideoDecoder::setFileName(const QString &fileName)
     this->fileName = fileName;
 }
 
-#ifdef PRINT_DEBUG_LOG
-#include <QDebug>
-#endif
-
 void VideoDecoder::run()
 {
     // av_register_all(); // -> deprecated
     // see https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29
-
-#ifdef PRINT_DEBUG_LOG
-    qDebug() << ("-> avformat_open_input");
-#endif
 
     // Open video file
     if (avformat_open_input(&format_ctx, fileName.toStdString().c_str(), nullptr, nullptr) < 0) {
         emit error("Could not open file");
         return;
     }
-
-#ifdef PRINT_DEBUG_LOG
-    qDebug() << ("-> avformat_find_stream_info");
-#endif
 
     // Retrieve stream information
     if (avformat_find_stream_info(format_ctx, nullptr) < 0) {
@@ -71,10 +59,6 @@ void VideoDecoder::run()
 
     // Dump information about file onto standard error
 //    av_dump_format(format_ctx, 0, fileName.toStdString().c_str(), 0);
-
-#ifdef PRINT_DEBUG_LOG
-    qDebug() << ("-> 'find first video stream'");
-#endif
 
     // Find the first video stream
     video_stream = -1;
@@ -100,10 +84,6 @@ void VideoDecoder::run()
     // Get a pointer to the codec context for the video stream
     codec_par = format_ctx->streams[video_stream]->codecpar;
 
-#ifdef PRINT_DEBUG_LOG
-    qDebug() << ("-> avcodec_find_decoder");
-#endif
-
     // Find the decoder for the video stream
     codec = avcodec_find_decoder(codec_par->codec_id);
 //    codec = avcodec_find_decoder_by_name("ffv1");
@@ -112,10 +92,6 @@ void VideoDecoder::run()
         emit error("Error: Unsupported codec!");
         return; // Codec not found
     }
-
-#ifdef PRINT_DEBUG_LOG
-    qDebug() << ("-> avcodec_alloc_context3");
-#endif
 
     // Copy context
     // -> Replace avcodec_copy_context -> deprecated
