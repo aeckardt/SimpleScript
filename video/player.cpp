@@ -1,5 +1,5 @@
-#include "VideoDecoder.h"
-#include "VideoPlayer.h"
+#include "decoder.h"
+#include "player.h"
 
 #include <QPainter>
 #include <QtWidgets>

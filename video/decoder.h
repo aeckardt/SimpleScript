@@ -1,12 +1,12 @@
-#ifndef VIDEODECODER_H
-#define VIDEODECODER_H
+#ifndef DECODER_H
+#define DECODER_H
 
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QImage>
 
-#include "video/videofile.h"
+#include "videofile.h"
 
 struct AVFormatContext;
 struct AVCodecContext;
@@ -72,4 +72,4 @@ private:
     bool quit;
 };
 
-#endif // VIDEODECODER_H
+#endif // DECODER_H

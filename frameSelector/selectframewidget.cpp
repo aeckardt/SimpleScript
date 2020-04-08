@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "SelectFrameWidget.h"
+#include "selectframewidget.h"
 
 FocusDialog::FocusDialog(SelectFrameWidget *_parent)
     : QDialog(_parent, Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint),

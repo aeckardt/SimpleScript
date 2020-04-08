@@ -1,11 +1,11 @@
 #include "engine.h"
 
-#include "frameSelector/SelectFrameWidget.h"
+#include "frameSelector/selectframewidget.h"
 #include "image/screenshot.h"
-#include "imageViewer/ImageViewer.h"
+#include "image/imageviewer.h"
+#include "video/player.h"
 #include "video/recorder.h"
 #include "video/videofile.h"
-#include "videoPlayer/VideoPlayer.h"
 
 #include <QEventLoop>
 #include <QFileDialog>

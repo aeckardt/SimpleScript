@@ -1,5 +1,5 @@
-#ifndef VIDEOPLAYER_H
-#define VIDEOPLAYER_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include <QDialog>
 #include <QThread>
@@ -7,8 +7,8 @@
 #include <QImage>
 #include <QElapsedTimer>
 
-#include "video/videofile.h"
-#include "VideoDecoder.h"
+#include "decoder.h"
+#include "videofile.h"
 
 class VideoPlayer : public QDialog
 {
@@ -38,4 +38,4 @@ private:
     QElapsedTimer elapsed_timer;
 };
 
-#endif // VIDEOPLAYER_H
+#endif // PLAYER_H

@@ -27,6 +27,7 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
+    frameSelector/selectframewidget.cpp \
     mainWindow/main.cpp \
     mainWindow/mainwindow.cpp \
     script/engine.cpp \
@@ -35,16 +36,16 @@ SOURCES += \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
-    frameSelector/SelectFrameWidget.cpp \
-    imageViewer/ImageViewer.cpp \
+    image/imageviewer.cpp \
+    video/decoder.cpp \
     video/encoder.cpp \
+    video/player.cpp \
     video/recorder.cpp \
     video/videofile.cpp \
-    videoPlayer/VideoDecoder.cpp \
-    videoPlayer/VideoPlayer.cpp \
     external/QHotkey/qhotkey.cpp
 
 HEADERS += \
+    frameSelector/selectframewidget.h \
     mainWindow/mainwindow.h \
     mainWindow/ui_mainwindow.h \
     script/engine.h \
@@ -54,14 +55,13 @@ HEADERS += \
     script/astwalker.h \
     script/parameter.h \
     script/types.h \
-    frameSelector/SelectFrameWidget.h \
     image/screenshot.h \
-    imageViewer/ImageViewer.h \
+    image/imageviewer.h \
+    video/decoder.h \
     video/encoder.h \
+    video/player.h \
     video/recorder.h \
     video/videofile.h \
-    videoPlayer/VideoDecoder.h \
-    videoPlayer/VideoPlayer.h \
     external/QHotkey/qhotkey.h \
     external/QHotkey/qhotkey_p.h
 

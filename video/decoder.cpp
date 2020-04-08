@@ -1,4 +1,4 @@
-#include "VideoDecoder.h"
+#include "decoder.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
