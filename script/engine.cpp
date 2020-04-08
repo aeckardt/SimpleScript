@@ -4,7 +4,7 @@
 #include "image/screenshot.h"
 #include "imageViewer/ImageViewer.h"
 #include "video/recorder.h"
-#include "video/video.h"
+#include "video/videofile.h"
 #include "videoPlayer/VideoPlayer.h"
 
 #include <QEventLoop>
@@ -22,7 +22,7 @@ enum : ObjectReference
 };
 
 template<> ObjectReference ParameterObjectBase<QImage>::ref = ImageRef;
-template<> ObjectReference ParameterObjectBase<Video>::ref  = VideoRef;
+template<> ObjectReference ParameterObjectBase<VideoFile>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
 {
@@ -70,7 +70,7 @@ bool cmdLoadVideo(const ParameterList &in_params, Parameter &out_param)
         return false;
     }
 
-    out_param.createObject<Video>(file_name);
+    out_param.createObject<VideoFile>(file_name);
 
     return true;
 }
@@ -115,7 +115,7 @@ bool cmdRecord(const ParameterList &in_params, Parameter &out_param)
     engine->mainWindow->hide();
 
     ScreenRecorder recorder;
-    recorder.exec(rect, out_param.createObject<Video>(), frame_rate);
+    recorder.exec(rect, out_param.createObject<VideoFile>(), frame_rate);
 
     engine->mainWindow->show();
 
@@ -142,7 +142,7 @@ bool cmdSave(const ParameterList &in_params, Parameter &)
         return true;
     }
     case VideoRef: {
-        const Video &video = in_params[0].asObject<Video>();
+        const VideoFile &video = in_params[0].asObject<VideoFile>();
 
         QString fileName;
         if (in_params.size() == 2 && in_params[1].type() == String)
@@ -219,10 +219,10 @@ bool cmdView(const ParameterList &in_params, Parameter &)
         return true;
     }
     case VideoRef: {
-        const Video &video = in_params[0].asObject<Video>();
+        const VideoFile &video = in_params[0].asObject<VideoFile>();
 
         VideoPlayer video_player;
-        video_player.runVideo(video.path());
+        video_player.runVideo(video);
 
         return true;
     }
@@ -235,7 +235,7 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
     tw.registerObject<QImage>("Image", true, false);
-    tw.registerObject<Video>("Video", true, false);
+    tw.registerObject<VideoFile>("Video", true, false);
 
     tw.registerCommand("capture", cmdCapture,
         {{Empty, Rect}}, ImageRef);

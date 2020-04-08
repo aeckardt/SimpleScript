@@ -37,8 +37,9 @@ SOURCES += \
     script/astwalker.cpp \
     frameSelector/SelectFrameWidget.cpp \
     imageViewer/ImageViewer.cpp \
+    video/encoder.cpp \
     video/recorder.cpp \
-    video/video.cpp \
+    video/videofile.cpp \
     videoPlayer/VideoDecoder.cpp \
     videoPlayer/VideoPlayer.cpp \
     external/QHotkey/qhotkey.cpp
@@ -56,8 +57,9 @@ HEADERS += \
     frameSelector/SelectFrameWidget.h \
     image/screenshot.h \
     imageViewer/ImageViewer.h \
+    video/encoder.h \
     video/recorder.h \
-    video/video.h \
+    video/videofile.h \
     videoPlayer/VideoDecoder.h \
     videoPlayer/VideoPlayer.h \
     external/QHotkey/qhotkey.h \

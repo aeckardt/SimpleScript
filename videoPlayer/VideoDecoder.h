@@ -6,6 +6,8 @@
 #include <QWaitCondition>
 #include <QImage>
 
+#include "video/videofile.h"
+
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVCodecParameters;
@@ -21,7 +23,7 @@ public:
     VideoDecoder(QObject *parent = nullptr);
     ~VideoDecoder() override;
 
-    void setFileName(const QString &fileName);
+    void setVideo(const VideoFile &video);
 
     int frameRate() const { return frame_rate; }
 
@@ -37,7 +39,7 @@ protected:
     void run() override;
 
 private:
-    QString fileName;
+    const VideoFile *video;
 
     AVFormatContext *format_ctx;
     int              video_stream;

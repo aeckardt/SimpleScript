@@ -13,8 +13,8 @@ void ScreenRecorder::captureFrame()
     // The linesize needs to be aligned with 32 bytes
     // Unfortunately that corrupts the QImage, you see it for instance,
     // when you save it as png, it becomes erroneous!
-    captureRect(rect, video->nextFrame(), 32);
-    video->encodeFrame();
+    captureRect(rect, encoder.nextFrame(), 32);
+    encoder.encodeFrame();
     captured++;
 
     // Determine time till next frame and reconfigure interval
@@ -26,7 +26,7 @@ void ScreenRecorder::captureFrame()
     timer.setInterval(static_cast<int>(interval));
 }
 
-void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotkeySequence)
+void ScreenRecorder::exec(QRect rect, VideoFile &video, int frame_rate, QString hotkeySequence)
 {
 #ifndef __APPLE
     // Width / height need to be aligned by a factor of 2 for video encoding
@@ -40,8 +40,8 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotk
         return;
 
     this->rect = rect;
-    this->video = &video;
     this->frame_rate = frame_rate;
+    encoder.setFile(video);
 
     captured = 0;
 
@@ -56,7 +56,7 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotk
 
     hotkey.setShortcut(hotkeySequence);
 
-    video.create(width, height, frame_rate);
+    encoder.create(width, height, frame_rate);
     elapsed_timer.start();
 
     // Capture one frame directly at start
@@ -70,5 +70,5 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotk
     timer.stop();
     hotkey.setRegistered(false);
 
-    video.flush();
+    encoder.flush();
 }

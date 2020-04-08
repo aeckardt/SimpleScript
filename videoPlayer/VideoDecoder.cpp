@@ -33,11 +33,11 @@ VideoDecoder::~VideoDecoder()
     wait();
 }
 
-void VideoDecoder::setFileName(const QString &fileName)
+void VideoDecoder::setVideo(const VideoFile &video)
 {
     QMutexLocker locker(&mutex);
 
-    this->fileName = fileName;
+    this->video = &video;
 }
 
 void VideoDecoder::run()
@@ -46,7 +46,7 @@ void VideoDecoder::run()
     // see https://github.com/leandromoreira/ffmpeg-libav-tutorial/issues/29
 
     // Open video file
-    if (avformat_open_input(&format_ctx, fileName.toStdString().c_str(), nullptr, nullptr) < 0) {
+    if (avformat_open_input(&format_ctx, video->fileName().toStdString().c_str(), nullptr, nullptr) < 0) {
         emit error("Could not open file");
         return;
     }

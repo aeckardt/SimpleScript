@@ -1,22 +1,24 @@
 #ifndef VIDEO_H
 #define VIDEO_H
 
-#include <QTemporaryFile>
 #include <QImage>
+#include <QString>
+#include <QFile>
 
-#include <string>
+#include "videofile.h"
 
 struct AVCodecContext;
 struct AVCodec;
 struct AVFrame;
 struct AVPacket;
 
-class Video
+class VideoEncoder
 {
 public:
-    Video();
-    Video(const QString &file_name) : Video() { file_path = file_name; }
-    ~Video() { cleanUp(); }
+    VideoEncoder();
+    ~VideoEncoder() { cleanUp(); }
+
+    void setFile(const VideoFile &video_file) { this->video_file = video_file; }
 
     void create(int width, int height, int frame_rate);
     void encodeFrame() { encodeFrames(false); }
@@ -24,12 +26,8 @@ public:
 
     QImage &nextFrame() { return image; }
 
-    const QString &path() const { return file_path; }
-
-    void save(const QString &file_name) const { QFile::copy(file_path, file_name); }
-
     int av_error;
-    std::string last_error;
+    QString last_error;
 
 private:
     void allocContext();
@@ -54,9 +52,8 @@ private:
 
     QImage image;
 
-    QTemporaryFile temp_file;
+    VideoFile video_file;
     FILE *file;
-    QString file_path;
 };
 
 #endif // VIDEO_H

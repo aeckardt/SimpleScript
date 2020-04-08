@@ -20,9 +20,9 @@ void VideoPlayer::paintEvent(QPaintEvent *)
     }
 }
 
-void VideoPlayer::runVideo(const QString &fileName)
+void VideoPlayer::runVideo(const VideoFile &video)
 {
-    decoder.setFileName(fileName);
+    decoder.setVideo(video.fileName());
     decoder.start();
 
     first_frame = true;

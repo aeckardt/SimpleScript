@@ -1,4 +1,4 @@
-#include "video.h"
+#include "encoder.h"
 
 extern "C"
 {
@@ -13,7 +13,7 @@ static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 #define errorMsgf(format, ...) \
 { char *buffer = new char[strlen(format) * 2 + 50]; sprintf(buffer, format, __VA_ARGS__); errorMsg(buffer); } (void)0
 
-Video::Video()
+VideoEncoder::VideoEncoder()
     : av_error(0),
       width(0),
       height(0),
@@ -28,7 +28,7 @@ Video::Video()
     av_log_set_level(AV_LOG_ERROR);
 }
 
-void Video::allocContext()
+void VideoEncoder::allocContext()
 {
     const AVCodec *codec;
 
@@ -69,7 +69,7 @@ void Video::allocContext()
     }
 }
 
-void Video::allocFrame()
+void VideoEncoder::allocFrame()
 {
     frame = av_frame_alloc();
     if (frame == nullptr)
@@ -86,7 +86,7 @@ void Video::allocFrame()
     }
 }
 
-void Video::cleanUp()
+void VideoEncoder::cleanUp()
 {
     if (file != nullptr) {
         fclose(file);
@@ -102,7 +102,7 @@ void Video::cleanUp()
     pts = 0;
 }
 
-void Video::create(int width, int height, int frame_rate)
+void VideoEncoder::create(int width, int height, int frame_rate)
 {
     this->width = width;
     this->height = height;
@@ -110,15 +110,12 @@ void Video::create(int width, int height, int frame_rate)
 
     initialize();
 
-    temp_file.open();
-    file_path = temp_file.fileName();
-
-    file = fopen(temp_file.fileName().toStdString().c_str(), "wb");
+    file = fopen(video_file.fileName().toStdString().c_str(), "wb");
     if (file == nullptr)
         return errorMsg("Could not open file");
 }
 
-void Video::encodeFrames(bool flush)
+void VideoEncoder::encodeFrames(bool flush)
 {
     if (ctx == nullptr || frame == nullptr || file == nullptr) {
         errorMsg("Error initializing encoder");
@@ -157,13 +154,13 @@ void Video::encodeFrames(bool flush)
     }
 }
 
-void Video::errorMsg(const char *msg)
+void VideoEncoder::errorMsg(const char *msg)
 {
     last_error = msg;
     fprintf(stderr, "%s", msg);
 }
 
-void Video::initialize()
+void VideoEncoder::initialize()
 {
     cleanUp();
 

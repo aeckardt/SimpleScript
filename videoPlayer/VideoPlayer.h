@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QElapsedTimer>
 
+#include "video/videofile.h"
 #include "VideoDecoder.h"
 
 class VideoPlayer : public QDialog
@@ -18,7 +19,7 @@ public:
 
     void paintEvent(QPaintEvent *event) override;
 
-    void runVideo(const QString &fileName);
+    void runVideo(const VideoFile &video);
 
 protected:
     void keyPressEvent(QKeyEvent *) override;
