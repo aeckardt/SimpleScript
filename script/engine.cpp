@@ -114,8 +114,8 @@ bool cmdRecord(const ParameterList &in_params, Parameter &out_param)
 
     engine->mainWindow->hide();
 
-    ScreenRecorder recorder;
-    recorder.exec(rect, out_param.createObject<VideoFile>(), frame_rate);
+    ScreenRecorder recorder(out_param.createObject<VideoFile>());
+    recorder.exec(rect, frame_rate);
 
     engine->mainWindow->show();
 

@@ -15,9 +15,9 @@ class ScreenRecorder : public QObject
     Q_OBJECT
 
 public:
-    ScreenRecorder();
+    ScreenRecorder(VideoFile &video);
 
-    void exec(QRect rect, VideoFile &video, int frame_rate, QString hotkeySequence = "Ctrl+.");
+    void exec(QRect rect, int frame_rate, QString hotkeySequence = "Ctrl+.");
 
 private:
     QRect rect;

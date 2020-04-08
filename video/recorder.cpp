@@ -2,8 +2,10 @@
 
 #include "image/screenshot.h"
 
-ScreenRecorder::ScreenRecorder()
+ScreenRecorder::ScreenRecorder(VideoFile &video)
 {
+    encoder.setFile(video);
+
     connect(&timer, &QTimer::timeout, this, &ScreenRecorder::captureFrame);
     connect(&hotkey, &QHotkey::activated, &loop, &QEventLoop::quit);
 }
@@ -26,7 +28,7 @@ void ScreenRecorder::captureFrame()
     timer.setInterval(static_cast<int>(interval));
 }
 
-void ScreenRecorder::exec(QRect rect, VideoFile &video, int frame_rate, QString hotkeySequence)
+void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
 {
 #ifndef __APPLE
     // Width / height need to be aligned by a factor of 2 for video encoding
@@ -41,7 +43,6 @@ void ScreenRecorder::exec(QRect rect, VideoFile &video, int frame_rate, QString 
 
     this->rect = rect;
     this->frame_rate = frame_rate;
-    encoder.setFile(video);
 
     captured = 0;
 
