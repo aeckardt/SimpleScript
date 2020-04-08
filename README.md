@@ -11,7 +11,7 @@ Project build for MacOS:
 The goal of this project is to provide tools to capture screen information and effectively utilize it to automate testing or to log information.
 Currently you can select an area on the screen, make screenshots, view the outcome, measure performance and make some calculations. The function are explained in further detail down below in this readme.
 
-## How the tool is working
+## How the tool works
 
 This version is a basic command line tool using some GUI features. You can run simple commands like
 
