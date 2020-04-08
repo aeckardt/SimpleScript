@@ -23,8 +23,7 @@ Video::Video()
       frame(nullptr),
       pkt(nullptr),
       pts(0),
-      file(nullptr),
-      is_temporary(true)
+      file(nullptr)
 {
     av_log_set_level(AV_LOG_ERROR);
 }
@@ -113,7 +112,6 @@ void Video::create(int width, int height, int frame_rate)
 
     temp_file.open();
     file_path = temp_file.fileName();
-    is_temporary = true;
 
     file = fopen(temp_file.fileName().toStdString().c_str(), "wb");
     if (file == nullptr)

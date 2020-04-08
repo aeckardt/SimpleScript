@@ -56,7 +56,6 @@ private:
     QTemporaryFile temp_file;
     FILE *file;
     QString file_path;
-    bool is_temporary;
 };
 
 #endif // VIDEO_H
