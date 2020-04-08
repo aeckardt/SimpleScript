@@ -145,6 +145,8 @@ You might have noticed that the script language is pretty much Python-like. The 
 
 ## Next steps
 
+* improve VideoPlayer, so it is actually somewhat useful!
+
 * implement 'match' function to search for an image on the screen using pattern matching
   * I previously implemented a version of this function with OpenCV, but I didn't like the performance, so I'm trying to improve it or find another solution 
   * it would probably make more sense to have multiple functions like this depending on the particular use-case
