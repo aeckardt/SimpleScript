@@ -7,6 +7,7 @@
 #include <QElapsedTimer>
 #include <QEventLoop>
 
+#include "image/image.h"
 #include "encoder.h"
 #include "external/QHotkey/qhotkey.h"
 

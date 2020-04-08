@@ -41,11 +41,11 @@ ImageViewer::ImageViewer()
     setWindowTitle("Image Viewer");
 }
 
-void ImageViewer::showImage(const QImage &image)
+void ImageViewer::showImage(const Image &image)
 {
-    this->image = &image;
+    this->image = image.toQImage();
 
-    scalableImage->setPixmap(QPixmap::fromImage(image));
+    scalableImage->setPixmap(QPixmap::fromImage(this->image));
 
     scrollArea->setWidget(scalableImage);
 
@@ -92,7 +92,7 @@ void ImageViewer::keyPressEvent(QKeyEvent *event)
 void ImageViewer::copy()
 {
 #ifndef QT_NO_CLIPBOARD
-    QGuiApplication::clipboard()->setImage(*image);
+    QGuiApplication::clipboard()->setImage(image);
 #endif // !QT_NO_CLIPBOARD
 }
 

@@ -1,7 +1,7 @@
 #include "engine.h"
 
 #include "frameSelector/selectframewidget.h"
-#include "image/screenshot.h"
+#include "image/image.h"
 #include "image/imageviewer.h"
 #include "video/player.h"
 #include "video/recorder.h"
@@ -21,18 +21,18 @@ enum : ObjectReference
     VideoRef
 };
 
-template<> ObjectReference ParameterObjectBase<QImage>::ref = ImageRef;
+template<> ObjectReference ParameterObjectBase<Image>::ref = ImageRef;
 template<> ObjectReference ParameterObjectBase<VideoFile>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
 {
     if (in_params.empty())
-        out_param.createObject<QImage>(captureDesktop());
+        out_param.createObject<Image>(captureDesktop());
     else {
         const QRect &rect = in_params[0].asRect();
-        out_param.createObject<QImage>(captureRect(rect));
+        out_param.createObject<Image>(captureRect(rect));
     }
-    return out_param.asObject<QImage>().size() != QSize(0, 0);
+    return out_param.asObject<Image>().size() != QSize(0, 0);
 }
 
 bool cmdLoadImage(const ParameterList &in_params, Parameter &out_param)
@@ -50,7 +50,7 @@ bool cmdLoadImage(const ParameterList &in_params, Parameter &out_param)
         return false;
     }
 
-    out_param.createObject<QImage>(file_name);
+    out_param.createObject<Image>(file_name);
 
     return true;
 }
@@ -126,7 +126,7 @@ bool cmdSave(const ParameterList &in_params, Parameter &)
 {
     switch (in_params[0].objectRef()) {
     case ImageRef: {
-        const QImage &image = in_params[0].asObject<QImage>();
+        const Image &image = in_params[0].asObject<Image>();
 
         QString fileName;
         if (in_params.size() == 2 && in_params[1].type() == String)
@@ -137,7 +137,7 @@ bool cmdSave(const ParameterList &in_params, Parameter &)
                 QObject::tr("Portable Network Graphics (*.png);;All files (*)"));
 
         if (!fileName.isEmpty())
-            image.save(fileName, "PNG");
+            image.toQImage().save(fileName, "PNG");
 
         return true;
     }
@@ -210,7 +210,7 @@ bool cmdView(const ParameterList &in_params, Parameter &)
 {
     switch (in_params[0].objectRef()) {
     case ImageRef: {
-        const QImage &image = in_params[0].asObject<QImage>();
+        const Image &image = in_params[0].asObject<Image>();
 
         ImageViewer image_viewer;
         image_viewer.showImage(image);
@@ -233,7 +233,7 @@ bool cmdView(const ParameterList &in_params, Parameter &)
 ScriptEngine::ScriptEngine(QMainWindow *parent)
     : mainWindow(parent)
 {
-    tw.registerObject<QImage>("Image", true, false);
+    tw.registerObject<Image>("Image", true, false);
     tw.registerObject<VideoFile>("Video", true, false);
 
     tw.registerCommand("capture", cmdCapture,

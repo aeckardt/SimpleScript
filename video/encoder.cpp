@@ -23,6 +23,7 @@ VideoEncoder::VideoEncoder()
       frame(nullptr),
       pkt(nullptr),
       pts(0),
+      image(32), // set 32 byte linesize alignment for image
       file(nullptr)
 {
     av_log_set_level(AV_LOG_ERROR);
@@ -96,7 +97,7 @@ void VideoEncoder::cleanUp()
         avcodec_free_context(&ctx);
     if (frame != nullptr)
         av_frame_free(&frame);
-    image = QImage();
+    image.clear();
     if (pkt != nullptr)
         av_packet_free(&pkt);
     pts = 0;
@@ -174,10 +175,7 @@ void VideoEncoder::initialize()
     if (frame == nullptr)
         return;
 
-    // Be careful: The image can only be used as regular QImage,
-    // if its linesize is aligned with 32 bytes, which in this case
-    // is equivalent to its width being divisble by 8
-    image = QImage(frame->data[0], width, height, QImage::Format_RGB32);
+    image.assign(frame->data[0], width, height);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {

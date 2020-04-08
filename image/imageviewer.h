@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QIcon>
 
+#include "image.h"
+
 QT_BEGIN_NAMESPACE
 class QImage;
 class QScrollArea;
@@ -25,7 +27,7 @@ class ImageViewer : public QDialog
 public:
     ImageViewer();
 
-    void showImage(const QImage &image);
+    void showImage(const Image &image);
 
 protected:
     void keyPressEvent(QKeyEvent *) override;
@@ -43,7 +45,7 @@ private:
     void scaleImage(double factor, int zoomInOut);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
-    const QImage *image;
+    QImage image;
     ScalableImage *scalableImage;
     QScrollArea *scrollArea;
     QToolBar *toolBar;

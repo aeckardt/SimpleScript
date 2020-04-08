@@ -3,8 +3,8 @@
 
 #include <QImage>
 #include <QString>
-#include <QFile>
 
+#include "image/image.h"
 #include "videofile.h"
 
 struct AVCodecContext;
@@ -24,7 +24,7 @@ public:
     void encodeFrame() { encodeFrames(false); }
     void flush() { encodeFrames(true); }
 
-    QImage &nextFrame() { return image; }
+    Image &nextFrame() { return image; }
 
     int av_error;
     QString last_error;
@@ -50,7 +50,7 @@ private:
     AVPacket *pkt;
     int pts;
 
-    QImage image;
+    Image image;
 
     VideoFile video_file;
     FILE *file;

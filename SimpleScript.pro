@@ -27,7 +27,6 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
-    frameSelector/selectframewidget.cpp \
     mainWindow/main.cpp \
     mainWindow/mainwindow.cpp \
     script/engine.cpp \
@@ -36,6 +35,8 @@ SOURCES += \
     script/parser.cpp \
     script/lexer.cpp \
     script/astwalker.cpp \
+    frameSelector/selectframewidget.cpp \
+    image/image.cpp \
     image/imageviewer.cpp \
     video/decoder.cpp \
     video/encoder.cpp \
@@ -45,7 +46,6 @@ SOURCES += \
     external/QHotkey/qhotkey.cpp
 
 HEADERS += \
-    frameSelector/selectframewidget.h \
     mainWindow/mainwindow.h \
     mainWindow/ui_mainwindow.h \
     script/engine.h \
@@ -55,7 +55,8 @@ HEADERS += \
     script/astwalker.h \
     script/parameter.h \
     script/types.h \
-    image/screenshot.h \
+    frameSelector/selectframewidget.h \
+    image/image.h \
     image/imageviewer.h \
     video/decoder.h \
     video/encoder.h \
@@ -78,8 +79,8 @@ win32 {
 
 macx {
     SOURCES += \
-        image/screenshot_mac.cpp \
-        external/QHotkey/qhotkey_mac.cpp
+        external/QHotkey/qhotkey_mac.cpp \
+        image/image_mac.cpp
 
     LIBS += \
         -framework ApplicationServices \

@@ -1,6 +1,6 @@
 #include "recorder.h"
 
-#include "image/screenshot.h"
+#include "image/image.h"
 
 ScreenRecorder::ScreenRecorder(VideoFile &video)
 {
@@ -12,10 +12,7 @@ ScreenRecorder::ScreenRecorder(VideoFile &video)
 
 void ScreenRecorder::captureFrame()
 {
-    // The linesize needs to be aligned with 32 bytes
-    // Unfortunately that corrupts the QImage, you see it for instance,
-    // when you save it as png, it becomes erroneous!
-    captureRect(rect, encoder.nextFrame(), 32);
+    encoder.nextFrame().captureRect(rect);
     encoder.encodeFrame();
     captured++;
 
