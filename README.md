@@ -82,7 +82,7 @@ view(image)
 ```
 
 ### record / view
-With 'record', you can encode your screenshots with the libx264rgb codec losslessly to a video file. You need to specify a screen area and a framerate (between 1 and 30) for this command.
+With 'record', you can encode your screenshots with the libx264rgb codec losslessly to a video. You need to specify a screen area and a framerate (between 1 and 30) for this command.
 
 Example:
 
