@@ -135,11 +135,6 @@ You might have noticed that the script language is pretty much Python-like. The 
   * I previously implemented a version of this function with OpenCV, but I didn't like the performance, so I'm trying to improve it or find another solution 
   * it would probably make more sense to have multiple functions like this depending on the particular use-case
 
-* implement 'record' function to be able to create videos of a screen area
-  * this should be done using FFmpeg's video encoding
-  * the purpose of this is that it's much more convenient to gather the image data from a video as compared to when you have to re-run your software every time
-  * the implementation of proper video recording with FFmpeg turns out to be quite a challenge!!
-
 * implement 'read' function to read text from the screen
   * in order to do this a font has to be gathered and stored
   * my solution so far has been to gather a font by contrasting the text with the background. Not a perfect solution, but good enough for now
