@@ -18,16 +18,12 @@ public:
 
     void clear();
 
-    void assign(uint8_t *bits, int width, int height, ImageCleanupFunction cleanup_fnc = nullptr, void *cleanup_info = nullptr);
+    void assign(uint8_t *bits, int width, int height,
+                ImageCleanupFunction cleanup_fnc = nullptr, void *cleanup_info = nullptr);
 
-    void resize(const QSize &new_size)
-    { resize(new_size.width(), new_size.height()); }
-
-    void resize(int width, int height)
-    { assign(new uint8_t[bytesPerRow(width) * height], width, height, [](void *ptr) { delete [] static_cast<uint8_t *>(ptr); }, bits); }
-
-    QSize size() const
-    { return QSize(width, height); }
+    void resize(const QSize &new_size) { resize(new_size.width(), new_size.height()); }
+    void resize(int width, int height);
+    QSize size() const { return QSize(width, height); }
 
     void captureDesktop();
     void captureRect(const QRect &rect);

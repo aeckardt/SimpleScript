@@ -65,6 +65,14 @@ void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cl
     this->cleanup_info = cleanup_info;
 }
 
+void Image::resize(int width, int height)
+{
+    assign(new uint8_t[bytesPerRow(width) * height],
+           width, height,
+           [](void *ptr) { delete [] static_cast<uint8_t *>(ptr); },
+           bits);
+}
+
 QImage Image::toQImage() const
 {
     if (linesize_alignment == 0)
