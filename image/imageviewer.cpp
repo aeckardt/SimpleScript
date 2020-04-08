@@ -1,6 +1,6 @@
 #include <QtWidgets>
 
-#include "ImageViewer.h"
+#include "imageviewer.h"
 
 ImageViewer::ImageViewer()
    : scalableImage(new ScalableImage)
