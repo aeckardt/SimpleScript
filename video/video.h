@@ -15,6 +15,7 @@ class Video
 {
 public:
     Video();
+    Video(const QString &file_name) : Video() { file_path = file_name; }
     ~Video() { cleanUp(); }
 
     void create(int width, int height, int frame_rate);

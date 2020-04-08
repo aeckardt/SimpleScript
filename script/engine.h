@@ -29,6 +29,8 @@ private:
     inline void printError(const std::string &str)
     { if (output != nullptr) { tw::Parameter param; param.assign(str); output(param, Qt::darkRed); } }
 
+    friend bool cmdLoadImage(const tw::ParameterList &, tw::Parameter &);
+    friend bool cmdLoadVideo(const tw::ParameterList &, tw::Parameter &);
     friend bool cmdPrint(const tw::ParameterList &, tw::Parameter &);
     friend bool cmdRecord(const tw::ParameterList &, tw::Parameter &);
     friend bool cmdSelect(const tw::ParameterList &, tw::Parameter &);

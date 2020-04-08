@@ -42,6 +42,8 @@ Overview:
 Overview:
 
 * capture
+* loadImage
+* loadVideo
 * msecsbetween
 * now
 * print
@@ -92,6 +94,18 @@ rect = select()
 print('Selected rectangle: ' + str(rect))
 video = record(rect, 15)
 view(video)
+```
+
+### loadImage / loadVideo
+
+Load your image or video from a file
+
+Example:
+
+```
+# Load image from file
+image = loadImage()
+view(image)
 ```
 
 ### save

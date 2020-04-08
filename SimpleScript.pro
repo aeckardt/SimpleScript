@@ -101,4 +101,5 @@ RESOURCES += \
 
 DISTFILES += \
     .gitignore \
-    .travis.yml
+    .travis.yml \
+    README.md

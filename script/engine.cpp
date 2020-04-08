@@ -35,6 +35,46 @@ bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
     return out_param.asObject<QImage>().size() != QSize(0, 0);
 }
 
+bool cmdLoadImage(const ParameterList &in_params, Parameter &out_param)
+{
+    QString file_name;
+    if (!in_params.empty())
+        file_name = in_params[0].asString().c_str();
+    else
+        file_name = QFileDialog::getOpenFileName(nullptr,
+            QObject::tr("Load image"), "",
+            QObject::tr("Portable Network Graphics (*.png);;All files (*)"));
+
+    if (!QFileInfo::exists(file_name)) {
+        engine->printError("File does not exist");
+        return false;
+    }
+
+    out_param.createObject<QImage>(file_name);
+
+    return true;
+}
+
+bool cmdLoadVideo(const ParameterList &in_params, Parameter &out_param)
+{
+    QString file_name;
+    if (!in_params.empty())
+        file_name = in_params[0].asString().c_str();
+    else
+        file_name = QFileDialog::getOpenFileName(nullptr,
+            QObject::tr("Load video"), "",
+            QObject::tr("H264 video file (*.h264);;All files (*)"));
+
+    if (!QFileInfo::exists(file_name)) {
+        engine->printError("File does not exist");
+        return false;
+    }
+
+    out_param.createObject<Video>(file_name);
+
+    return true;
+}
+
 bool cmdMsecsBetween(const ParameterList &in_params, Parameter &out_param)
 {
     const QDateTime &dt1 = in_params[0].asDateTime();
@@ -199,6 +239,12 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
 
     tw.registerCommand("capture", cmdCapture,
         {{Empty, Rect}}, ImageRef);
+
+    tw.registerCommand("loadImage", cmdLoadImage,
+        {{Empty, String}}, ImageRef);
+
+    tw.registerCommand("loadVideo", cmdLoadVideo,
+        {{Empty, String}}, VideoRef);
 
     tw.registerCommand("msecsbetween", cmdMsecsBetween,
         {{DateTime}, {DateTime}}, Int);
