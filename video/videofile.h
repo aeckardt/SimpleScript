@@ -8,7 +8,7 @@ class VideoFile
 {
 public:
     VideoFile();
-    VideoFile(const QString &file_name) : VideoFile()
+    VideoFile(const QString &file_name)
     { file_path = file_name; }
 
     const QString &fileName() const
