@@ -54,8 +54,9 @@ void ScreenRecorder::exec(QRect rect, Video &video, int frame_rate, QString hotk
     height *= 2;
 #endif
 
-    video.create(width, height, frame_rate);
     hotkey.setShortcut(hotkeySequence);
+
+    video.create(width, height, frame_rate);
     elapsed_timer.start();
 
     // Capture one frame directly at start

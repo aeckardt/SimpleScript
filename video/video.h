@@ -25,6 +25,8 @@ public:
 
     const QString &path() const { return file_path; }
 
+    void save(const QString &file_name) const { QFile::copy(file_path, file_name); }
+
     int av_error;
     std::string last_error;
 
@@ -54,6 +56,7 @@ private:
     QTemporaryFile temp_file;
     FILE *file;
     QString file_path;
+    bool is_temporary;
 };
 
 #endif // VIDEO_H

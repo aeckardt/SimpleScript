@@ -8,6 +8,7 @@
 #include "videoPlayer/VideoPlayer.h"
 
 #include <QEventLoop>
+#include <QFileDialog>
 #include <QTimer>
 
 using namespace tw;
@@ -79,6 +80,46 @@ bool cmdRecord(const ParameterList &in_params, Parameter &out_param)
     engine->mainWindow->show();
 
     return true;
+}
+
+bool cmdSave(const ParameterList &in_params, Parameter &)
+{
+    switch (in_params[0].objectRef()) {
+    case ImageRef: {
+        const QImage &image = in_params[0].asObject<QImage>();
+
+        QString fileName;
+        if (in_params.size() == 2 && in_params[1].type() == String)
+            fileName = in_params[1].asString().c_str();
+        else
+            fileName = QFileDialog::getSaveFileName(nullptr,
+                QObject::tr("Save image"), "",
+                QObject::tr("Portable Network Graphics (*.png);;All files (*)"));
+
+        if (!fileName.isEmpty())
+            image.save(fileName, "PNG");
+
+        return true;
+    }
+    case VideoRef: {
+        const Video &video = in_params[0].asObject<Video>();
+
+        QString fileName;
+        if (in_params.size() == 2 && in_params[1].type() == String)
+            fileName = in_params[1].asString().c_str();
+        else
+            fileName = QFileDialog::getSaveFileName(nullptr,
+                QObject::tr("Save video"), "",
+                QObject::tr("H264 video file (*.h264);;All files (*)"));
+
+        if (!fileName.isEmpty())
+            video.save(fileName);
+
+        return true;
+    }
+    default:
+        return false;
+    }
 }
 
 bool cmdSelect(const ParameterList &, Parameter &out_param)
@@ -170,6 +211,9 @@ ScriptEngine::ScriptEngine(QMainWindow *parent)
 
     tw.registerCommand("record", cmdRecord,
         {{Rect}, {Int}}, VideoRef);
+
+    tw.registerCommand("save", cmdSave,
+    {{ImageRef}, {Empty, String}}, Empty);
 
     tw.registerCommand("select", cmdSelect,
         {}, Rect);
