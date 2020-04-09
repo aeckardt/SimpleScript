@@ -39,8 +39,6 @@ void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
     }
 }
 
-#include <QDebug>
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
