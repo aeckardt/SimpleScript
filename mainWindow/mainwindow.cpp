@@ -88,7 +88,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
         }
-    } else if (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
+    } else if (event->modifiers() == (Qt::ControlModifier | Qt::MetaModifier)) {
         if (event->key() >= Qt::Key_1 && event->key() <= Qt::Key_9) {
             QString key;
             key.setNum(event->key() - Qt::Key_1 + 1);
