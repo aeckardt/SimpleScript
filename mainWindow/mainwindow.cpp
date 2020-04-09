@@ -39,6 +39,8 @@ void BrowserFormattedPrint(const Parameter &param, const QBrush &brush)
     }
 }
 
+#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -77,95 +79,21 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             run();
         } else if (event->key() == Qt::Key_L) {
             clearLog();
-        } else if (event->key() == Qt::Key_1) {
-            ui->textEdit->setText(
-                "print(str(\"Hello \") + str(\"world!\"))\n"
-                "\n"
-                "# This is a comment\n"
-                "\t  # You stupid banana!");
+        } else if (event->key() >= Qt::Key_1 && event->key() <= Qt::Key_9) {
+            QString key;
+            key.setNum(event->key() - Qt::Key_1 + 1);
+            key = "script" + key;
+            ui->textEdit->setText(settings.value(key).toString());
             QTextCursor cursor = ui->textEdit->textCursor();
             cursor.movePosition(QTextCursor::End);
             ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_2) {
-            ui->textEdit->setText(
-                "# Expression calculation\n"
-                "\n"
-                "value = 1+(2+3+9-10/2)*5-31\n"
-                "print(\"The sum of numbers from one to five is: \" + str(value))");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_3) {
-            ui->textEdit->setText(
-                "# Screenshot time measurement\n"
-                "\n"
-                "start=now()\n"
-                "image=capture()\n"
-                "print(\"It took \" + str(msecsbetween(start, now())) + \"ms to take a screenshot.\")");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_4) {
-            ui->textEdit->setText(
-                "# View screenshot of selected region\n"
-                "\n"
-                "fullscreen = 0\n"
-                "if fullscreen == 0:\n"
-                "\trect=select()\n"
-                "\tprint(rect)\n"
-                "\timage=capture(rect)\n"
-                "else:\n"
-                "\timage=capture()\n"
-                "view(image)");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_5) {
-            ui->textEdit->setText(
-                "# Sleep test 1\n"
-                "\n"
-                "a = now()\n"
-                "sleep(1)\n"
-                "b = now()\n"
-                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 1ms.\")\n"
-                "a = now()\n"
-                "sleep(10)\n"
-                "b = now()\n"
-                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 10ms.\")\n"
-                "a = now()\n"
-                "sleep(100)\n"
-                "b = now()\n"
-                "print(\"The time difference between a and b is \" + str(msecsbetween(a, b)) + \"ms, expected 100ms.\")");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_6) {
-            ui->textEdit->setText(
-                "# Sleep test 2\n"
-                "\n"
-                "print(\"On three we go!\")\n"
-                "start_zeit = now()\n"
-                "sleep(1000)\n"
-                "print(\"1...\")\n"
-                "sleep(1000)\n"
-                "print(\"2...\")\n"
-                "sleep(1000)\n"
-                "print(\"3 !!!\")\n"
-                "print(\"The countdown took \" + str(msecsbetween(start_zeit, now())) + \"ms, expected 3000ms.\")");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
-        } else if (event->key() == Qt::Key_7) {
-            ui->textEdit->setText(
-                "# Recording test\n"
-                "\n"
-                "rect=select()\n"
-                "print(\"Selected rectangle: \" + str(rect))\n"
-                "video=record(rect, 10)\n"
-                "view(video)");
-            QTextCursor cursor = ui->textEdit->textCursor();
-            cursor.movePosition(QTextCursor::End);
-            ui->textEdit->setTextCursor(cursor);
+        }
+    } else if (event->modifiers() == (Qt::ControlModifier | Qt::ShiftModifier)) {
+        if (event->key() >= Qt::Key_1 && event->key() <= Qt::Key_9) {
+            QString key;
+            key.setNum(event->key() - Qt::Key_1 + 1);
+            key = "script" + key;
+            settings.setValue(key, ui->textEdit->toPlainText());
         }
     }
 }

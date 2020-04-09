@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 
 #include "script/engine.h"
 
@@ -31,6 +32,8 @@ private:
     SyntaxHighlighter *highlighter;
 
     ScriptEngine se;
+
+    QSettings settings;
 };
 
 #endif // MAINWINDOW_H
