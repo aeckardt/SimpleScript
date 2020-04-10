@@ -22,17 +22,6 @@ install:
 jobs:
   include:
     - name: "Unit Tests"
-    - script:
-      cd ~
-      mkdir build-Release
-      qmake tests.pro -o build-Release
-      cd build-Release
-      make
-      ./tests -v
+      script: ./tools/run_tests.sh
     - name: "Project Build"
-    - script:
-      cd ~
-      mkdir build-Release
-      qmake SimpleScript.pro -o build-Release
-      cd build-Release
-      make
+      script: ./tools/build_project.sh
