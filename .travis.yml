@@ -25,13 +25,15 @@ install:
       grep '"tag_name":' |
       sed -E 's/.*"([^"]+)".*/\1/')
   - download_url="https://codeload.github.com/$gtest_repo/tar.gz/$latest_release"
-  - target_dir="googletest-$latest_release"
-  - target_file="$latest_release.tar.gz"
+  -    target_dir="googletest-$latest_release"
+    && target_file="$latest_release.tar.gz"
+  - echo $download_url
+  - brew install curl tar
   - curl -o $target_file $download_url
   - tar -xvf $target_file
   - mkdir external/googletest
-  - shopt -s dotglob nullglob
-  - mv $target_dir/googletest/src/* external/googletest
+  -    shopt -s dotglob nullglob
+    && mv $target_dir/googletest/src/* external/googletest
   - rm -rf $target_dir
 
 script:
