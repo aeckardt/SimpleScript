@@ -1,8 +1,8 @@
 *.9-pre1
 *.autosave
 *.pro.user
+.DS_Store
 /build*/*
 /output/*
 /external/*
 /*.sh
-/*.tar.gz

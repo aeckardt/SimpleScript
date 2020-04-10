@@ -76,8 +76,7 @@ macx {
         image/image_mac.cpp
 
     LIBS += \
-        -framework ApplicationServices \
-        -framework Carbon
+        -framework ApplicationServices
 }
 
 LIBS += \
