@@ -10,26 +10,11 @@ install:
   - brew install qt5
   - brew install ffmpeg
 
-  # Define function to download github release from archives
-  - download_package() {
-      repo_name=$1
-      repo_path=$2
-      release=$3
-      target_dir=$4
-      download_url="https://codeload.github.com/$repo_path/tar.gz/$release"
-      target_file="$release.tar.gz"
-      curl -o $target_file $download_url
-      tar -xvf $target_file
-      mkdir external/$repo_name
-      mv $target_dir/$5/* external/$repo_name
-      rm -rf $target_dir
-    }
-  
-  # Download QHotkey from QtPlay fork
-  - download_package "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey" "QHotkey"
+  # Download QHotkey relase 1.1.0 from QtPlay fork
+  - .tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey" "QHotkey"
 
   # Download googletest release-1.10.0
-  - download_package "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0" "googletest/src"
+  - .tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0" "googletest/src"
 
 script:
   -    QTDIR="/usr/local/opt/qt5"
