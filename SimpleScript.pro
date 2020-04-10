@@ -42,8 +42,7 @@ SOURCES += \
     video/encoder.cpp \
     video/player.cpp \
     video/recorder.cpp \
-    video/videofile.cpp \
-    external/QHotkey/qhotkey.cpp
+    video/videofile.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -62,24 +61,18 @@ HEADERS += \
     video/encoder.h \
     video/player.h \
     video/recorder.h \
-    video/videofile.h \
-    external/QHotkey/qhotkey.h \
-    external/QHotkey/qhotkey_p.h
+    video/videofile.h
 
 INCLUDEPATH += \
     /usr/local/include
 
 win32 {
-    SOURCES += \
-        external/QHotkey/qhotkey_win.cpp
-
     LIBS += \
         -lgdi32
 }
 
 macx {
     SOURCES += \
-        external/QHotkey/qhotkey_mac.cpp \
         image/image_mac.cpp
 
     LIBS += \
@@ -93,6 +86,8 @@ LIBS += \
     -lavformat \
     -lavutil \
     -lswscale
+
+include(external/QHotkey/qhotkey.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

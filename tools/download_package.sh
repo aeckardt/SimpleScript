@@ -12,5 +12,5 @@ then
   mkdir external
 fi
 mkdir external/$repo_name
-mv $target_dir/$5/* external/$repo_name
+mv $target_dir/* external/$repo_name
 rm -rf $target_dir
