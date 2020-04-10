@@ -18,11 +18,11 @@ install:
   - sh ./tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0"
 
   - brew install qt5
-  - brew install ffmpeg
 
 jobs:
   include:
     - name: "Unit Tests"
       script: ./tools/run_tests.sh
     - name: "Project Build"
+      install: brew install ffmpeg
       script: ./tools/build_project.sh
