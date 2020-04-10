@@ -9,7 +9,8 @@
 
 #include "image/image.h"
 #include "encoder.h"
-#include "external/QHotkey/qhotkey.h"
+
+#include "qhotkey.h"
 
 class ScreenRecorder : public QObject
 {
