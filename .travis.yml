@@ -21,8 +21,8 @@ install:
 
 jobs:
   include:
-    - name: "Unit Tests"
-      script: ./tools/run_tests.sh
-    - name: "Project Build"
+    - name: "MacOS Build"
       install: brew install ffmpeg
-      script: ./tools/build_project.sh
+      script: sh ./tools/build_project.sh
+    - name: "Unit Tests"
+      script: sh ./tools/run_tests.sh

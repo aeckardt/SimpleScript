@@ -1,3 +1,4 @@
+#!/bin/bash
 cd ~
 mkdir build-Release
 qmake SimpleScript.pro -o build-Release

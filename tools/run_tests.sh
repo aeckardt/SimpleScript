@@ -1,3 +1,4 @@
+#!/bin/bash
 cd ~/tests
 mkdir build-Release
 qmake tests.pro -o build-Release
