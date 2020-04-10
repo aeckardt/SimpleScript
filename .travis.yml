@@ -9,28 +9,27 @@ before_install:
 install:
   - brew install qt5
   - brew install ffmpeg
+
+  # Define function to download github release from archives
+  - download_package() {
+      repo_name=$1
+      repo_path=$2
+      release=$3
+      target_dir=$4
+      download_url="https://codeload.github.com/$repo/tar.gz/$release"
+      target_file="$release.tar.gz"
+      curl -o $target_file $download_url
+      tar -xvf $target_file
+      mkdir external/$repo_name
+      mv $target_dir/$5 external/$repo_name
+      rm -rf $target_dir
+    }
   
   # Download QHotkey from QtPlay fork
-  - git clone https://github.com/QtPlay/QHotkey
-  - cd QHotkey
-  - git reset --hard e1f90f15bcf472e112061ad36ecb213a8637c975
-  - cd ..
-  - mkdir external
-  - mv QHotkey/QHotkey external
-  - rm -rf QHotkey
+  - download_package "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey" "QHotkey"
 
-  # Download googletest release-1.10.0 from archives
-  -    gtest_repo="google/googletest"
-    && release="release-1.10.0"
-    && download_url="https://codeload.github.com/$gtest_repo/tar.gz/$release"
-    && target_dir="googletest-$release"
-    && target_file="$release.tar.gz"
-  - curl -o $target_file $download_url
-  - tar -xvf $target_file
-  -    mkdir external/googletest
-    && shopt -s dotglob nullglob
-    && mv $target_dir/googletest/src/* external/googletest
-    && rm -rf $target_dir
+  # Download googletest release-1.10.0
+  - download_package "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0" "googletest/src"
 
 script:
   -    QTDIR="/usr/local/opt/qt5"
