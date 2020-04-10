@@ -10,6 +10,7 @@ install:
   - brew install qt5
   - brew install ffmpeg
   
+  # Download QHotkey from QtPlay fork
   - git clone https://github.com/QtPlay/QHotkey
   - cd QHotkey
   - git reset --hard e1f90f15bcf472e112061ad36ecb213a8637c975
@@ -17,6 +18,21 @@ install:
   - mkdir external
   - mv QHotkey/QHotkey external
   - rm -rf QHotkey
+
+  # Download latest googletest release from archives
+  - gtest_repo="google/googletest"
+  - latest_release=$(curl --silent "https://api.github.com/repos/$gtest_repo/releases/latest" |
+      grep '"tag_name":' |
+      sed -E 's/.*"([^"]+)".*/\1/')
+  - download_url="https://codeload.github.com/$gtest_repo/tar.gz/$latest_release"
+  - target_dir="googletest-$latest_release"
+  - target_file="$latest_release.tar.gz"
+  - curl -o $target_file $download_url
+  - tar -xvf $target_file
+  - mkdir external/googletest
+  - shopt -s dotglob nullglob
+  - mv $target_dir/googletest/src/* external/googletest
+  - rm -rf $target_dir
 
 script:
   -    QTDIR="/usr/local/opt/qt5"
