@@ -6,6 +6,9 @@ before_install:
   - brew update > /dev/null
   - brew unlink python@2
 
+  -    QTDIR="/usr/local/opt/qt5"
+    && PATH="$QTDIR/bin:$PATH"
+
 install:
   - brew install qt5
   - brew install ffmpeg
@@ -16,10 +19,20 @@ install:
   # Download googletest release-1.10.0
   - sh ./tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0"
 
-script:
-  -    QTDIR="/usr/local/opt/qt5"
-    && PATH="$QTDIR/bin:$PATH"
-  - mkdir build-Release
-  - qmake SimpleScript.pro -o build-Release
-  - cd build-Release
-  - make
+jobs:
+  include:
+    - name: "Unit Tests"
+    - script:
+      cd ~
+      mkdir build-Release
+      qmake tests.pro -o build-Release
+      cd build-Release
+      make
+      ./tests -v
+    - name: "Project Build"
+    - script:
+      cd ~
+      mkdir build-Release
+      qmake SimpleScript.pro -o build-Release
+      cd build-Release
+      make
