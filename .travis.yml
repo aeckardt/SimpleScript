@@ -11,7 +11,7 @@ install:
   - brew install ffmpeg
 
   # Download QHotkey relase 1.1.0 from QtPlay fork
-  - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey" "QHotkey"
+  - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey-1.1.0" "QHotkey"
 
   # Download googletest release-1.10.0
   - sh ./tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0" "googletest/src"
