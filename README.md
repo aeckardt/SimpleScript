@@ -1,10 +1,14 @@
 # Simple Script
 
-## Build Status
+## Project Status
+
+Unit Tests:
+
+[![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript)
 
 Project build for MacOS:
 
-[![Build Status](https://travis-ci.org/aeckardt/SimpleScript.svg?branch=master)](https://travis-ci.org/aeckardt/SimpleScript)
+[![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript)
 
 ## Goal of the project
 
