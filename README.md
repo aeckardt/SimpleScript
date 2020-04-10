@@ -2,7 +2,7 @@
 
 ## Project Status
 
-|Description|Status|
+|&nbsp;&nbsp;&nbsp; Description &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 | ----------- |:--------:|
 | MacOS Build | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript) |
 | Unit Tests | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript) |
