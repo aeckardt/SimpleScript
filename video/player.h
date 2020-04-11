@@ -25,12 +25,12 @@ protected:
     void keyPressEvent(QKeyEvent *) override;
 
 private slots:
-    void receiveFrame(const QImage *image);
+    void receiveFrame(const Image *image);
     void error(const QString &msg);
 
 private:
     DecoderThread decoder;
-    const QImage *image;
+    QImage image;
     bool first_frame;
     int frame_index;
     int frame_rate;

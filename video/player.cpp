@@ -6,17 +6,15 @@
 
 VideoPlayer::VideoPlayer(QWidget *parent) : QDialog(parent)
 {
-    image = nullptr;
-
-    connect(&decoder, SIGNAL(newFrame(const QImage *)), this, SLOT(receiveFrame(const QImage *)));
+    connect(&decoder, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
     connect(&decoder, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
 }
 
 void VideoPlayer::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    if (image != nullptr) {
-        painter.drawImage(QPoint(0, 0), *image);
+    if (image != QImage()) {
+        painter.drawImage(QPoint(0, 0), image);
     }
 }
 
@@ -44,9 +42,9 @@ void VideoPlayer::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void VideoPlayer::receiveFrame(const QImage *image)
+void VideoPlayer::receiveFrame(const Image *image)
 {
-    this->image = image;
+    this->image = image->toQImage();
 
     if (first_frame && isVisible()) {
         setFixedSize(image->size());

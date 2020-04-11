@@ -7,11 +7,6 @@
 #include "image/image.h"
 #include "videofile.h"
 
-struct AVCodecContext;
-struct AVCodec;
-struct AVFrame;
-struct AVPacket;
-
 class VideoEncoder
 {
 public:
@@ -44,10 +39,10 @@ private:
     int height;
     int frame_rate;
 
-    AVCodecContext *ctx;
-    const AVCodec *codec;
-    AVFrame *frame_;
-    AVPacket *pkt;
+    struct AVCodecContext *ctx;
+    const struct AVCodec *codec;
+    struct AVFrame *frame_;
+    struct AVPacket *pkt;
     int pts;
 
     Image image;

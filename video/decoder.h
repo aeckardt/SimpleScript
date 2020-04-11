@@ -26,7 +26,7 @@ public:
     Image &frame() { return image; }
 
     int av_error;
-    std::string last_error;
+    QString last_error;
 
 private:
     void errorMsg(const char *msg);
@@ -60,6 +60,8 @@ private:
     uint8_t *buffer;
 
     int frame_rate;
+
+    friend class DecoderThread;
 };
 
 class DecoderThread : public QThread
@@ -72,14 +74,14 @@ public:
 
     void setFile(const VideoFile &video);
 
-    int frameRate() const { return frame_rate; }
+    int frameRate() const { return decoder.frame_rate; }
 
     void next();
     void stop();
 
 signals:
     void error(const QString &msg);
-    void newFrame(const QImage *image);
+    void newFrame(const Image *image);
     void finished();
 
 protected:
@@ -88,29 +90,7 @@ protected:
 private:
     const VideoFile *video;
 
-    struct AVFormatContext *format_ctx;
-    int video_stream;
-
-    int frame_counter;
-    struct AVCodecParameters *codec_par;
-
-    struct AVCodecContext  *codec_ctx;
-    struct AVCodec         *codec;
-
-    struct AVFrame *frame;
-    struct AVFrame *frame_rgb;
-
-    uint8_t *buffer;
-    int num_bytes;
-
-    struct SwsContext *sws_ctx;
-    int                frame_finished;
-    struct AVPacket   *packet;
-
-    int av_error;
-
-    QImage image;
-    int frame_rate;
+    VideoDecoder decoder;
 
     QMutex mutex;
     QWaitCondition condition;
