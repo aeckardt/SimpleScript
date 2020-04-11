@@ -213,6 +213,7 @@ void VideoDecoder::scaleFrame()
 
 DecoderThread::DecoderThread(QObject *parent) :
     QThread(parent),
+    video(nullptr),
     continue_reading(true),
     quit(false)
 {
@@ -232,6 +233,11 @@ void DecoderThread::setFile(const VideoFile &video)
 
 void DecoderThread::run()
 {
+    if (video == nullptr) {
+        emit error("No video file specified");
+        return;
+    }
+
     decoder.open(*video);
 
     if (decoder.last_error != "") {
