@@ -1,5 +1,5 @@
-#ifndef TST_VIDEO_H
-#define TST_VIDEO_H
+#ifndef TEST_VIDEO_H
+#define TEST_VIDEO_H
 
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
@@ -61,4 +61,4 @@ TEST(Video, EncodeAndDecode)
     ASSERT_TRUE(decoder.eof());
 }
 
-#endif // TST_VIDEO_H
+#endif // TEST_VIDEO_H

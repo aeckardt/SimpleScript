@@ -1,5 +1,5 @@
-#ifndef TST_SCRIPT_H
-#define TST_SCRIPT_H
+#ifndef TEST_SCRIPT_H
+#define TEST_SCRIPT_H
 
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
@@ -24,7 +24,7 @@ TEST(Script, EvaluateExpression)
     }
 }
 
-TEST(Script, IfStatemnent)
+TEST(Script, IfElseStatemnent)
 {
     std::string script =
             "pred = \"A\" == \"A\"\n"
@@ -66,4 +66,4 @@ TEST(Script, IfStatemnent)
     }
 }
 
-#endif // TST_SCRIPT_H
+#endif // TEST_SCRIPT_H

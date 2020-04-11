@@ -1,5 +1,5 @@
-#ifndef TST_IMAGE_H
-#define TST_IMAGE_H
+#ifndef TEST_IMAGE_H
+#define TEST_IMAGE_H
 
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
@@ -47,4 +47,4 @@ TEST(Image, SaveAndLoad)
     EXPECT_EQ(test_image, loaded_image);
 }
 
-#endif // TST_IMAGE_H
+#endif // TEST_IMAGE_H

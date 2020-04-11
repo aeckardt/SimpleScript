@@ -9,9 +9,9 @@ CONFIG += sdk_no_version_check
 HEADERS += \
     createimage.h \
     ../video/decoder.h \ # for moc creation
-    tst_image.h \
-    tst_script.h \
-    tst_video.h
+    test_image.h \
+    test_script.h \
+    test_video.h
 
 SOURCES += \
     createimage.cpp \

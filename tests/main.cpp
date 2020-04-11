@@ -1,6 +1,6 @@
-#include "tst_script.h"
-#include "tst_image.h"
-#include "tst_video.h"
+#include "test_script.h"
+#include "test_image.h"
+#include "test_video.h"
 
 #include <gtest/gtest.h>
 
