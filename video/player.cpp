@@ -13,9 +13,8 @@ VideoPlayer::VideoPlayer(QWidget *parent) : QDialog(parent)
 void VideoPlayer::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    if (image != QImage()) {
+    if (image != QImage())
         painter.drawImage(QPoint(0, 0), image);
-    }
 }
 
 void VideoPlayer::runVideo(const VideoFile &video)
