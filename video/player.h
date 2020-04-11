@@ -29,7 +29,7 @@ private slots:
     void error(const QString &msg);
 
 private:
-    VideoDecoder decoder;
+    DecoderThread decoder;
     const QImage *image;
     bool first_frame;
     int frame_index;

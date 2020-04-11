@@ -89,3 +89,31 @@ QImage Image::toQImage() const
         return image;
     }
 }
+
+Image &Image::operator=(const Image &src)
+{
+    if (width != src.width || height != src.height)
+        resize(src.size());
+
+    int line;
+    for (line = 0; line < height; line++)
+        memcpy(scanLine(line), src.scanLine(line), width * 4);
+
+    return *this;
+}
+
+bool Image::operator==(const Image &cmp) const
+{
+    if (width != cmp.width || height != cmp.height)
+        return false;
+
+    int x, y;
+    for (y = 0; y < height; y++) {
+        for (x = 0; x < width; x++) {
+            if (pixelAt(x, y) != cmp.pixelAt(x, y))
+                return false;
+        }
+    }
+
+    return true;
+}

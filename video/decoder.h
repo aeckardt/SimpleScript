@@ -6,24 +6,69 @@
 #include <QWaitCondition>
 #include <QImage>
 
+#include "image/image.h"
 #include "videofile.h"
 
-struct AVFormatContext;
-struct AVCodecContext;
-struct AVCodecParameters;
-struct AVCodec;
-struct AVFrame;
-struct AVPacket;
-
-class VideoDecoder : public QThread
+class VideoDecoder : QObject
 {
     Q_OBJECT
 
 public:
-    VideoDecoder(QObject *parent = nullptr);
-    ~VideoDecoder() override;
+    VideoDecoder();
+    ~VideoDecoder() { cleanUp(); }
 
-    void setVideo(const VideoFile &video);
+    void open(const VideoFile &video_file);
+    void decodeFrame();
+
+    bool eof() const { return _eof; }
+
+    Image &nextFrame() { return image; }
+
+private:
+    void errorMsg(const char *msg);
+
+private:
+    void initialize();
+    void cleanUp();
+
+    Image image;
+
+    struct AVFormatContext *format_ctx;
+    int video_stream;
+
+    int frame_counter;
+    struct AVCodecParameters *codec_par;
+
+    struct AVCodecContext *codec_ctx;
+    struct AVCodec        *codec;
+
+    struct AVFrame *frame;
+    struct AVFrame *frame_rgb;
+
+    struct SwsContext *sws_ctx;
+
+    bool _eof;
+
+    int frame_finished;
+    struct AVPacket *pkt;
+
+    int num_bytes;
+    uint8_t *buffer;
+
+    int av_error;
+
+    int frame_rate;
+};
+
+class DecoderThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    DecoderThread(QObject *parent = nullptr);
+    ~DecoderThread() override;
+
+    void setFile(const VideoFile &video);
 
     int frameRate() const { return frame_rate; }
 
@@ -41,24 +86,24 @@ protected:
 private:
     const VideoFile *video;
 
-    AVFormatContext *format_ctx;
-    int              video_stream;
+    struct AVFormatContext *format_ctx;
+    int video_stream;
 
     int frame_counter;
-    AVCodecParameters *codec_par;
+    struct AVCodecParameters *codec_par;
 
-    AVCodecContext  *codec_ctx;
-    AVCodec         *codec;
+    struct AVCodecContext  *codec_ctx;
+    struct AVCodec         *codec;
 
-    AVFrame *frame;
-    AVFrame *frame_rgb;
+    struct AVFrame *frame;
+    struct AVFrame *frame_rgb;
 
     uint8_t *buffer;
     int num_bytes;
 
     struct SwsContext *sws_ctx;
     int                frame_finished;
-    AVPacket          *packet;
+    struct AVPacket   *packet;
 
     int av_error;
 

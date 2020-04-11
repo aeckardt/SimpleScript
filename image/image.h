@@ -31,7 +31,15 @@ public:
     uint8_t *scanLine(size_t line) { return bits + bpr * line; }
     const uint8_t *scanLine(size_t line) const { return bits + bpr * line; }
 
+    uint32_t &pixelAt(int x, int y) { return *reinterpret_cast<uint32_t *>(scanLine(y) + x * 4); }
+    const uint32_t &pixelAt(int x, int y) const { return *reinterpret_cast<const uint32_t *>(scanLine(y) + x * 4); }
+
     QImage toQImage() const;
+
+    Image &operator=(const Image &src);
+
+    bool operator==(const Image &cmp) const;
+    bool operator!=(const Image &cmp) const { return !operator==(cmp); }
 
 private:
     uint8_t *bits;

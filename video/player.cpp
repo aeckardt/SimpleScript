@@ -22,7 +22,7 @@ void VideoPlayer::paintEvent(QPaintEvent *)
 
 void VideoPlayer::runVideo(const VideoFile &video)
 {
-    decoder.setVideo(video.fileName());
+    decoder.setFile(video.fileName());
     decoder.start();
 
     first_frame = true;
@@ -68,7 +68,7 @@ void VideoPlayer::receiveFrame(const QImage *image)
         return;
     } else if (interval > 1000)
         interval = 1000;
-    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoder, &VideoDecoder::next);
+    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoder, &DecoderThread::next);
 }
 
 void VideoPlayer::error(const QString &msg)

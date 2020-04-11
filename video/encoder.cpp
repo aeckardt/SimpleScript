@@ -158,7 +158,7 @@ void VideoEncoder::encodeFrames(bool flush)
 void VideoEncoder::errorMsg(const char *msg)
 {
     last_error = msg;
-    fprintf(stderr, "%s", msg);
+    fprintf(stderr, "%s\n", msg);
 }
 
 void VideoEncoder::initialize()

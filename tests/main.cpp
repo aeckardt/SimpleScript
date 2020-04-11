@@ -1,4 +1,5 @@
-#include "tst_imageclass.h"
+#include "tst_image.h"
+#include "tst_video.h"
 
 #include <gtest/gtest.h>
 
