@@ -10,12 +10,13 @@ extern "C" {
 #include <iostream>
 
 VideoDecoder::VideoDecoder() :
+    av_error(0),
     format_ctx(nullptr),
     frame_counter(0),
     codec_par(nullptr),
     codec_ctx(nullptr),
     codec(nullptr),
-    frame(nullptr),
+    frame_(nullptr),
     frame_rgb(nullptr),
     _eof(true),
     pkt(nullptr),
@@ -29,8 +30,8 @@ void VideoDecoder::cleanUp()
         av_freep(&buffer);
     if (pkt != nullptr)
         av_packet_free(&pkt);
-    if (frame != nullptr)
-        av_frame_free(&frame);
+    if (frame_ != nullptr)
+        av_frame_free(&frame_);
     if (codec_ctx != nullptr)
         avcodec_close(codec_ctx);
     if (format_ctx != nullptr)
@@ -41,7 +42,7 @@ void VideoDecoder::cleanUp()
 
 void VideoDecoder::errorMsg(const char *msg)
 {
-    std::cerr << msg << std::endl;
+    last_error = msg;
 }
 
 void VideoDecoder::open(const VideoFile &video_file)
@@ -105,8 +106,8 @@ void VideoDecoder::open(const VideoFile &video_file)
     }
 
     // Allocate video frame
-    frame = av_frame_alloc();
-    if (frame == nullptr) {
+    frame_ = av_frame_alloc();
+    if (frame_ == nullptr) {
         errorMsg("Could not allocate frame");
         return;
     }
@@ -159,7 +160,7 @@ void VideoDecoder::open(const VideoFile &video_file)
     _eof = false;
 }
 
-void VideoDecoder::decodeFrame()
+bool VideoDecoder::readFrame()
 {
     while (!_eof && (av_error = av_read_frame(format_ctx, pkt)) >= 0) {
         // Is this a packet from the video stream?
@@ -177,7 +178,7 @@ void VideoDecoder::decodeFrame()
                 } else {
                     if (av_error >= 0)
                         pkt->size = 0;
-                    av_error = avcodec_receive_frame(codec_ctx, frame);
+                    av_error = avcodec_receive_frame(codec_ctx, frame_);
                     if (av_error >= 0)
                         frame_finished = 1;
                     else if (av_error == AVERROR_EOF) {
@@ -187,25 +188,30 @@ void VideoDecoder::decodeFrame()
                     }
                 }
             }
-            if (frame_finished) {
-                // Convert the image from its native format to RGB
-                sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame->data),
-                          frame->linesize, 0, codec_ctx->height,
-                          frame_rgb->data, frame_rgb->linesize);
-
-                image.assign(frame_rgb->data[0], codec_ctx->width, codec_ctx->height);
-
-                frame_counter++;
-
-                av_packet_unref(pkt);
+            if (frame_finished)
                 break;
-            }
         } else
             continue;
     }
 
     if (av_error == AVERROR_EOF)
         _eof = true;
+
+    return !_eof;
+}
+
+void VideoDecoder::scaleFrame()
+{
+    // Convert the image from its native format to RGB
+    sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
+              frame_->linesize, 0, codec_ctx->height,
+              frame_rgb->data, frame_rgb->linesize);
+
+    image.assign(frame_rgb->data[0], codec_ctx->width, codec_ctx->height);
+
+    frame_counter++;
+
+    av_packet_unref(pkt);
 }
 
 DecoderThread::DecoderThread(QObject *parent) : QThread(parent)

@@ -20,7 +20,7 @@ VideoEncoder::VideoEncoder()
       frame_rate(0),
       ctx(nullptr),
       codec(nullptr),
-      frame(nullptr),
+      frame_(nullptr),
       pkt(nullptr),
       pts(0),
       image(32), // set 32 byte linesize alignment for image
@@ -72,17 +72,17 @@ void VideoEncoder::allocContext()
 
 void VideoEncoder::allocFrame()
 {
-    frame = av_frame_alloc();
-    if (frame == nullptr)
+    frame_ = av_frame_alloc();
+    if (frame_ == nullptr)
         return errorMsg("Could not allocate video frame");
 
-    frame->format = pix_fmt;
-    frame->width  = width;
-    frame->height = height;
+    frame_->format = pix_fmt;
+    frame_->width  = width;
+    frame_->height = height;
 
-    av_error = av_frame_get_buffer(frame, 32);
+    av_error = av_frame_get_buffer(frame_, 32);
     if (av_error < 0) {
-        av_frame_free(&frame);
+        av_frame_free(&frame_);
         return errorMsg("Could not allocate the video frame data");
     }
 }
@@ -95,8 +95,8 @@ void VideoEncoder::cleanUp()
     }
     if (ctx != nullptr)
         avcodec_free_context(&ctx);
-    if (frame != nullptr)
-        av_frame_free(&frame);
+    if (frame_ != nullptr)
+        av_frame_free(&frame_);
     image.clear();
     if (pkt != nullptr)
         av_packet_free(&pkt);
@@ -118,14 +118,14 @@ void VideoEncoder::create(int width, int height, int frame_rate)
 
 void VideoEncoder::encodeFrames(bool flush)
 {
-    if (ctx == nullptr || frame == nullptr || file == nullptr) {
+    if (ctx == nullptr || frame_ == nullptr || file == nullptr) {
         errorMsg("Error initializing encoder");
         return;
     }
 
     if (!flush) {
         // Send the frame to the encoder
-        av_error = avcodec_send_frame(ctx, frame);
+        av_error = avcodec_send_frame(ctx, frame_);
         if (av_error < 0)
             return errorMsg("Error sending a frame for encoding");
     } else {
@@ -148,7 +148,7 @@ void VideoEncoder::encodeFrames(bool flush)
         else if (av_error < 0)
             return errorMsg("Error during encoding");
 
-        frame->pts = pts++;
+        frame_->pts = pts++;
 
         fwrite(pkt->data, 1, pkt->size, file);
         av_packet_unref(pkt);
@@ -172,10 +172,10 @@ void VideoEncoder::initialize()
     codec = ctx->codec;
 
     allocFrame();
-    if (frame == nullptr)
+    if (frame_ == nullptr)
         return;
 
-    image.assign(frame->data[0], width, height);
+    image.assign(frame_->data[0], width, height);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {

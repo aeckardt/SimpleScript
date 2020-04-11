@@ -12,8 +12,8 @@ ScreenRecorder::ScreenRecorder(VideoFile &video)
 
 void ScreenRecorder::captureFrame()
 {
-    encoder.nextFrame().captureRect(rect);
-    encoder.encodeFrame();
+    encoder.frame().captureRect(rect);
+    encoder.writeFrame();
     captured++;
 
     // Determine time till next frame and reconfigure interval

@@ -18,11 +18,15 @@ public:
     ~VideoDecoder() { cleanUp(); }
 
     void open(const VideoFile &video_file);
-    void decodeFrame();
+    bool readFrame();
+    void scaleFrame();
 
     bool eof() const { return _eof; }
 
-    Image &nextFrame() { return image; }
+    Image &frame() { return image; }
+
+    int av_error;
+    std::string last_error;
 
 private:
     void errorMsg(const char *msg);
@@ -42,7 +46,7 @@ private:
     struct AVCodecContext *codec_ctx;
     struct AVCodec        *codec;
 
-    struct AVFrame *frame;
+    struct AVFrame *frame_;
     struct AVFrame *frame_rgb;
 
     struct SwsContext *sws_ctx;
@@ -54,8 +58,6 @@ private:
 
     int num_bytes;
     uint8_t *buffer;
-
-    int av_error;
 
     int frame_rate;
 };

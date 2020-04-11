@@ -21,10 +21,10 @@ public:
     void setFile(const VideoFile &video_file) { this->video_file = video_file; }
 
     void create(int width, int height, int frame_rate);
-    void encodeFrame() { encodeFrames(false); }
+    void writeFrame() { encodeFrames(false); }
     void flush() { encodeFrames(true); }
 
-    Image &nextFrame() { return image; }
+    Image &frame() { return image; }
 
     int av_error;
     QString last_error;
@@ -46,7 +46,7 @@ private:
 
     AVCodecContext *ctx;
     const AVCodec *codec;
-    AVFrame *frame;
+    AVFrame *frame_;
     AVPacket *pkt;
     int pts;
 

@@ -10,7 +10,6 @@
 #include "video/encoder.h"
 
 #include <QImage>
-#include <QThread>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -31,34 +30,50 @@ TEST(Video, EncodeAndDecode)
     // Creates temporary file
     VideoFile video_file;
 
+    // Setup encoder
     VideoEncoder encoder;
     encoder.setFile(video_file);
     encoder.create(width, height, framerate);
 
+    EXPECT_GE(encoder.av_error, 0);
+    if (encoder.av_error < 0)
+        return;
+
+    // Encode frames
     int i;
     for (i = 0; i < frames; i++) {
-        encoder.nextFrame() = createImage(width, height, i, 32);
-        encoder.encodeFrame();
+        encoder.frame() = createImage(width, height, i, 32);
+        encoder.writeFrame();
     }
 
+    // Flush and close file
     encoder.flush();
 
+    // Setup decoder
     VideoDecoder decoder;
     decoder.open(video_file);
 
+    EXPECT_GE(decoder.av_error, 0);
+    if (decoder.av_error < 0)
+        return;
+
+    // Compare all frames with the created frames from the function createImage
+    // and see if they match -> proves lossless compression
     for (i = 0; i < frames; i++) {
-        decoder.decodeFrame();
+        ASSERT_TRUE(decoder.readFrame());
 
-        ASSERT_FALSE(decoder.eof());
+        if (decoder.eof())
+            return;
 
-        const Image &img = decoder.nextFrame();
+        decoder.scaleFrame();
+
+        const Image &img = decoder.frame();
         EXPECT_EQ(img.size(), QSize(width, height));
         EXPECT_EQ(img, createImage(width, height, i));
     }
 
-    decoder.decodeFrame();
-
-    ASSERT_TRUE(decoder.eof());
+    // After the last frame, there should be no more!
+    ASSERT_FALSE(decoder.readFrame());
 }
 
 #endif // TEST_VIDEO_H
