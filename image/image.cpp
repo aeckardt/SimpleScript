@@ -107,12 +107,12 @@ bool Image::operator==(const Image &cmp) const
     if (width != cmp.width || height != cmp.height)
         return false;
 
-    int x, y;
-    for (y = 0; y < height; y++) {
-        for (x = 0; x < width; x++) {
-            if (pixelAt(x, y) != cmp.pixelAt(x, y))
-                return false;
-        }
+    int line;
+    for (line = 0; line < height; line++) {
+        if (strncmp(reinterpret_cast<const char*>(scanLine(line)),
+                    reinterpret_cast<const char*>(cmp.scanLine(line)),
+                    width * 4) != 0)
+            return false;
     }
 
     return true;
