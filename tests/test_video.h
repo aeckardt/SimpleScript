@@ -35,8 +35,8 @@ TEST(Video, EncodeAndDecode)
     encoder.setFile(video_file);
     encoder.create(width, height, framerate);
 
-    EXPECT_GE(encoder.av_error, 0);
-    if (encoder.av_error < 0)
+    EXPECT_GE(encoder.last_error, "");
+    if (encoder.last_error != "")
         return;
 
     // Encode frames
@@ -53,8 +53,8 @@ TEST(Video, EncodeAndDecode)
     VideoDecoder decoder;
     decoder.open(video_file);
 
-    EXPECT_GE(decoder.av_error, 0);
-    if (decoder.av_error < 0)
+    EXPECT_GE(decoder.last_error, "");
+    if (decoder.last_error != "")
         return;
 
     // Compare all frames with the created frames from the function createImage
