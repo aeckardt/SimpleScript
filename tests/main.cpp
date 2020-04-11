@@ -1,3 +1,4 @@
+#include "tst_script.h"
 #include "tst_image.h"
 #include "tst_video.h"
 

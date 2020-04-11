@@ -10,11 +10,16 @@ HEADERS += \
     createimage.h \
     ../video/decoder.h \ # for moc creation
     tst_image.h \
+    tst_script.h \
     tst_video.h
 
 SOURCES += \
     createimage.cpp \
     main.cpp \
+    ../script/astwalker.cpp \
+    ../script/lexer.cpp \
+    ../script/parameter.cpp \
+    ../script/parser.cpp \
     ../image/image.cpp \
     ../video/decoder.cpp \
     ../video/encoder.cpp \

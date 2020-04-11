@@ -51,6 +51,9 @@ public:
     inline void setErrorOutput(const OutputFnc &fnc)
     { output_fnc = fnc; }
 
+    inline const Parameter *getParameter(const std::string &name) const
+    { if (vars.find(name) != vars.end()) return &vars.at(name); return nullptr; }
+
 private:
     OutputFnc output_fnc;
 
