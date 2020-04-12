@@ -7,7 +7,7 @@
 class VideoFile
 {
 public:
-    VideoFile();
+    VideoFile(bool create_temp_file = false);
     VideoFile(const QString &file_name)
     { file_path = file_name; }
 

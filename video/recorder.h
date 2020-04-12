@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QThread>
-#include <QTimer>
 #include <QElapsedTimer>
 #include <QEventLoop>
 
@@ -11,6 +10,35 @@
 #include "encoder.h"
 
 #include "qhotkey.h"
+
+class RecorderThread : public QThread
+{
+    Q_OBJECT
+
+public:
+    void setFile(const VideoFile &video_file) { encoder.setFile(video_file); }
+    void setupVideo(const QRect &rect, int frame_rate);
+
+public slots:
+    void stop();
+
+signals:
+    void flushed();
+
+protected:
+    void run() override;
+
+private:
+    VideoEncoder encoder;
+
+    QRect screen_rect;
+    int frame_rate;
+
+    bool quit;
+
+    QMutex mutex;
+    QElapsedTimer elapsed_timer;
+};
 
 class ScreenRecorder : public QObject
 {
@@ -22,18 +50,10 @@ public:
     void exec(QRect rect, int frame_rate, QString hotkeySequence = "Ctrl+.");
 
 private:
-    QRect rect;
-    int frame_rate;
-    int captured;
+    RecorderThread recorder_thread;
 
-    VideoEncoder encoder;
-
-    QTimer timer;
-    QElapsedTimer elapsed_timer;
     QHotkey hotkey;
     QEventLoop loop;
-
-    void captureFrame();
 };
 
 #endif // RECORDER_H

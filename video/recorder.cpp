@@ -2,46 +2,10 @@
 
 #include "image/image.h"
 
-ScreenRecorder::ScreenRecorder(VideoFile &video)
+void RecorderThread::setupVideo(const QRect &rect, int frame_rate)
 {
-    encoder.setFile(video);
-
-    connect(&timer, &QTimer::timeout, this, &ScreenRecorder::captureFrame);
-    connect(&hotkey, &QHotkey::activated, &loop, &QEventLoop::quit);
-}
-
-void ScreenRecorder::captureFrame()
-{
-    encoder.frame().captureRect(rect);
-    encoder.writeFrame();
-    captured++;
-
-    // Determine time till next frame and reconfigure interval
-    qint64 interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
-    if (interval < 10)
-        interval = 10;
-    else if (interval > 1000)
-        interval = 1000;
-    timer.setInterval(static_cast<int>(interval));
-}
-
-void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
-{
-#ifndef __APPLE
-    // Width / height need to be aligned by a factor of 2 for video encoding
-    // -> on MacOS this step can be skipped
-    //    as to why see further down this function!
-    rect.setSize(QSize(rect.width() & 0xfffe, rect.height() & 0xfffe));
-#endif
-
-    if (rect.width() == 0 || rect.height() == 0)
-        // Cannot record empty frames
-        return;
-
-    this->rect = rect;
+    screen_rect = rect;
     this->frame_rate = frame_rate;
-
-    captured = 0;
 
     int width = rect.width();
     int height = rect.height();
@@ -52,21 +16,84 @@ void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
     height *= 2;
 #endif
 
-    hotkey.setShortcut(hotkeySequence);
-
     encoder.create(width, height, frame_rate);
+}
+
+#include <chrono>
+
+void RecorderThread::run()
+{
+    setPriority(QThread::HighestPriority);
+
+    int captured = 0;
+    qint64 interval;
+    quit = false;
+
     elapsed_timer.start();
 
-    // Capture one frame directly at start
-    captureFrame();
+    mutex.lock();
+    while (!quit) {
+        mutex.unlock();
 
+        encoder.frame().captureRect(screen_rect);
+        encoder.writeFrame();
+        captured++;
+
+        // Determine time till next frame should be captured
+        interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
+
+        // This loop keeps the focus in this thread
+        // -> It works, but it should be improved!
+        // -> Unfortunately, sleep does not guarantee to return in a specified timeframe
+        //    which makes it impossible to record the screen with a certain framerate
+        while (interval > 0) {
+            interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
+        }
+
+        mutex.lock();
+    }
+    mutex.unlock();
+
+    encoder.flush();
+}
+
+void RecorderThread::stop()
+{
+    QMutexLocker locker(&mutex);
+
+    quit = true;
+}
+
+ScreenRecorder::ScreenRecorder(VideoFile &video)
+{
+    recorder_thread.setFile(video);
+
+    connect(&hotkey, &QHotkey::activated, &recorder_thread, &RecorderThread::stop);
+    connect(&recorder_thread, &RecorderThread::finished, &loop, &QEventLoop::quit);
+}
+
+void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
+{
+#ifndef __APPLE
+    // Width / height need to be aligned by a factor of 2 for video encoding
+    // -> on MacOS this step can be skipped
+    //    as to why look into RecorderThread::setupVideo!
+    rect.setSize(QSize(rect.width() & 0xfffe, rect.height() & 0xfffe));
+#endif
+
+    if (rect.width() == 0 || rect.height() == 0)
+        // Cannot record empty frames
+        return;
+
+    // Prepare recording
+    hotkey.setShortcut(hotkeySequence);
+    recorder_thread.setupVideo(rect, frame_rate);
+
+    // Start recorder thread and register hotkey to stop thread
+    recorder_thread.start();
     hotkey.setRegistered(true);
-    timer.start();
 
     loop.exec();
 
-    timer.stop();
     hotkey.setRegistered(false);
-
-    encoder.flush();
 }
