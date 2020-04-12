@@ -19,8 +19,6 @@ void RecorderThread::setupVideo(const QRect &rect, int frame_rate)
     encoder.create(width, height, frame_rate);
 }
 
-#include <chrono>
-
 void RecorderThread::run()
 {
     setPriority(QThread::HighestPriority);
