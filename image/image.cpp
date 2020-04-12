@@ -67,10 +67,12 @@ void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cl
 
 void Image::resize(int width, int height)
 {
-    assign(new uint8_t[bytesPerRow(width) * height],
+    uint8_t* new_bits = new uint8_t[bytesPerRow(width) * height];
+
+    assign(new_bits,
            width, height,
            [](void *ptr) { delete [] static_cast<uint8_t *>(ptr); },
-           bits);
+           new_bits);
 }
 
 QImage Image::toQImage() const
