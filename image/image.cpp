@@ -109,9 +109,7 @@ bool Image::operator==(const Image &cmp) const
 
     int line;
     for (line = 0; line < height; line++) {
-        if (strncmp(reinterpret_cast<const char*>(scanLine(line)),
-                    reinterpret_cast<const char*>(cmp.scanLine(line)),
-                    width * 4) != 0)
+        if (memcmp(scanLine(line), cmp.scanLine(line), width * 4) != 0)
             return false;
     }
 
