@@ -15,13 +15,9 @@ TEST(Script, EvaluateExpression)
 
     const tw::Parameter *param = tw.getParameter("x");
 
-    EXPECT_NE(param, nullptr);
-
-    if (param != nullptr) {
-        EXPECT_EQ(param->type(), tw::Int);
-        if (param->type() == tw::Int)
-            EXPECT_EQ(param->asInt(), 51);
-    }
+    ASSERT_NE(param, nullptr);
+    ASSERT_EQ(param->type(), tw::Int);
+    EXPECT_EQ(param->asInt(), 51);
 }
 
 TEST(Script, IfElseStatemnent)
@@ -38,13 +34,9 @@ TEST(Script, IfElseStatemnent)
 
     const tw::Parameter *param = tw.getParameter("result");
 
-    EXPECT_NE(param, nullptr);
-
-    if (param != nullptr) {
-        EXPECT_EQ(param->type(), tw::Int);
-        if (param->type() == tw::Int)
-            EXPECT_EQ(param->asInt(), 1);
-    }
+    ASSERT_NE(param, nullptr);
+    ASSERT_EQ(param->type(), tw::Int);
+    EXPECT_EQ(param->asInt(), 1);
 
     script =
             "pred = \"A\" == \"B\"\n"
@@ -57,13 +49,9 @@ TEST(Script, IfElseStatemnent)
 
     param = tw.getParameter("result");
 
-    EXPECT_NE(param, nullptr);
-
-    if (param != nullptr) {
-        EXPECT_EQ(param->type(), tw::Int);
-        if (param->type() == tw::Int)
-            EXPECT_EQ(param->asInt(), 2);
-    }
+    ASSERT_NE(param, nullptr);
+    ASSERT_EQ(param->type(), tw::Int);
+    EXPECT_EQ(param->asInt(), 2);
 }
 
 #endif // TEST_SCRIPT_H

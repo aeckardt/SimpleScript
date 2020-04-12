@@ -35,9 +35,7 @@ TEST(Video, EncodeAndDecode)
     encoder.setFile(video_file);
     encoder.create(width, height, framerate);
 
-    EXPECT_EQ(encoder.last_error, "");
-    if (encoder.last_error != "")
-        return;
+    ASSERT_EQ(encoder.last_error, "");
 
     // Encode frames
     int i;
@@ -53,17 +51,13 @@ TEST(Video, EncodeAndDecode)
     VideoDecoder decoder;
     decoder.open(video_file);
 
-    EXPECT_EQ(decoder.last_error, "");
-    if (decoder.last_error != "")
-        return;
+    ASSERT_EQ(decoder.last_error, "");
 
     // Compare all frames with the created frames from the function createImage
     // and see if they match -> proves lossless compression
     for (i = 0; i < frames; i++) {
+        // Assert that decoder has one more frame
         ASSERT_TRUE(decoder.readFrame());
-
-        if (decoder.eof())
-            return;
 
         decoder.scaleFrame();
 
@@ -73,7 +67,7 @@ TEST(Video, EncodeAndDecode)
     }
 
     // After the last frame, there should be no more!
-    ASSERT_FALSE(decoder.readFrame());
+    EXPECT_FALSE(decoder.readFrame());
 }
 
 #endif // TEST_VIDEO_H
