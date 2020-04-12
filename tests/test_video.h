@@ -28,14 +28,14 @@ TEST(Video, EncodeAndDecode)
     int framerate = 25;
 
     // Creates temporary file
-    VideoFile video_file;
+    VideoFile video_file(true);
 
     // Setup encoder
     VideoEncoder encoder;
     encoder.setFile(video_file);
     encoder.create(width, height, framerate);
 
-    EXPECT_GE(encoder.last_error, "");
+    EXPECT_EQ(encoder.last_error, "");
     if (encoder.last_error != "")
         return;
 
@@ -53,7 +53,7 @@ TEST(Video, EncodeAndDecode)
     VideoDecoder decoder;
     decoder.open(video_file);
 
-    EXPECT_GE(decoder.last_error, "");
+    EXPECT_EQ(decoder.last_error, "");
     if (decoder.last_error != "")
         return;
 
