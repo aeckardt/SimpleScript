@@ -10,7 +10,17 @@
 ## Goal of the project
 
 The goal of this project is to provide tools to capture screen information and effectively utilize it to automate testing or to log information.
-Currently you can select an area on the screen, make screenshots, record an area of the screen at a certain framerate, view the outcome, save it, measure performance and make some calculations. The function are explained in further detail down below in this readme.
+
+What you currently can do is to 
+* select an area on the screen,
+* make screenshots,
+* record an area of the screen at a certain framerate,
+* view the outcome,
+* save the outcome,
+* measure performance,
+* and make some calculations.
+
+The function are explained in further detail down below in this readme.
 
 ## How the tool works
 
