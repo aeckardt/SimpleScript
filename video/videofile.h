@@ -20,10 +20,10 @@ private:
     QTemporaryFile temp_file;
     QString file_path;
 
-    friend VideoFile createTemporaryVideoFile();
+    friend VideoFile temporaryVideo();
 };
 
-inline VideoFile createTemporaryVideoFile()
+inline VideoFile temporaryVideo()
 {
     VideoFile video_file;
     video_file.temp_file.open();
