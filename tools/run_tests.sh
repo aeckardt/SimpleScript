@@ -4,5 +4,11 @@ mkdir build-Release
 qmake tests.pro -o build-Release
 cd build-Release
 make
-./tests -v
+result=$?
+if [[ $result -eq 0 ]]
+then
+  ./tests
+  result=$?
+fi
 cd ../..
+exit $result
