@@ -22,8 +22,7 @@ SOURCES += \
     ../script/parser.cpp \
     ../image/image.cpp \
     ../video/decoder.cpp \
-    ../video/encoder.cpp \
-    ../video/videofile.cpp
+    ../video/encoder.cpp
 
 INCLUDEPATH += \
     $$PWD/.. \

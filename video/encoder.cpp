@@ -24,6 +24,7 @@ VideoEncoder::VideoEncoder()
       pkt(nullptr),
       pts(0),
       image(32), // set 32 byte linesize alignment for image
+      video_file(nullptr),
       file(nullptr)
 {
     av_log_set_level(AV_LOG_ERROR);
@@ -105,13 +106,16 @@ void VideoEncoder::cleanUp()
 
 void VideoEncoder::create(int width, int height, int frame_rate)
 {
+    if (video_file == nullptr)
+        return errorMsg("No file for encoding specified");
+
     this->width = width;
     this->height = height;
     this->frame_rate = frame_rate;
 
     initialize();
 
-    file = fopen(video_file.fileName().toStdString().c_str(), "wb");
+    file = fopen(video_file->fileName().toStdString().c_str(), "wb");
     if (file == nullptr)
         return errorMsg("Could not open file");
 }

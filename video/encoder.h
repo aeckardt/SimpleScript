@@ -13,7 +13,7 @@ public:
     VideoEncoder();
     ~VideoEncoder() { cleanUp(); }
 
-    void setFile(const VideoFile &video_file) { this->video_file = video_file; }
+    void setFile(const VideoFile &video_file) { this->video_file = &video_file; }
 
     void create(int width, int height, int frame_rate);
     void writeFrame() { encodeFrames(false); }
@@ -47,7 +47,7 @@ private:
 
     Image image;
 
-    VideoFile video_file;
+    const VideoFile *video_file;
     FILE *file;
 };
 
