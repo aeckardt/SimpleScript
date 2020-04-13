@@ -21,9 +21,6 @@ public:
 public slots:
     void stop();
 
-signals:
-    void flushed();
-
 protected:
     void run() override;
 
