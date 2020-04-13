@@ -41,8 +41,7 @@ SOURCES += \
     video/decoder.cpp \
     video/encoder.cpp \
     video/player.cpp \
-    video/recorder.cpp \
-    video/videofile.cpp
+    video/recorder.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -63,9 +62,6 @@ HEADERS += \
     video/recorder.h \
     video/videofile.h
 
-INCLUDEPATH += \
-    /usr/local/include
-
 win32 {
     LIBS += \
         -lgdi32
@@ -75,12 +71,15 @@ macx {
     SOURCES += \
         image/image_mac.cpp
 
+    INCLUDEPATH += \
+        /usr/local/include
+
     LIBS += \
-        -framework ApplicationServices
+        -framework ApplicationServices \
+        -L/usr/local/lib
 }
 
 LIBS += \
-    -L/usr/local/lib \
     -lavcodec \
     -lavformat \
     -lavutil \

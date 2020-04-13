@@ -27,8 +27,8 @@ TEST(Video, EncodeAndDecode)
     int frames = 60;
     int framerate = 25;
 
-    // Creates temporary file
-    VideoFile video_file(true);
+    // Create temporary file
+    VideoFile video_file = createTemporaryVideoFile();
 
     // Setup encoder
     VideoEncoder encoder;
