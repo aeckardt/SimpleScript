@@ -104,23 +104,21 @@ void VideoEncoder::cleanUp()
     pts = 0;
 }
 
-void VideoEncoder::create(int width, int height, int frame_rate)
+void VideoEncoder::open(const VideoFile &video_file, int width, int height, int frame_rate)
 {
-    if (video_file == nullptr)
-        return errorMsg("No file for encoding specified");
-
+    this->video_file = &video_file;
     this->width = width;
     this->height = height;
     this->frame_rate = frame_rate;
 
     initialize();
 
-    file = fopen(video_file->fileName().toStdString().c_str(), "wb");
+    file = fopen(this->video_file->fileName().toStdString().c_str(), "wb");
     if (file == nullptr)
         return errorMsg("Could not open file");
 }
 
-void VideoEncoder::encodeFrames(bool flush)
+void VideoEncoder::encodeFrame(bool flush)
 {
     if (ctx == nullptr || frame_ == nullptr || file == nullptr) {
         errorMsg("Error initializing encoder");

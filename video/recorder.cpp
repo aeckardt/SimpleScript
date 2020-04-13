@@ -2,7 +2,7 @@
 
 #include "image/image.h"
 
-void RecorderThread::setupVideo(const QRect &rect, int frame_rate)
+void RecorderThread::setupVideo(const VideoFile &video_file, const QRect &rect, int frame_rate)
 {
     screen_rect = rect;
     this->frame_rate = frame_rate;
@@ -16,7 +16,7 @@ void RecorderThread::setupVideo(const QRect &rect, int frame_rate)
     height *= 2;
 #endif
 
-    encoder.create(width, height, frame_rate);
+    encoder.open(video_file, width, height, frame_rate);
 }
 
 void RecorderThread::run()
@@ -62,15 +62,13 @@ void RecorderThread::stop()
     quit = true;
 }
 
-ScreenRecorder::ScreenRecorder(VideoFile &video)
+ScreenRecorder::ScreenRecorder()
 {
-    recorder_thread.setFile(video);
-
     connect(&hotkey, &QHotkey::activated, &recorder_thread, &RecorderThread::stop);
     connect(&recorder_thread, &RecorderThread::finished, &loop, &QEventLoop::quit);
 }
 
-void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
+void ScreenRecorder::exec(const VideoFile &video_file, QRect rect, int frame_rate, QString hotkeySequence)
 {
 #ifndef __APPLE
     // Width / height need to be aligned by a factor of 2 for video encoding
@@ -85,7 +83,7 @@ void ScreenRecorder::exec(QRect rect, int frame_rate, QString hotkeySequence)
 
     // Prepare recording
     hotkey.setShortcut(hotkeySequence);
-    recorder_thread.setupVideo(rect, frame_rate);
+    recorder_thread.setupVideo(video_file, rect, frame_rate);
 
     // Start recorder thread and register hotkey to stop thread
     recorder_thread.start();

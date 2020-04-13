@@ -16,8 +16,7 @@ class RecorderThread : public QThread
     Q_OBJECT
 
 public:
-    void setFile(const VideoFile &video_file) { encoder.setFile(video_file); }
-    void setupVideo(const QRect &rect, int frame_rate);
+    void setupVideo(const VideoFile &video_file, const QRect &rect, int frame_rate);
 
 public slots:
     void stop();
@@ -45,9 +44,9 @@ class ScreenRecorder : public QObject
     Q_OBJECT
 
 public:
-    ScreenRecorder(VideoFile &video);
+    ScreenRecorder();
 
-    void exec(QRect rect, int frame_rate, QString hotkeySequence = "Ctrl+.");
+    void exec(const VideoFile &video_file, QRect rect, int frame_rate, QString hotkeySequence = "Ctrl+.");
 
 private:
     RecorderThread recorder_thread;

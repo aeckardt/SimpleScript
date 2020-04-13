@@ -13,11 +13,9 @@ public:
     VideoEncoder();
     ~VideoEncoder() { cleanUp(); }
 
-    void setFile(const VideoFile &video_file) { this->video_file = &video_file; }
-
-    void create(int width, int height, int frame_rate);
-    void writeFrame() { encodeFrames(false); }
-    void flush() { encodeFrames(true); }
+    void open(const VideoFile &video_file, int width, int height, int frame_rate);
+    void writeFrame() { encodeFrame(false); }
+    void flush() { encodeFrame(true); }
 
     Image &frame() { return image; }
 
@@ -31,7 +29,7 @@ private:
     void initialize();
     void cleanUp();
 
-    void encodeFrames(bool flush);
+    void encodeFrame(bool flush);
 
     void errorMsg(const char *msg);
 

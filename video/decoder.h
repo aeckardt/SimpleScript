@@ -9,10 +9,8 @@
 #include "image/image.h"
 #include "videofile.h"
 
-class VideoDecoder : QObject
+class VideoDecoder
 {
-    Q_OBJECT
-
 public:
     VideoDecoder();
     ~VideoDecoder() { cleanUp(); }
