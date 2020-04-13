@@ -32,7 +32,7 @@ TEST(Video, EncodeAndDecode)
 
     // Setup encoder
     VideoEncoder encoder;
-    encoder.open(width, height, framerate);
+    encoder.open(video_file, width, height, framerate);
 
     ASSERT_EQ(encoder.last_error, "");
 
