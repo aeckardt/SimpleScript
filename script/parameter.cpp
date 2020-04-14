@@ -126,13 +126,6 @@ void Parameter::assign(const ParameterObject &o)
     _type = Object;
 }
 
-void Parameter::assign(ParameterObject &&o)
-{
-    clear();
-    o.moveTo(value);
-    _type = Object;
-}
-
 double Parameter::asFloat() const
 {
     if (_type == Float)

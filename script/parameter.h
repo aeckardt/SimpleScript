@@ -46,7 +46,6 @@ class ParameterObject
 public:
     virtual ~ParameterObject();
     virtual void copyTo(void *&) const {}
-    virtual void moveTo(void *&) {}
 
     virtual ObjectReference objRef() const = 0;
 };
@@ -89,7 +88,6 @@ public:
     void assign(const _Rect &);
     void assign(const _DateTime &);
     void assign(const ParameterObject &);
-    void assign(ParameterObject &&);
 
     template<class T, class... _Args>
     inline T &createObject(_Args... __args)

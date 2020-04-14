@@ -29,7 +29,6 @@ struct Command
 struct ObjectType
 {
     std::string name;
-    bool moveable;
     bool copyable;
 };
 
@@ -45,8 +44,8 @@ public:
     { commands[name] = {callback_fnc, param_types, return_type}; }
 
     template<class T>
-    inline void registerObject(const std::string &name, bool moveable, bool copyable)
-    { obj_types[ParameterObjectBase<T>::ref] = {name, moveable, copyable}; }
+    inline void registerObject(const std::string &name, bool copyable)
+    { obj_types[ParameterObjectBase<T>::ref] = {name, copyable}; }
 
     inline void setErrorOutput(const OutputFnc &fnc)
     { output_fnc = fnc; }
