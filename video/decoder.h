@@ -94,7 +94,7 @@ private:
     QWaitCondition condition;
 
     bool continue_reading;
-    bool quit;
+    bool quit;//
 };
 
 #endif // DECODER_H
