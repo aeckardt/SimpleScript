@@ -159,10 +159,10 @@ bool ASTWalker::traverseExpr(const Node &node)
     ParameterList stack;
     for (const Node &child : node.children) {
         if (lx::isOperator(child.param.id())) {
-            const Parameter p2 = stack.back();
+            const Parameter p2 = std::move(stack.back());
             stack.pop_back();
 
-            const Parameter p1 = stack.back();
+            const Parameter p1 = std::move(stack.back());
             stack.pop_back();
 
             if (!traverseOperation(child.param.id(), p1, p2))
