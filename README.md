@@ -7,6 +7,8 @@
 | MacOS Build | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript) |
 | Unit Tests | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript) |
 
+Table of contents
+
 ## Goal of the project
 
 The goal of this project is to provide tools to capture screen information and effectively utilize it to automate testing or to log information.
