@@ -27,7 +27,6 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
-    image/image_win.cpp \
     mainWindow/main.cpp \
     mainWindow/mainwindow.cpp \
     script/engine.cpp \
@@ -65,6 +64,9 @@ HEADERS += \
 
 win32 {
     FFMPEG_PATH = $$PWD/external/FFmpeg
+    
+    SOURCES += \
+        image/image_win.cpp
 
     INCLUDEPATH += \
         $$FFMPEG_PATH/include
