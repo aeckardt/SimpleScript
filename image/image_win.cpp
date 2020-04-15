@@ -38,9 +38,9 @@ void Image::captureRect(const QRect &rect)
     bih.biBitCount = 32;
     bih.biSizeImage = static_cast<DWORD>(rect.height() * bpr);
 
-    char* data;
+    void* bits;
 
-    HBITMAP hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&data), nullptr, 0);
+    HBITMAP hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, &bits, nullptr, 0);
 
     HGDIOBJ hOldObj = SelectObject(hMemoryDC, static_cast<HGDIOBJ>(hbmp));
     BitBlt(hMemoryDC, 0, 0, rect.width(), rect.height(), hScreenDC, rect.x(), rect.y(), SRCCOPY | CAPTUREBLT);
@@ -49,7 +49,7 @@ void Image::captureRect(const QRect &rect)
     DeleteDC(hMemoryDC);
     ReleaseDC(nullptr, hScreenDC);
 
-    assign(reinterpret_cast<uint8_t *>(data),
+    assign(reinterpret_cast<uint8_t *>(bits),
            rect.width(),
            rect.height(),
            [](void *hbmp) { DeleteObject(hbmp); },
