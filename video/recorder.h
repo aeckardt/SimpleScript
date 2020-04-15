@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QMutex>
 
 #include "image/image.h"
 #include "encoder.h"
