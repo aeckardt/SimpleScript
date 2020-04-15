@@ -27,6 +27,7 @@ CONFIG += \
     sdk_no_version_check
 
 SOURCES += \
+    image/image_win.cpp \
     mainWindow/main.cpp \
     mainWindow/mainwindow.cpp \
     script/engine.cpp \
@@ -63,8 +64,14 @@ HEADERS += \
     video/videofile.h
 
 win32 {
+    FFMPEG_PATH = $$PWD/external/FFmpeg
+
+    INCLUDEPATH += \
+        $$FFMPEG_PATH/include
+
     LIBS += \
-        -lgdi32
+        -lgdi32 \
+        -L$$FFMPEG_PATH/lib
 }
 
 macx {
@@ -77,6 +84,7 @@ macx {
     LIBS += \
         -framework ApplicationServices \
         -L/usr/local/lib
+
 }
 
 LIBS += \
