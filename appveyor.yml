@@ -9,3 +9,5 @@ install:
 build_script:
   - mkdir build-Release
   - qmake SimpleScript.pro -o build-Release
+  - cd build-Release
+  - mingw32-make
