@@ -576,7 +576,8 @@ bool ASTWalker::validateCommand(const std::string &command, const ParameterTypeL
     const Command &cmd = commands.find(command)->second;
 
     if (cmd.param_types.size() < param_types.size()) {
-        errorMsgf("Too many arguments passed to function '%s', expected %lu", command.c_str(), cmd.param_types.size());
+        errorMsgf("Too many arguments passed to function '%s', expected %lu",
+                  command.c_str(), static_cast<unsigned long>(cmd.param_types.size()));
         return false;
     }
 
@@ -590,7 +591,8 @@ bool ASTWalker::validateCommand(const std::string &command, const ParameterTypeL
                 validParam = true;
                 break;
             } else if (param_types.size() <= index) {
-                errorMsgf("Error: Wrong number of arguments passed to function '%s', expected %lu", command.c_str(), cmd.param_types.size());
+                errorMsgf("Error: Wrong number of arguments passed to function '%s', expected %lu",
+                          command.c_str(), static_cast<unsigned long>(cmd.param_types.size()));
                 return false;
             } else if (param_types[index] == type) {
                 validParam = true;
