@@ -170,4 +170,3 @@ You might have noticed that the script language is pretty much Python-like. The 
   * this should contain important variables, paths to images, positions and script functions
 
 With all that, you should be able to record a software while running, to gather all necessary information, like buttons, images and error texts. Then you can write a script and verify, at least in-part, that the script is working properly with your recording. Then you should be able to run the test with your scripted test-case.
-
