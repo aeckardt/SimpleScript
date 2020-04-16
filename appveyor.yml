@@ -7,7 +7,7 @@ install:
   # Download package for QHotkey from QtPlay fork
   - mkdir external
   - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey-1.1.0"
-  - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip
+  - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip ./ffmpeg-4.2.2-win64-dev.zip
   - 7z ffmpeg-4.2.2-win64-dev.zip external
   - mv external/ffmpeg-4.2.2-win64-dev external/FFmpeg
 build_script:
