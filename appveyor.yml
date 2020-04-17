@@ -3,13 +3,17 @@ init:
   - set QTDIR=C:\Qt\5.14.1\mingw73_64
   - set MINGW=C:\Qt\Tools\mingw730_64
   - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin
+  
 install:
   # Download package for QHotkey from QtPlay fork
   - mkdir external
   - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey-1.1.0"
+  
+  # Download package for FFmpeg release 4.2.2 with lib build
   - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip
   - 7z x ffmpeg-4.2.2-win64-dev.zip -oexternal -y
   - mv external/ffmpeg-4.2.2-win64-dev external/FFmpeg
+  
 build_script:
   - mkdir build-Release
   - qmake SimpleScript.pro -o build-Release
