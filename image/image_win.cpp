@@ -24,7 +24,7 @@ void Image::captureRect(const QRect &rect)
     }
 
     // Assumed format is QImage::Format_RGB32
-    int bpr = rect.width() * 4;
+    size_t bpr = static_cast<size_t>(rect.width() * 4);
 
     HDC hScreenDC = GetDC(nullptr);
     HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
@@ -36,11 +36,11 @@ void Image::captureRect(const QRect &rect)
     bih.biSize = sizeof(BITMAPINFOHEADER);
     bih.biPlanes = 1;
     bih.biBitCount = 32;
-    bih.biSizeImage = static_cast<DWORD>(rect.height() * bpr);
+    bih.biSizeImage = static_cast<DWORD>(static_cast<size_t>(rect.height()) * bpr);
 
-    void* bits;
+    uint8_t* bits;
 
-    HBITMAP hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, &bits, nullptr, 0);
+    HBITMAP hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&bits), nullptr, 0);
 
     HGDIOBJ hOldObj = SelectObject(hMemoryDC, static_cast<HGDIOBJ>(hbmp));
     BitBlt(hMemoryDC, 0, 0, rect.width(), rect.height(), hScreenDC, rect.x(), rect.y(), SRCCOPY | CAPTUREBLT);
@@ -49,11 +49,20 @@ void Image::captureRect(const QRect &rect)
     DeleteDC(hMemoryDC);
     ReleaseDC(nullptr, hScreenDC);
 
-    assign(reinterpret_cast<uint8_t *>(bits),
-           rect.width(),
-           rect.height(),
-           [](void *hbmp) { DeleteObject(hbmp); },
-           hbmp);
+    if (can_reallocate)
+        assign(reinterpret_cast<uint8_t *>(bits),
+               rect.width(),
+               rect.height(),
+               [](void *hbmp) { DeleteObject(hbmp); },
+               hbmp);
+    else {
+        if (rect.size() != size())
+            resize(rect.size());
+        size_t h;
+        for (h = 0; h < static_cast<size_t>(height); ++h)
+            memcpy(scanLine(h), bits + h * bpr, static_cast<size_t>(width) * 4);
+        DeleteObject(hbmp);
+    }
 }
 
 #endif

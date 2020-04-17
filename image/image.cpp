@@ -7,7 +7,8 @@ Image::Image(int linesize_alignment) :
     linesize_alignment(linesize_alignment),
     bpr(0),
     cleanup_fnc(nullptr),
-    cleanup_info(nullptr)
+    cleanup_info(nullptr),
+    can_reallocate(true)
 {
 }
 
@@ -15,7 +16,7 @@ Image::Image(const Image &src) :
     Image(src.linesize_alignment)
 {
     resize(src.size());
-    memcpy(bits, src.bits, bpr * height);
+    memcpy(bits, src.bits, bpr * static_cast<size_t>(height));
 }
 
 Image::Image(const QString &file_name) :
@@ -43,12 +44,12 @@ void Image::clear()
     height = 0;
 }
 
-int Image::bytesPerRow(int width)
+size_t Image::bytesPerRow(int width)
 {
     if (linesize_alignment == 0)
-        return width * 4;
+        return static_cast<size_t>(width * 4);
     else
-        return ((width * 4 + linesize_alignment - 1) / linesize_alignment) * linesize_alignment;
+        return static_cast<size_t>(((width * 4 + linesize_alignment - 1) / linesize_alignment) * linesize_alignment);
 }
 
 void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cleanup_fnc, void *cleanup_info)
@@ -59,15 +60,17 @@ void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cl
     this->width = width;
     this->height = height;
 
-    bpr = bytesPerRow(width);
+    bpr = static_cast<size_t>(bytesPerRow(width));
 
     this->cleanup_fnc = cleanup_fnc;
     this->cleanup_info = cleanup_info;
 }
 
+
+
 void Image::resize(int width, int height)
 {
-    uint8_t* buffer = new uint8_t[bytesPerRow(width) * height];
+    uint8_t* buffer = new uint8_t[bytesPerRow(width) * static_cast<size_t>(height)];
 
     assign(buffer,
            width, height,
@@ -84,9 +87,11 @@ QImage Image::toQImage() const
         // New QImage is created that owns the image data
         QImage image = QImage(width, height, QImage::Format_RGB32);
 
-        int line;
-        for (line = 0; line < height; line++)
-            memcpy(image.bits() + image.bytesPerLine() * line, scanLine(line), image.bytesPerLine());
+        size_t line;
+        for (line = 0; line < static_cast<size_t>(height); line++)
+            memcpy(image.bits() + static_cast<size_t>(image.bytesPerLine()) * line,
+                   scanLine(line),
+                   static_cast<size_t>(image.bytesPerLine()));
 
         return image;
     }
@@ -97,9 +102,9 @@ Image &Image::operator=(const Image &src)
     if (width != src.width || height != src.height)
         resize(src.size());
 
-    int line;
-    for (line = 0; line < height; line++)
-        memcpy(scanLine(line), src.scanLine(line), width * 4);
+    size_t line;
+    for (line = 0; line < static_cast<size_t>(height); line++)
+        memcpy(scanLine(line), src.scanLine(line), static_cast<size_t>(width * 4));
 
     return *this;
 }
@@ -109,9 +114,9 @@ bool Image::operator==(const Image &cmp) const
     if (width != cmp.width || height != cmp.height)
         return false;
 
-    int line;
-    for (line = 0; line < height; line++) {
-        if (memcmp(scanLine(line), cmp.scanLine(line), width * 4) != 0)
+    size_t line;
+    for (line = 0; line < static_cast<size_t>(height); line++) {
+        if (memcmp(scanLine(line), cmp.scanLine(line), static_cast<size_t>(width * 4)) != 0)
             return false;
     }
 
