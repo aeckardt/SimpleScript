@@ -152,7 +152,7 @@ void VideoEncoder::encodeFrame(bool flush)
 
         frame_->pts = pts++;
 
-        fwrite(pkt->data, 1, pkt->size, file);
+        fwrite(pkt->data, 1, static_cast<size_t>(pkt->size), file);
         av_packet_unref(pkt);
     }
 }
@@ -178,6 +178,7 @@ void VideoEncoder::initialize()
         return;
 
     image.assign(frame_->data[0], width, height);
+    image.enableReallocation(false);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {
