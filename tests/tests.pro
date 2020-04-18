@@ -1,5 +1,3 @@
-include(gtest_dependency.pri)
-
 TEMPLATE = app
 CONFIG += console
 CONFIG -= app_bundle
@@ -43,4 +41,5 @@ macx {
 INCLUDEPATH += \
     $$PWD/..
 
+include(../external/googletest.pri)
 include(../external/FFmpeg.pri)
