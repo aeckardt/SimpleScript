@@ -8,10 +8,10 @@ CONFIG += sdk_no_version_check
 
 HEADERS += \
     createimage.h \
-#    ../video/decoder.h \ # for moc creation
+    ../video/decoder.h \ # for moc creation
     test_image.h \
     test_script.h \
-#    test_video.h
+    test_video.h
 
 SOURCES += \
     createimage.cpp \
@@ -21,8 +21,8 @@ SOURCES += \
     ../script/parameter.cpp \
     ../script/parser.cpp \
     ../image/image.cpp \
-#    ../video/decoder.cpp \
-#    ../video/encoder.cpp
+    ../video/decoder.cpp \
+    ../video/encoder.cpp
 
 win32 {
     SOURCES += \
@@ -43,4 +43,4 @@ macx {
 INCLUDEPATH += \
     $$PWD/..
 
-#include(../external/FFmpeg.pri)
+include(../external/FFmpeg.pri)

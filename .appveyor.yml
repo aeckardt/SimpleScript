@@ -26,12 +26,25 @@ build_script:
   - cd ..
 
 test_script:
-  # Run testcases
+  # Create folder for build
   - cd tests
   - mkdir build-Release
+
+  # Build testcase
   - qmake tests.pro -o build-Release
   - cd build-Release
   - mingw32-make
+  
+  # Download FFmpeg dlls to be able to run executable
+  - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip
+  - 7z x ffmpeg-4.2.2-win64-shared.zip -o. -y
+
+  # Move dlls to executable path
+  - mv ffmpeg-4.2.2-win64-shared/bin/*.dll .
+  
+  # Clean up
+  - rm -rf ffmpeg-4.2.2-win64-shared
+  
+  # Run testcases
   - tests.exe
   - cd ..\..
-  
