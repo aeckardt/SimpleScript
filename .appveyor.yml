@@ -1,4 +1,5 @@
 environment:
+  config: Windows
   QTDIR: C:\Qt\5.14.1\mingw73_64
   MINGW: C:\Qt\Tools\mingw730_64
   
@@ -7,10 +8,10 @@ install:
   - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin
 
   # Download package for QHotkey from QtPlay fork
-  - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey-1.1.0"
+  - sh ./tools/download_package.sh "QtPlay/QHotkey" "QHotkey" "1.1.0"
   
   # Download package for googletest release 1.10.0
-  - sh ./tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0"
+  - sh ./tools/download_package.sh "google/googletest" "googletest" "release-1.10.0"
   
   # Download package for FFmpeg release 4.2.2 with lib build
   - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip
@@ -19,11 +20,7 @@ install:
   
 build_script:
   # Build SimpleScript
-  - mkdir build-Release
-  - qmake SimpleScript.pro -o build-Release
-  - cd build-Release
-  - mingw32-make
-  - cd ..
+  - sh ./tools/build_project.sh
 
 test_script:
   # Create folder for build

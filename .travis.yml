@@ -2,20 +2,23 @@ language: cpp
 os: osx
 compiler: clang
 
+env:
+  - config=MacOS
+  - QTDIR=/usr/local/opt/qt5
+
 before_install:
   - brew update > /dev/null
   - brew unlink python@2
 
-  # Add Qt directory to path
-  -    QTDIR="/usr/local/opt/qt5"
-    && PATH="$QTDIR/bin:$PATH"
+  # Add qmake to path
+  - PATH="$QTDIR/bin:$PATH"
 
 install:
   # Download QHotkey release 1.1.0 from QtPlay fork
-  - sh ./tools/download_package.sh "QHotkey" "QtPlay/QHotkey" "1.1.0" "QHotkey-1.1.0"
+  - sh ./tools/download_package.sh "QtPlay/QHotkey" "QHotkey" "1.1.0"
 
   # Download googletest release-1.10.0
-  - sh ./tools/download_package.sh "googletest" "google/googletest" "release-1.10.0" "googletest-release-1.10.0"
+  - sh ./tools/download_package.sh "google/googletest" "googletest" "release-1.10.0"
 
   - brew install qt5
   - brew install ffmpeg
