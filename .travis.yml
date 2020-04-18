@@ -5,6 +5,7 @@ compiler: clang
 env:
   - CONFIG=MacOS
   - QTDIR=/usr/local/opt/qt5
+  - make_cmd=make
 
 before_install:
   - brew update > /dev/null
@@ -19,8 +20,7 @@ install:
 
   # Download googletest release-1.10.0
   - sh ./tools/download_package.sh "google/googletest" "googletest" "release-1.10.0"
-
-  - brew install qt5
+  
   - brew install ffmpeg
 
 jobs:
