@@ -2,8 +2,8 @@
 
 Image::Image(int linesize_alignment) :
     bits(nullptr),
-    width(0),
-    height(0),
+    _width(0),
+    _height(0),
     linesize_alignment(linesize_alignment),
     bpr(0),
     cleanup_fnc(nullptr),
@@ -16,7 +16,7 @@ Image::Image(const Image &src) :
     Image(src.linesize_alignment)
 {
     resize(src.size());
-    memcpy(bits, src.bits, bpr * static_cast<size_t>(height));
+    memcpy(bits, src.bits, bpr * static_cast<size_t>(_height));
 }
 
 Image::Image(const QString &file_name) :
@@ -40,8 +40,8 @@ void Image::clear()
         cleanup_fnc = nullptr;
     }
     bits = nullptr;
-    width = 0;
-    height = 0;
+    _width = 0;
+    _height = 0;
 }
 
 size_t Image::bytesPerRow(int width)
@@ -57,8 +57,8 @@ void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cl
     clear();
 
     this->bits = bits;
-    this->width = width;
-    this->height = height;
+    this->_width = width;
+    this->_height = height;
 
     bpr = static_cast<size_t>(bytesPerRow(width));
 
@@ -82,13 +82,13 @@ QImage Image::toQImage() const
 {
     if (linesize_alignment == 0)
         // Returned QImage does not have ownership over image data
-        return QImage(bits, width, height, QImage::Format_RGB32);
+        return QImage(bits, _width, _height, QImage::Format_RGB32);
     else {
         // New QImage is created that owns the image data
-        QImage image = QImage(width, height, QImage::Format_RGB32);
+        QImage image = QImage(_width, _height, QImage::Format_RGB32);
 
         size_t line;
-        for (line = 0; line < static_cast<size_t>(height); line++)
+        for (line = 0; line < static_cast<size_t>(_height); line++)
             memcpy(image.bits() + static_cast<size_t>(image.bytesPerLine()) * line,
                    scanLine(line),
                    static_cast<size_t>(image.bytesPerLine()));
@@ -99,7 +99,7 @@ QImage Image::toQImage() const
 
 Image &Image::operator=(const Image &src)
 {
-    if (width != src.width || height != src.height) {
+    if (_width != src._width || _height != src._height) {
         if (can_reallocate)
             resize(src.size());
         else
@@ -107,20 +107,20 @@ Image &Image::operator=(const Image &src)
     }
 
     size_t line;
-    for (line = 0; line < static_cast<size_t>(height); line++)
-        memcpy(scanLine(line), src.scanLine(line), static_cast<size_t>(width * 4));
+    for (line = 0; line < static_cast<size_t>(_height); line++)
+        memcpy(scanLine(line), src.scanLine(line), static_cast<size_t>(_width * 4));
 
     return *this;
 }
 
 bool Image::operator==(const Image &cmp) const
 {
-    if (width != cmp.width || height != cmp.height)
+    if (_width != cmp._width || _height != cmp._height)
         return false;
 
     size_t line;
-    for (line = 0; line < static_cast<size_t>(height); line++) {
-        if (memcmp(scanLine(line), cmp.scanLine(line), static_cast<size_t>(width * 4)) != 0)
+    for (line = 0; line < static_cast<size_t>(_height); line++) {
+        if (memcmp(scanLine(line), cmp.scanLine(line), static_cast<size_t>(_width * 4)) != 0)
             return false;
     }
 

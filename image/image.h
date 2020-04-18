@@ -18,14 +18,16 @@ public:
 
     void clear();
 
-    void assign(uint8_t *bits, int width, int height,
+    void assign(uint8_t *bits, int _width, int _height,
                 ImageCleanupFunction cleanup_fnc = nullptr, void *cleanup_info = nullptr);
 
     void enableReallocation(bool value) { can_reallocate = value; }
 
     void resize(const QSize &new_size) { resize(new_size.width(), new_size.height()); }
-    void resize(int width, int height);
-    QSize size() const { return QSize(width, height); }
+    void resize(int _width, int _height);
+    int width() const { return _width; }
+    int height() const { return _height; }
+    QSize size() const { return QSize(_width, _height); }
 
     void captureDesktop();
     void captureRect(const QRect &rect);
@@ -42,12 +44,12 @@ public:
 
 private:
     uint8_t *bits;
-    int width;
-    int height;
+    int _width;
+    int _height;
     int linesize_alignment;
     size_t bpr;
 
-    size_t bytesPerRow(int width);
+    size_t bytesPerRow(int _width);
 
     ImageCleanupFunction cleanup_fnc;
     void *cleanup_info;
