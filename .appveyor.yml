@@ -35,4 +35,4 @@ test_script:
   - rm -rf tests/build-Release/ffmpeg-4.2.2-win64-shared
   
   # Run testcases
-  sh ./tools/run_tests.sh
+  sh ./tools/run_tests.sh'
