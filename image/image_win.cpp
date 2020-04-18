@@ -56,11 +56,11 @@ void Image::captureRect(const QRect &rect)
                [](void *hbmp) { DeleteObject(hbmp); },
                hbmp);
     else {
-        if (rect.size() != size())
-            resize(rect.size());
-        size_t h;
-        for (h = 0; h < static_cast<size_t>(height); ++h)
-            memcpy(scanLine(h), bits + h * bpr, static_cast<size_t>(width) * 4);
+        if (rect.size() == size()) {
+            size_t h;
+            for (h = 0; h < static_cast<size_t>(height); ++h)
+                memcpy(scanLine(h), bits + h * bpr, static_cast<size_t>(width) * 4);
+        }
         DeleteObject(hbmp);
     }
 }
