@@ -20,28 +20,19 @@ install:
   
 build_script:
   # Build SimpleScript
-  - sh ./tools/build_project.sh %CONFIG%
+  - sh ./tools/build_project.sh
 
 test_script:
   # Create folder for build
-  - cd tests
-  - mkdir build-Release
+  - mkdir tests/build-Release
 
-  # Build testcase
-  - qmake tests.pro -o build-Release
-  - cd build-Release
-  - mingw32-make
-  
   # Download FFmpeg dlls to be able to run executable
   - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.2-win64-shared.zip
   - 7z x ffmpeg-4.2.2-win64-shared.zip -o. -y
-
-  # Move dlls to executable path
-  - mv ffmpeg-4.2.2-win64-shared/bin/*.dll .
+  - mv tests/build-Release/ffmpeg-4.2.2-win64-shared/bin/*.dll tests/build-Release
   
   # Clean up
-  - rm -rf ffmpeg-4.2.2-win64-shared
+  - rm -rf tests/build-Release/ffmpeg-4.2.2-win64-shared
   
   # Run testcases
-  - tests.exe
-  - cd ..\..
+  sh ./tools/run_tests.sh
