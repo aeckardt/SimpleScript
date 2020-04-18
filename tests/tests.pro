@@ -8,7 +8,7 @@ CONFIG += sdk_no_version_check
 
 HEADERS += \
     createimage.h \
-    ../video/decoder.h \ # for moc creation
+#    ../video/decoder.h \ # for moc creation
     test_image.h \
     test_script.h \
 #    test_video.h
