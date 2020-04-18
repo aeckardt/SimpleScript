@@ -2,9 +2,9 @@
 mkdir build-Release
 qmake SimpleScript.pro -o build-Release
 cd build-Release
-echo "config is: $CONFIG"
-if [[ $CONFIG -eq "MacOS" ]] then make fi
-if [[ $CONFIG -eq "Windows" ]] then mingw32-make fi
+if [[ $CONFIG -eq "MacOS" ]] then make="make" fi
+if [[ $CONFIG -eq "Windows" ]] then make="mingw32-make" fi
+eval $make
 result=$?
 cd ..
 exit $result
