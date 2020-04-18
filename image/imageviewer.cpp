@@ -85,6 +85,8 @@ void ImageViewer::keyPressEvent(QKeyEvent *event)
         else if (event->key() == Qt::Key_F)
             fitToWindow();
         else if (event->key() == Qt::Key_A)
+            // That only works if the focus is not on scaleEdit,
+            // because Ctrl+A is used to select all!
             actualSize();
     }
 }
