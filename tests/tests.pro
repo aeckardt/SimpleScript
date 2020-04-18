@@ -21,8 +21,8 @@ SOURCES += \
     ../script/parameter.cpp \
     ../script/parser.cpp \
     ../image/image.cpp \
-    ../video/decoder.cpp \
-    ../video/encoder.cpp
+#    ../video/decoder.cpp \
+#    ../video/encoder.cpp
 
 win32 {
     SOURCES += \
