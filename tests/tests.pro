@@ -24,12 +24,36 @@ SOURCES += \
     ../video/decoder.cpp \
     ../video/encoder.cpp
 
+win32 {
+    FFMPEG_PATH = $$PWD/external/FFmpeg
+
+    SOURCES += \
+        ../image/image_win.cpp
+
+    INCLUDEPATH += \
+        $$FFMPEG_PATH/include
+
+    LIBS += \
+        -lgdi32 \
+        -L$$FFMPEG_PATH/lib
+}
+
+macx {
+    SOURCES += \
+        ../image/image_mac.cpp
+
+    INCLUDEPATH += \
+        /usr/local/include
+
+    LIBS += \
+        -framework ApplicationServices \
+        -L/usr/local/lib
+}
+
 INCLUDEPATH += \
-    $$PWD/.. \
-    /usr/local/include
+    $$PWD/..
 
 LIBS += \
-    -L/usr/local/lib \
     -lavcodec \
     -lavformat \
     -lavutil \

@@ -99,8 +99,12 @@ QImage Image::toQImage() const
 
 Image &Image::operator=(const Image &src)
 {
-    if (width != src.width || height != src.height)
-        resize(src.size());
+    if (width != src.width || height != src.height) {
+        if (can_reallocate)
+            resize(src.size());
+        else
+            return *this;
+    }
 
     size_t line;
     for (line = 0; line < static_cast<size_t>(height); line++)

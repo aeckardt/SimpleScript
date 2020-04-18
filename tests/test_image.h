@@ -29,6 +29,108 @@ TEST(Image, Copy)
     EXPECT_NE(test_image, test_image_2);
 }
 
+TEST(Image, UseExternalBuffer)
+{
+    int width = 254;
+    int height = 256;
+    int linesize_alignment = 32;
+
+    // Setup buffer to have bytes_per_row > width * 4
+    size_t bytes_per_row = (width * 4 + linesize_alignment - 1) / linesize_alignment * linesize_alignment;
+    size_t buffer_size = bytes_per_row * height;
+
+    // Allocate buffer
+    uint8_t *buffer = new uint8_t[buffer_size];
+
+    // Setup image and image2 to share the same memory
+    Image image(linesize_alignment);
+    image.assign(buffer, width, height);
+    image.enableReallocation(false);
+
+    Image image2(linesize_alignment);
+    image2.assign(buffer, width, height);
+
+    // When image is changed, image2 should be too!
+    image = createImage(width, height, 0);
+    EXPECT_EQ(image2, createImage(width, height, 0));
+
+    // Test again!
+    image = createImage(width, height, 1);
+    EXPECT_NE(image2, createImage(width, height, 0));
+    EXPECT_EQ(image2, createImage(width, height, 1));
+
+    // Clean up
+    delete [] buffer;
+}
+
+TEST(Image, Screenshot)
+{
+    int width = 254;
+    int height = 256;
+    int linesize_alignment = 32;
+
+    int image_width = width;
+    int image_height = height;
+
+#ifdef __APPLE__
+    image_width *= 2;
+    image_height *= 2;
+#endif
+
+    // Setup buffer to have bytes_per_row > width * 4
+    size_t bytes_per_row = (image_width * 4 + linesize_alignment - 1) / linesize_alignment * linesize_alignment;
+    size_t buffer_size = bytes_per_row * image_height;
+
+    // Allocate buffer
+    uint8_t *buffer = new uint8_t[buffer_size];
+    memset(buffer, 0, buffer_size);
+
+    // Create another buffer for comparison
+    uint8_t *cmp_buffer = new uint8_t[buffer_size];
+    memset(cmp_buffer, 0, buffer_size);
+
+    // Setup image
+    Image image(linesize_alignment);
+    image.assign(buffer, image_width, image_height);
+    image.enableReallocation(false);
+
+    // Capture screen area
+    QRect screenRect = {100, 100, width, height};
+    image.captureRect(screenRect);
+
+    // See if anything was written into the buffer
+    // -> validates that the screenshot function has done something!
+    EXPECT_NE(memcmp(buffer, cmp_buffer, buffer_size), 0);
+
+    // Clean up
+    delete [] buffer;
+    delete [] cmp_buffer;
+}
+
+TEST(Image, Screenshot2)
+{
+    int width = 256;
+    int height = 256;
+
+    int image_width = width;
+    int image_height = height;
+
+#ifdef __APPLE__
+    image_width *= 2;
+    image_height *= 2;
+#endif
+
+    // Image size is initially different than screenshot size
+    Image image;
+    image.resize(image_width - 1, image_height - 1);
+
+    QRect screenRect = {100, 100, width, height};
+    image.captureRect(screenRect);
+
+    // See if image was resized for screenshot
+    EXPECT_EQ(image.size(), QSize(image_width, image_height));
+}
+
 TEST(Image, SaveAndLoad)
 {
     int width = 256;

@@ -86,7 +86,6 @@ macx {
     LIBS += \
         -framework ApplicationServices \
         -L/usr/local/lib
-
 }
 
 LIBS += \
