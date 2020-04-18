@@ -17,6 +17,13 @@ install:
   - mv external/ffmpeg-4.2.2-win64-dev external/FFmpeg
   
 build_script:
+  # Build SimpleScript
+  - mkdir build-Release
+  - qmake SimpleScript.pro -o build-Release
+  - cd build-Release
+  - mingw32-make
+
+test_script:
   # Run testcases
   - cd tests
   - mkdir build-Release
@@ -25,9 +32,4 @@ build_script:
   - mingw32-make
   - tests.exe
   - cd ..\..
-
-  # Build SimpleScript
-  - mkdir build-Release
-  - qmake SimpleScript.pro -o build-Release
-  - cd build-Release
-  - mingw32-make
+  
