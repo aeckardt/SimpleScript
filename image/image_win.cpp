@@ -9,11 +9,11 @@
 void Image::captureDesktop()
 {
     HDC hScreenDC = GetDC(nullptr);
-    int width = GetDeviceCaps(hScreenDC, HORZRES);
-    int height = GetDeviceCaps(hScreenDC, VERTRES);
+    int screen_width = GetDeviceCaps(hScreenDC, HORZRES);
+    int screen_height = GetDeviceCaps(hScreenDC, VERTRES);
     ReleaseDC(nullptr, hScreenDC);
 
-    return captureRect({0, 0, width, height});
+    return captureRect({0, 0, screen_width, screen_height});
 }
 
 void Image::captureRect(const QRect &rect)
@@ -58,8 +58,8 @@ void Image::captureRect(const QRect &rect)
     else {
         if (rect.size() == size()) {
             size_t h;
-            for (h = 0; h < static_cast<size_t>(height); ++h)
-                memcpy(scanLine(h), bits + h * bpr, static_cast<size_t>(width) * 4);
+            for (h = 0; h < static_cast<size_t>(_height); ++h)
+                memcpy(scanLine(h), bits + h * bpr, static_cast<size_t>(_width) * 4);
         }
         DeleteObject(hbmp);
     }
