@@ -23,16 +23,17 @@ build_script:
   - sh ./tools/build_project.sh
 
 test_script:
-  # Create folder for build
-  - mkdir tests/build-Release
+  - cd tests
 
   # Download FFmpeg dlls to be able to run executable
   - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.2-win64-shared.zip
   - 7z x ffmpeg-4.2.2-win64-shared.zip -o. -y
-  - mv tests/build-Release/ffmpeg-4.2.2-win64-shared/bin/*.dll tests/build-Release
   
-  # Clean up
-  - rm -rf tests/build-Release/ffmpeg-4.2.2-win64-shared
+  # Move dlls to build-Release and clean up
+  - mkdir build-Release
+  - mv ffmpeg-4.2.2-win64-shared/bin/*.dll build-Release
+  - rm -rf ffmpeg-4.2.2-win64-shared
+  - cd ..
   
   # Run testcases
   - sh ./tools/run_tests.sh
