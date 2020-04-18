@@ -1,5 +1,5 @@
 environment:
-  config: Windows
+  CONFIG: Windows
   QTDIR: C:\Qt\5.14.1\mingw73_64
   MINGW: C:\Qt\Tools\mingw730_64
   
@@ -20,7 +20,7 @@ install:
   
 build_script:
   # Build SimpleScript
-  - sh ./tools/build_project.sh
+  - sh ./tools/build_project.sh %CONFIG%
 
 test_script:
   # Create folder for build

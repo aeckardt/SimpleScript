@@ -3,7 +3,7 @@ os: osx
 compiler: clang
 
 env:
-  - config=MacOS
+  - CONFIG=MacOS
   - QTDIR=/usr/local/opt/qt5
 
 before_install:
@@ -26,6 +26,6 @@ install:
 jobs:
   include:
     - name: "MacOS Build"
-      script: sh ./tools/build_project.sh
+      script: sh ./tools/build_project.sh $CONFIG
     - name: "Unit Tests"
       script: sh ./tools/run_tests.sh
