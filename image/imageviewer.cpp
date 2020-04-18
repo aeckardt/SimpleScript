@@ -164,9 +164,9 @@ void ImageViewer::scaleImage(double factor, int zoomInOut)
     zoomToolButtons->setZoomOutEnabled(scaleFactor > 0.126);
 
     if (fabs(scaleFactor * 100.0 - static_cast<double>(static_cast<int>(scaleFactor * 100.0 + 0.5))) < 0.0999)
-        scaleStr.asprintf("%d%%", static_cast<int>(scaleFactor * 100.0 + 0.1));
+        scaleStr = QString::asprintf("%d%%", static_cast<int>(scaleFactor * 100.0 + 0.1));
     else
-        scaleStr.asprintf("%.1f%%", scaleFactor * 100.0);
+        scaleStr = QString::asprintf("%.1f%%", scaleFactor * 100.0);
     scaleEdit->setText(scaleStr);
 
     if (scaleStr == "12.5%")
