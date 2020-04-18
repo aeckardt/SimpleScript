@@ -25,7 +25,7 @@ SOURCES += \
     ../video/encoder.cpp
 
 win32 {
-    FFMPEG_PATH = $$PWD/external/FFmpeg
+    FFMPEG_PATH = $$PWD/../external/FFmpeg
 
     SOURCES += \
         ../image/image_win.cpp
