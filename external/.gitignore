@@ -2,6 +2,6 @@
 *.autosave
 *.pro.user
 .DS_Store
-/build*/*
-/output/*
-/*.sh
+FFmpeg/*
+googletest/*
+QHotkey/*

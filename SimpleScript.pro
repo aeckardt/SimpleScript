@@ -63,38 +63,23 @@ HEADERS += \
     video/videofile.h
 
 win32 {
-    FFMPEG_PATH = $$PWD/external/FFmpeg
-    
     SOURCES += \
         image/image_win.cpp
 
-    INCLUDEPATH += \
-        $$FFMPEG_PATH/include
-
     LIBS += \
-        -lgdi32 \
-        -L$$FFMPEG_PATH/lib
+        -lgdi32
 }
 
 macx {
     SOURCES += \
         image/image_mac.cpp
 
-    INCLUDEPATH += \
-        /usr/local/include
-
     LIBS += \
-        -framework ApplicationServices \
-        -L/usr/local/lib
+        -framework ApplicationServices
 }
 
-LIBS += \
-    -lavcodec \
-    -lavformat \
-    -lavutil \
-    -lswscale
-
 include(external/QHotkey/qhotkey.pri)
+include(external/FFmpeg.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
