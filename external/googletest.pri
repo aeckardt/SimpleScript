@@ -1,4 +1,4 @@
-GOOGLETEST_DIR=$$PWD/../external/googletest
+GOOGLETEST_DIR=$$PWD/googletest
 
 GTEST_SRCDIR = $$GOOGLETEST_DIR/googletest
 GMOCK_SRCDIR = $$GOOGLETEST_DIR/googlemock
