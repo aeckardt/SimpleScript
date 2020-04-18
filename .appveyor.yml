@@ -36,7 +36,7 @@ test_script:
   - mingw32-make
   
   # Download FFmpeg dlls to be able to run executable
-  - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip
+  - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.2-win64-shared.zip
   - 7z x ffmpeg-4.2.2-win64-shared.zip -o. -y
 
   # Move dlls to executable path
