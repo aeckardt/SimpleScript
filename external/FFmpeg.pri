@@ -2,6 +2,7 @@ FFMPEG_DIR = $$PWD/FFmpeg
 
 win32 {
     INCLUDEPATH += \
+        $$FFMPEG_DIR \
         $$FFMPEG_DIR/include
 
     LIBS += \
@@ -15,9 +16,6 @@ macx {
     LIBS += \
         -L/usr/local/lib
 }
-
-INCLUDEPATH += \
-    $$FFMPEG_DIR
 
 LIBS += \
     -lavcodec \
