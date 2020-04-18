@@ -214,7 +214,6 @@ void VideoDecoder::scaleFrame()
 DecoderThread::DecoderThread(QObject *parent) :
     QThread(parent),
     video(nullptr),
-    continue_reading(true),
     quit(false)
 {
 }
@@ -245,6 +244,8 @@ void DecoderThread::run()
         return;
     }
 
+    continue_reading = true;
+
     while (!quit && decoder.readFrame()) {
         mutex.lock();
         if (!continue_reading && !quit)
@@ -254,6 +255,8 @@ void DecoderThread::run()
         if (!quit) {
             decoder.scaleFrame();
 
+            // Continue reading only when next() or stop() is called
+            // to avoid a race-condition for decoder.frame()
             continue_reading = false;
 
             emit newFrame(&decoder.frame());
