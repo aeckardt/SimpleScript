@@ -255,7 +255,7 @@ void DecoderThread::run()
         if (!quit) {
             decoder.scaleFrame();
 
-            // Continue reading only when next() or stop() is called
+            // Continue reading only when next() is called
             // to avoid a race-condition for decoder.frame()
             continue_reading = false;
 

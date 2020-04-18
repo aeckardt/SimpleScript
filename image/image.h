@@ -57,10 +57,6 @@ private:
     bool can_reallocate;
 };
 
-
-
-
-
 inline Image captureDesktop() { Image image; image.captureDesktop(); return image; }
 inline Image captureRect(const QRect &rect) { Image image; image.captureRect(rect); return image; }
 

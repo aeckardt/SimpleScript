@@ -66,8 +66,6 @@ void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cl
     this->cleanup_info = cleanup_info;
 }
 
-
-
 void Image::resize(int width, int height)
 {
     uint8_t* buffer = new uint8_t[bytesPerRow(width) * static_cast<size_t>(height)];
@@ -81,10 +79,10 @@ void Image::resize(int width, int height)
 QImage Image::toQImage() const
 {
     if (linesize_alignment == 0)
-        // Returned QImage does not have ownership over image data
+        // Returned QImage does not have ownership over its image data
         return QImage(bits, _width, _height, QImage::Format_RGB32);
     else {
-        // New QImage is created that owns the image data
+        // New QImage is created that owns its image data
         QImage image = QImage(_width, _height, QImage::Format_RGB32);
 
         size_t line;

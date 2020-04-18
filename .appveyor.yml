@@ -8,10 +8,10 @@ install:
   - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin
 
   # Download package for QHotkey from QtPlay fork
-  - sh ./ci-tools/download_package.sh "QtPlay/QHotkey" "QHotkey" "1.1.0"
+  - sh ./ci-tools/download_github_release.sh "QtPlay" "QHotkey" "1.1.0"
   
   # Download package for googletest release 1.10.0
-  - sh ./ci-tools/download_package.sh "google/googletest" "googletest" "release-1.10.0"
+  - sh ./ci-tools/download_github_release.sh "google" "googletest" "release-1.10.0"
   
   # Download package for FFmpeg release 4.2.2 with lib build
   - appveyor DownloadFile https://ffmpeg.zeranoe.com/builds/win64/dev/ffmpeg-4.2.2-win64-dev.zip

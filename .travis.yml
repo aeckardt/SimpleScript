@@ -16,10 +16,10 @@ before_install:
 
 install:
   # Download QHotkey release 1.1.0 from QtPlay fork
-  - sh ./ci-tools/download_package.sh "QtPlay/QHotkey" "QHotkey" "1.1.0"
+  - sh ./ci-tools/download_github_release.sh "QtPlay" "QHotkey" "1.1.0"
 
   # Download googletest release-1.10.0
-  - sh ./ci-tools/download_package.sh "google/googletest" "googletest" "release-1.10.0"
+  - sh ./ci-tools/download_github_release.sh "google" "googletest" "release-1.10.0"
   
   - brew install ffmpeg
 
