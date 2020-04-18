@@ -107,30 +107,6 @@ TEST(Image, Screenshot)
     delete [] cmp_buffer;
 }
 
-TEST(Image, Screenshot2)
-{
-    int width = 256;
-    int height = 256;
-
-    int image_width = width;
-    int image_height = height;
-
-#ifdef __APPLE__
-    image_width *= 2;
-    image_height *= 2;
-#endif
-
-    // Image size is initially different than screenshot size
-    Image image;
-    image.resize(image_width - 1, image_height - 1);
-
-    QRect screenRect = {100, 100, width, height};
-    image.captureRect(screenRect);
-
-    // See if image was resized for screenshot
-    EXPECT_EQ(image.size(), QSize(image_width, image_height));
-}
-
 TEST(Image, SaveAndLoad)
 {
     int width = 256;
