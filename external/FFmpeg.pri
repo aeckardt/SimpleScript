@@ -1,7 +1,6 @@
 FFMPEG_DIR = $$PWD/FFmpeg
 
 win32 {
-
     INCLUDEPATH += \
         $$FFMPEG_DIR/include
 
