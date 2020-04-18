@@ -3,9 +3,9 @@ os: osx
 compiler: clang
 
 env:
-  - CONFIG=MacOS
-  - QTDIR=/usr/local/opt/qt5
-  - make_cmd=make
+  global:
+    - QTDIR=/usr/local/opt/qt5
+    - make_cmd=make
 
 before_install:
   - brew update > /dev/null
