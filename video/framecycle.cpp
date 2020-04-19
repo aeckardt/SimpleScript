@@ -14,9 +14,22 @@ FrameCycle::FrameCycle(int width, int height) :
 {
     int index;
     for (index = 0; index < FRAME_CYCLES; index++)
-        frame_data.push_back({Image(), nullptr, nullptr, false});
+        frame_data.push_back({Image(), nullptr, nullptr, false, false});
 
-    allocAll();
+    if (width != 0 && height != 0)
+        allocAll();
+}
+
+bool FrameCycle::isValid() const
+{
+    size_t index;
+    for (index = 0; index < frame_data.size(); index++) {
+        if (frame_data[index].has_errors ||
+                frame_data[index].frame == nullptr ||
+                frame_data[index].buffer == nullptr)
+            return false;
+    }
+    return true;
 }
 
 void FrameCycle::resize(int width, int height)
@@ -29,6 +42,13 @@ void FrameCycle::resize(int width, int height)
     size_t index;
     for (index = 0; index < FRAME_CYCLES; index++)
         frame_data[index].need_resize = true;
+}
+
+void FrameCycle::reset()
+{
+    size_t index;
+    for (index = 0; index < FRAME_CYCLES; index++)
+        shift();
 }
 
 void FrameCycle::shift()
@@ -47,11 +67,17 @@ void FrameCycle::alloc(size_t frame_index)
     // Allocate an AVFrame structure
     frame.frame = av_frame_alloc();
     if (frame.frame == nullptr) {
+        frame.has_errors = true;
         errorMsg("Could not allocate frame");
         return;
     }
 
     frame.buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
+    if (frame.buffer == nullptr) {
+        frame.has_errors = true;
+        errorMsg("Could not allocate frame buffer");
+        return;
+    }
 
     // Assign appropriate parts of buffer to image planes in frame_rgb
     // Note that frame_rgb is an AVFrame, but AVFrame is a superset
@@ -91,6 +117,7 @@ void FrameCycle::cleanUp(size_t frame_index)
         av_frame_free(&frame.frame);
     if (frame.buffer != nullptr)
         av_freep(&frame.buffer);
+    frame.has_errors = false;
 }
 
 void FrameCycle::cleanUpAll()
@@ -102,5 +129,5 @@ void FrameCycle::cleanUpAll()
 
 void FrameCycle::errorMsg(const char *msg)
 {
-    fprintf(stderr, msg);
+    fprintf(stderr, "%s\n", msg);
 }

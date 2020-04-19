@@ -15,8 +15,6 @@ VideoDecoder::VideoDecoder() :
     codec_ctx(nullptr),
     codec(nullptr),
     frame_(nullptr),
-    frame_rgb(nullptr),
-    buffer(nullptr),
     pkt(nullptr),
     sws_ctx(nullptr),
     _eof(true)
@@ -31,10 +29,6 @@ void VideoDecoder::cleanUp()
         avcodec_close(codec_ctx);
     if (frame_ != nullptr)
         av_frame_free(&frame_);
-    if (frame_rgb != nullptr)
-        av_frame_free(&frame_rgb);
-    if (buffer != nullptr)
-        av_freep(&buffer);
     if (pkt != nullptr)
         av_packet_free(&pkt);
     if (sws_ctx != nullptr) {
@@ -114,13 +108,36 @@ void VideoDecoder::open(const VideoFile &video_file)
 
     // Allocate structure for scaled RGB frame
     // -> in RGB32 format with specified width and height
+    frame_cycle.resize(codec_ctx->width, codec_ctx->height);
+    frame_cycle.reset();
+    if (!frame_cycle.isValid()) {
+        errorMsg("Could not initialize frame cycle");
+        return;
+    }
+
     // Also initialize scaling context
-    setTargetSize({codec_ctx->width, codec_ctx->height});
-    if (frame_rgb == nullptr || buffer == nullptr || sws_ctx == nullptr) {
+    sws_ctx = sws_getContext(codec_ctx->width,
+                             codec_ctx->height,
+                             codec_ctx->pix_fmt,
+                             codec_ctx->width,
+                             codec_ctx->height,
+                             AV_PIX_FMT_RGB32,
+                             SWS_BILINEAR,
+                             nullptr,
+                             nullptr,
+                             nullptr
+                             );
+
+    if (!frame_cycle.isValid()) {
+        errorMsg("Failed to get scaling context");
         return;
     }
 
     pkt = av_packet_alloc();
+    if (pkt == nullptr) {
+        errorMsg("Could not allocate packet");
+        return;
+    }
 
     _eof = false;
 }
@@ -166,10 +183,12 @@ bool VideoDecoder::readFrame()
 
 void VideoDecoder::swsScale()
 {
+    frame_cycle.shift();
+
     // Convert the image from its native format to RGB
     sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
               frame_->linesize, 0, codec_ctx->height,
-              frame_rgb->data, frame_rgb->linesize);
+              frame_cycle.frame()->data, frame_cycle.frame()->linesize);
 
     frame_counter++;
 
@@ -177,49 +196,13 @@ void VideoDecoder::swsScale()
     av_packet_unref(pkt);
 }
 
-void VideoDecoder::setTargetSize(const QSize &size)
+void VideoDecoder::resize(const QSize &size)
 {
-    // Clean up
-    if (frame_rgb != nullptr)
-        av_frame_free(&frame_rgb);
-    if (buffer != nullptr)
-        av_freep(&buffer);
-    if (sws_ctx != nullptr)
-        sws_freeContext(sws_ctx);
+    frame_cycle.resize(size.width(), size.height());
 
-    // Allocate an AVFrame structure
-    frame_rgb = av_frame_alloc();
-    if (frame_rgb == nullptr) {
-        errorMsg("Could not allocate frame");
-        return;
-    }
+    sws_freeContext(sws_ctx);
 
-    // Determine required buffer size and allocate buffer
-    // Replace avpicture_get_size -> deprecated
-    // with av_image_get_buffer_size
-
-    // Remark: Not sure if align needs to be 1 or 32, see
-    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, size.width(),
-                                        size.height(), 32);
-    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
-
-    // Assign appropriate parts of buffer to image planes in frame_rgb
-    // Note that frame_rgb is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-
-    // Replace avpicture_fill -> deprecated
-    // with av_image_fill_arrays
-
-    // Examples of av_image_fill_arrays from
-    // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
-    // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
-    av_image_fill_arrays(frame_rgb->data, frame_rgb->linesize, buffer, AV_PIX_FMT_RGB32,
-                         size.width(), size.height(), 1);
-
-    image.assign(frame_rgb->data[0], size.width(), size.height());
-
-    // initialize SWS context for software scaling
+    // Also initialize scaling context
     sws_ctx = sws_getContext(codec_ctx->width,
                              codec_ctx->height,
                              codec_ctx->pix_fmt,
@@ -261,11 +244,6 @@ void DecoderThread::next()
 {
     QMutexLocker locker(&mutex);
 
-    if (new_size != QSize()) {
-        decoder.setTargetSize(new_size);
-        new_size = QSize();
-    }
-
     continue_reading = true;
     condition.wakeOne();
 }
@@ -282,7 +260,7 @@ void DecoderThread::resize(const QSize &size)
 {
     QMutexLocker locker(&mutex);
 
-    new_size = size;
+    decoder.resize(size);
 }
 
 void DecoderThread::run()
@@ -308,15 +286,16 @@ void DecoderThread::run()
         mutex.unlock();
 
         if (!quit) {
+            mutex.lock();
             decoder.swsScale();
+            mutex.unlock();
 
             // Continue reading only when next() is called
             // to avoid a race-condition for decoder.frame()
             continue_reading = false;
 
             emit newFrame(&decoder.frame());
-        } else
-            mutex.unlock();
+        }
     }
 
     emit finished();

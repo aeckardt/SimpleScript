@@ -12,10 +12,14 @@ public:
     FrameCycle(int width, int height);
     ~FrameCycle() { cleanUpAll(); }
 
+    bool isValid() const;
+
     void resize(int width, int height);
 
+    void reset();
+
     struct AVFrame *frame() { return frame_data[current].frame; }
-    const Image &image() { return frame_data[current].image; }
+    const Image &image() const { return frame_data[current].image; }
 
     void shift();
 
@@ -39,6 +43,7 @@ private:
         struct AVFrame *frame;
         uint8_t *buffer;
         bool need_resize;
+        bool has_errors;
     };
 
     std::vector<FrameData> frame_data;

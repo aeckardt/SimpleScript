@@ -8,6 +8,7 @@
 #include <QImage>
 
 #include "image/image.h"
+#include "framecycle.h"
 #include "videofile.h"
 
 class VideoDecoder
@@ -20,11 +21,11 @@ public:
     bool readFrame();
     void swsScale();
 
-    void setTargetSize(const QSize &size);
+    void resize(const QSize &size);
 
     bool eof() const { return _eof; }
 
-    const Image &frame() { return image; }
+    const Image &frame() { return frame_cycle.image(); }
 
     int av_error;
     QString last_error;
@@ -48,10 +49,7 @@ private:
     struct AVCodec        *codec;
 
     struct AVFrame *frame_;
-    struct AVFrame *frame_rgb;
-
-    int num_bytes;
-    uint8_t *buffer;
+    FrameCycle frame_cycle;
 
     struct AVPacket *pkt;
     struct SwsContext *sws_ctx;
