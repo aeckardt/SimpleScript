@@ -1,6 +1,7 @@
 #ifndef DECODER_H
 #define DECODER_H
 
+#include <QSize>
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
@@ -17,11 +18,13 @@ public:
 
     void open(const VideoFile &video_file);
     bool readFrame();
-    void scaleFrame();
+    void swsScale();
+
+    void setTargetSize(const QSize &size);
 
     bool eof() const { return _eof; }
 
-    Image &frame() { return image; }
+    const Image &frame() { return image; }
 
     int av_error;
     QString last_error;
@@ -47,17 +50,16 @@ private:
     struct AVFrame *frame_;
     struct AVFrame *frame_rgb;
 
-    struct SwsContext *sws_ctx;
-
-    bool _eof;
-
-    int frame_finished;
-    struct AVPacket *pkt;
-
     int num_bytes;
     uint8_t *buffer;
 
+    struct AVPacket *pkt;
+    struct SwsContext *sws_ctx;
+
+    int frame_finished;
     int frame_rate;
+
+    bool _eof;
 
     friend class DecoderThread;
 };
@@ -77,6 +79,8 @@ public:
     void next();
     void stop();
 
+    void resize(const QSize &size);
+
 signals:
     void error(const QString &msg);
     void newFrame(const Image *image);
@@ -89,6 +93,7 @@ private:
     const VideoFile *video;
 
     VideoDecoder decoder;
+    QSize new_size;
 
     QMutex mutex;
     QWaitCondition condition;

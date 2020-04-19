@@ -23,6 +23,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *) override;
+    void resizeEvent(QResizeEvent *) override;
 
 private slots:
     void receiveFrame(const Image *image);

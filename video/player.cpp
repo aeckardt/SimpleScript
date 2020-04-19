@@ -41,12 +41,18 @@ void VideoPlayer::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void VideoPlayer::resizeEvent(QResizeEvent *event)
+{
+    if (!first_frame && isVisible())
+        decoder.resize(event->size());
+}
+
 void VideoPlayer::receiveFrame(const Image *image)
 {
     this->image = image->toQImage();
 
     if (first_frame && isVisible()) {
-        setFixedSize(image->size());
+        resize(image->size());
         first_frame = false;
         frame_rate = decoder.frameRate();
     }

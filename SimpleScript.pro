@@ -40,6 +40,7 @@ SOURCES += \
     image/imageviewer.cpp \
     video/decoder.cpp \
     video/encoder.cpp \
+    video/framecycle.cpp \
     video/player.cpp \
     video/recorder.cpp
 
@@ -58,6 +59,7 @@ HEADERS += \
     image/imageviewer.h \
     video/decoder.h \
     video/encoder.h \
+    video/framecycle.h \
     video/player.h \
     video/recorder.h \
     video/videofile.h

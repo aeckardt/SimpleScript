@@ -16,31 +16,33 @@ VideoDecoder::VideoDecoder() :
     codec(nullptr),
     frame_(nullptr),
     frame_rgb(nullptr),
-    _eof(true),
+    buffer(nullptr),
     pkt(nullptr),
-    buffer(nullptr)
+    sws_ctx(nullptr),
+    _eof(true)
 {
 }
 
 void VideoDecoder::cleanUp()
 {
+    if (format_ctx != nullptr)
+        avformat_close_input(&format_ctx);
+    if (codec_ctx != nullptr)
+        avcodec_close(codec_ctx);
+    if (frame_ != nullptr)
+        av_frame_free(&frame_);
+    if (frame_rgb != nullptr)
+        av_frame_free(&frame_rgb);
     if (buffer != nullptr)
         av_freep(&buffer);
     if (pkt != nullptr)
         av_packet_free(&pkt);
-    if (frame_ != nullptr)
-        av_frame_free(&frame_);
-    if (codec_ctx != nullptr)
-        avcodec_close(codec_ctx);
-    if (format_ctx != nullptr)
-        avformat_close_input(&format_ctx);
+    if (sws_ctx != nullptr) {
+        sws_freeContext(sws_ctx);
+        sws_ctx = nullptr;
+    }
     frame_counter = 0;
     _eof = true;
-}
-
-void VideoDecoder::errorMsg(const char *msg)
-{
-    last_error = msg;
 }
 
 void VideoDecoder::open(const VideoFile &video_file)
@@ -110,50 +112,15 @@ void VideoDecoder::open(const VideoFile &video_file)
         return;
     }
 
-    // Allocate an AVFrame structure
-    frame_rgb = av_frame_alloc();
-    if (frame_rgb == nullptr) {
-        errorMsg("Could not allocate frame");
+    // Allocate structure for scaled RGB frame
+    // -> in RGB32 format with specified width and height
+    // Also initialize scaling context
+    setTargetSize({codec_ctx->width, codec_ctx->height});
+    if (frame_rgb == nullptr || buffer == nullptr || sws_ctx == nullptr) {
         return;
     }
 
     pkt = av_packet_alloc();
-
-    // Determine required buffer size and allocate buffer
-    // Replace avpicture_get_size -> deprecated
-    // with av_image_get_buffer_size
-
-    // Remark: Not sure if align needs to be 1 or 32, see
-    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, codec_ctx->width,
-                                        codec_ctx->height, 32);
-    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
-
-    // Assign appropriate parts of buffer to image planes in frame_rgb
-    // Note that frame_rgb is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-
-    // Replace avpicture_fill -> deprecated
-    // with av_image_fill_arrays
-
-    // Examples of av_image_fill_arrays from
-    // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
-    // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
-    av_image_fill_arrays(frame_rgb->data, frame_rgb->linesize, buffer, AV_PIX_FMT_RGB32,
-                         codec_ctx->width, codec_ctx->height, 1);
-
-    // initialize SWS context for software scaling
-    sws_ctx = sws_getContext(codec_ctx->width,
-                             codec_ctx->height,
-                             codec_ctx->pix_fmt,
-                             codec_ctx->width,
-                             codec_ctx->height,
-                             AV_PIX_FMT_RGB32,
-                             SWS_BILINEAR,
-                             nullptr,
-                             nullptr,
-                             nullptr
-                             );
 
     _eof = false;
 }
@@ -197,18 +164,78 @@ bool VideoDecoder::readFrame()
     return !_eof;
 }
 
-void VideoDecoder::scaleFrame()
+void VideoDecoder::swsScale()
 {
     // Convert the image from its native format to RGB
     sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
               frame_->linesize, 0, codec_ctx->height,
               frame_rgb->data, frame_rgb->linesize);
 
-    image.assign(frame_rgb->data[0], codec_ctx->width, codec_ctx->height);
-
     frame_counter++;
 
+    // This finishes readFrame()
     av_packet_unref(pkt);
+}
+
+void VideoDecoder::setTargetSize(const QSize &size)
+{
+    // Clean up
+    if (frame_rgb != nullptr)
+        av_frame_free(&frame_rgb);
+    if (buffer != nullptr)
+        av_freep(&buffer);
+    if (sws_ctx != nullptr)
+        sws_freeContext(sws_ctx);
+
+    // Allocate an AVFrame structure
+    frame_rgb = av_frame_alloc();
+    if (frame_rgb == nullptr) {
+        errorMsg("Could not allocate frame");
+        return;
+    }
+
+    // Determine required buffer size and allocate buffer
+    // Replace avpicture_get_size -> deprecated
+    // with av_image_get_buffer_size
+
+    // Remark: Not sure if align needs to be 1 or 32, see
+    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
+    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, size.width(),
+                                        size.height(), 32);
+    buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
+
+    // Assign appropriate parts of buffer to image planes in frame_rgb
+    // Note that frame_rgb is an AVFrame, but AVFrame is a superset
+    // of AVPicture
+
+    // Replace avpicture_fill -> deprecated
+    // with av_image_fill_arrays
+
+    // Examples of av_image_fill_arrays from
+    // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
+    // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
+    av_image_fill_arrays(frame_rgb->data, frame_rgb->linesize, buffer, AV_PIX_FMT_RGB32,
+                         size.width(), size.height(), 1);
+
+    image.assign(frame_rgb->data[0], size.width(), size.height());
+
+    // initialize SWS context for software scaling
+    sws_ctx = sws_getContext(codec_ctx->width,
+                             codec_ctx->height,
+                             codec_ctx->pix_fmt,
+                             size.width(),
+                             size.height(),
+                             AV_PIX_FMT_RGB32,
+                             SWS_BILINEAR,
+                             nullptr,
+                             nullptr,
+                             nullptr
+                             );
+}
+
+void VideoDecoder::errorMsg(const char *msg)
+{
+    last_error = msg;
 }
 
 DecoderThread::DecoderThread(QObject *parent) :
@@ -228,6 +255,34 @@ void DecoderThread::setFile(const VideoFile &video)
 {
     QMutexLocker locker(&mutex);
     this->video = &video;
+}
+
+void DecoderThread::next()
+{
+    QMutexLocker locker(&mutex);
+
+    if (new_size != QSize()) {
+        decoder.setTargetSize(new_size);
+        new_size = QSize();
+    }
+
+    continue_reading = true;
+    condition.wakeOne();
+}
+
+void DecoderThread::stop()
+{
+    QMutexLocker locker(&mutex);
+
+    quit = true;
+    condition.wakeOne();
+}
+
+void DecoderThread::resize(const QSize &size)
+{
+    QMutexLocker locker(&mutex);
+
+    new_size = size;
 }
 
 void DecoderThread::run()
@@ -253,31 +308,16 @@ void DecoderThread::run()
         mutex.unlock();
 
         if (!quit) {
-            decoder.scaleFrame();
+            decoder.swsScale();
 
             // Continue reading only when next() is called
             // to avoid a race-condition for decoder.frame()
             continue_reading = false;
 
             emit newFrame(&decoder.frame());
-        }
+        } else
+            mutex.unlock();
     }
 
     emit finished();
-}
-
-void DecoderThread::next()
-{
-    QMutexLocker locker(&mutex);
-
-    continue_reading = true;
-    condition.wakeOne();
-}
-
-void DecoderThread::stop()
-{
-    QMutexLocker locker(&mutex);
-
-    quit = true;
-    condition.wakeOne();
 }
