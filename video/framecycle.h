@@ -16,12 +16,11 @@ public:
 
     void resize(int width, int height);
 
-    void reset();
-
-    struct AVFrame *frame() { return frame_data[current].frame; }
-    const Image &image() const { return frame_data[current].image; }
+    struct AVFrame *frame() { return cycle_infos[current].frame; }
+    const Image &image() const { return cycle_infos[current].image; }
 
     void shift();
+    void reset(); // -> shift one cycle
 
 private:
     void alloc(size_t frame_index);
@@ -37,7 +36,7 @@ private:
 
     int current;
 
-    struct FrameData
+    struct CycleInfo
     {
         Image image;
         struct AVFrame *frame;
@@ -46,7 +45,7 @@ private:
         bool has_errors;
     };
 
-    std::vector<FrameData> frame_data;
+    std::vector<CycleInfo> cycle_infos;
 };
 
 #endif // VIDEOFRAME_H
