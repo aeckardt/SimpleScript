@@ -21,15 +21,14 @@ FrameCycle::FrameCycle(int width, int height) :
 
 void FrameCycle::resize(int width, int height)
 {
-    this->width;
-    this->height;
+    this->width = width;
+    this->height = height;
 
     num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
 
-    int index;
-    for (index = 0; index < FRAME_CYCLES; index++) {
+    size_t index;
+    for (index = 0; index < FRAME_CYCLES; index++)
         frame_data[index].need_resize = true;
-    }
 }
 
 void FrameCycle::shift()
@@ -41,18 +40,7 @@ void FrameCycle::shift()
     }
 }
 
-void FrameCycle::allocAll()
-{
-    // Remark: Not sure if align needs to be 1 or 32, see
-    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
-
-    int index;
-    for (index = 0; index < frame_data.size(); index++)
-        alloc(index);
-}
-
-void FrameCycle::alloc(int frame_index)
+void FrameCycle::alloc(size_t frame_index)
 {
     FrameData &frame = frame_data[frame_index];
 
@@ -83,14 +71,18 @@ void FrameCycle::alloc(int frame_index)
     frame.need_resize = false;
 }
 
-void FrameCycle::cleanUpAll()
+void FrameCycle::allocAll()
 {
-    int index;
+    // Remark: Not sure if align needs to be 1 or 32, see
+    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
+    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
+
+    size_t index;
     for (index = 0; index < frame_data.size(); index++)
-        cleanUp(index);
+        alloc(index);
 }
 
-void FrameCycle::cleanUp(int frame_index)
+void FrameCycle::cleanUp(size_t frame_index)
 {
     FrameData &frame = frame_data[frame_index];
 
@@ -99,6 +91,13 @@ void FrameCycle::cleanUp(int frame_index)
         av_frame_free(&frame.frame);
     if (frame.buffer != nullptr)
         av_freep(&frame.buffer);
+}
+
+void FrameCycle::cleanUpAll()
+{
+    size_t index;
+    for (index = 0; index < frame_data.size(); index++)
+        cleanUp(index);
 }
 
 void FrameCycle::errorMsg(const char *msg)

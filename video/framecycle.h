@@ -20,9 +20,9 @@ public:
     void shift();
 
 private:
-    void alloc(int frame_index);
+    void alloc(size_t frame_index);
     void allocAll();
-    void cleanUp(int frame_index);
+    void cleanUp(size_t frame_index);
     void cleanUpAll();
 
     void errorMsg(const char *msg);
