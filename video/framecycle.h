@@ -5,12 +5,12 @@
 
 #include "image/image.h"
 
-class FrameCycle
+class VideoFrame
 {
 public:
-    FrameCycle() : FrameCycle(0, 0) {}
-    FrameCycle(int width, int height);
-    ~FrameCycle() { cleanUpAll(); }
+    VideoFrame() : VideoFrame(0, 0) {}
+    VideoFrame(int width, int height);
+    ~VideoFrame() { cleanUpAll(); }
 
     bool isValid() const;
 

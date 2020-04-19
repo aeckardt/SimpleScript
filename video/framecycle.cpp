@@ -7,7 +7,7 @@ extern "C" {
 
 #define FRAME_CYCLES 2
 
-FrameCycle::FrameCycle(int width, int height) :
+VideoFrame::VideoFrame(int width, int height) :
     width(width),
     height(height),
     current(0)
@@ -20,7 +20,7 @@ FrameCycle::FrameCycle(int width, int height) :
         allocAll();
 }
 
-bool FrameCycle::isValid() const
+bool VideoFrame::isValid() const
 {
     size_t index;
     for (index = 0; index < cycle_infos.size(); index++) {
@@ -32,26 +32,28 @@ bool FrameCycle::isValid() const
     return true;
 }
 
-void FrameCycle::resize(int width, int height)
+void VideoFrame::resize(int width, int height)
 {
-    this->width = width;
-    this->height = height;
+    if (this->width != width || this->height != height) {
+        this->width = width;
+        this->height = height;
 
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
+        num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
 
-    size_t index;
-    for (index = 0; index < FRAME_CYCLES; index++)
-        cycle_infos[index].need_resize = true;
+        size_t index;
+        for (index = 0; index < FRAME_CYCLES; index++)
+            cycle_infos[index].need_resize = true;
+    }
 }
 
-void FrameCycle::reset()
+void VideoFrame::reset()
 {
     size_t index;
     for (index = 0; index < FRAME_CYCLES; index++)
         shift();
 }
 
-void FrameCycle::shift()
+void VideoFrame::shift()
 {
     current = (current + 1) % cycle_infos.size();
     if (cycle_infos[current].need_resize) {
@@ -60,7 +62,7 @@ void FrameCycle::shift()
     }
 }
 
-void FrameCycle::alloc(size_t frame_index)
+void VideoFrame::alloc(size_t frame_index)
 {
     CycleInfo &cycle = cycle_infos[frame_index];
 
@@ -97,7 +99,7 @@ void FrameCycle::alloc(size_t frame_index)
     cycle.need_resize = false;
 }
 
-void FrameCycle::allocAll()
+void VideoFrame::allocAll()
 {
     // Remark: Not sure if align needs to be 1 or 32, see
     // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
@@ -108,7 +110,7 @@ void FrameCycle::allocAll()
         alloc(index);
 }
 
-void FrameCycle::cleanUp(size_t frame_index)
+void VideoFrame::cleanUp(size_t frame_index)
 {
     CycleInfo &cycle = cycle_infos[frame_index];
 
@@ -120,14 +122,14 @@ void FrameCycle::cleanUp(size_t frame_index)
     cycle.has_errors = false;
 }
 
-void FrameCycle::cleanUpAll()
+void VideoFrame::cleanUpAll()
 {
     size_t index;
     for (index = 0; index < cycle_infos.size(); index++)
         cleanUp(index);
 }
 
-void FrameCycle::errorMsg(const char *msg)
+void VideoFrame::errorMsg(const char *msg)
 {
     fprintf(stderr, "%s\n", msg);
 }
