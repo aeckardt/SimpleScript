@@ -8,7 +8,7 @@
 #include <QImage>
 
 #include "image/image.h"
-#include "framecycle.h"
+#include "videoframe.h"
 #include "videofile.h"
 
 class VideoDecoder
@@ -25,7 +25,7 @@ public:
 
     bool eof() const { return _eof; }
 
-    const Image &frame() { return frame_cycle.image(); }
+    const Image &frame() { return frame_rgb.image(); }
 
     int av_error;
     QString last_error;
@@ -49,7 +49,7 @@ private:
     struct AVCodec        *codec;
 
     struct AVFrame *frame_;
-    FrameCycle frame_cycle;
+    VideoFrame frame_rgb;
 
     struct AVPacket *pkt;
     struct SwsContext *sws_ctx;

@@ -15,6 +15,7 @@ public:
     bool isValid() const;
 
     void resize(int width, int height);
+    void resizeHard(int width, int height) { resize(width, height); reset(); }
 
     struct AVFrame *frame() { return cycle_infos[current].frame; }
     const Image &image() const { return cycle_infos[current].image; }

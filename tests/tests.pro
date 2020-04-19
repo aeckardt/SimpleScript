@@ -20,8 +20,8 @@ SOURCES += \
     ../script/parser.cpp \
     ../image/image.cpp \
     ../video/decoder.cpp \
-    ../video/framecycle.cpp \
-    ../video/encoder.cpp
+    ../video/encoder.cpp \
+    ../video/videoframe.cpp
 
 win32 {
     SOURCES += \

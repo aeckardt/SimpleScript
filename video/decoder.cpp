@@ -108,10 +108,9 @@ void VideoDecoder::open(const VideoFile &video_file)
 
     // Allocate structure for scaled RGB frame
     // -> in RGB32 format with specified width and height
-    frame_cycle.resize(codec_ctx->width, codec_ctx->height);
-    frame_cycle.reset();
-    if (!frame_cycle.isValid()) {
-        errorMsg("Could not initialize frame cycle");
+    frame_rgb.resizeHard(codec_ctx->width, codec_ctx->height);
+    if (!frame_rgb.isValid()) {
+        errorMsg("Could not initialize RGB frame");
         return;
     }
 
@@ -183,12 +182,12 @@ bool VideoDecoder::readFrame()
 
 void VideoDecoder::swsScale()
 {
-    frame_cycle.shift();
+    frame_rgb.shift();
 
     // Convert the image from its native format to RGB
     sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
               frame_->linesize, 0, codec_ctx->height,
-              frame_cycle.frame()->data, frame_cycle.frame()->linesize);
+              frame_rgb.frame()->data, frame_rgb.frame()->linesize);
 
     frame_counter++;
 
@@ -198,7 +197,7 @@ void VideoDecoder::swsScale()
 
 void VideoDecoder::resize(const QSize &size)
 {
-    frame_cycle.resize(size.width(), size.height());
+    frame_rgb.resize(size.width(), size.height());
 
     sws_freeContext(sws_ctx);
 

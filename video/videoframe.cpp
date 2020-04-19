@@ -1,4 +1,4 @@
-#include "framecycle.h"
+#include "videoframe.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"

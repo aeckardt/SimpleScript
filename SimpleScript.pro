@@ -40,9 +40,9 @@ SOURCES += \
     image/imageviewer.cpp \
     video/decoder.cpp \
     video/encoder.cpp \
-    video/framecycle.cpp \
     video/player.cpp \
-    video/recorder.cpp
+    video/recorder.cpp \
+    video/videoframe.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -59,10 +59,10 @@ HEADERS += \
     image/imageviewer.h \
     video/decoder.h \
     video/encoder.h \
-    video/framecycle.h \
     video/player.h \
     video/recorder.h \
-    video/videofile.h
+    video/videofile.h \
+    video/videoframe.h
 
 win32 {
     SOURCES += \
