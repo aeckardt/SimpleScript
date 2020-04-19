@@ -58,7 +58,7 @@ TEST(Video, EncodeAndDecode)
         // Assert that decoder has one more frame
         ASSERT_TRUE(decoder.readFrame());
 
-        decoder.scaleFrame();
+        decoder.swsScale();
 
         const Image &img = decoder.frame();
         EXPECT_EQ(img.size(), QSize(width, height));
