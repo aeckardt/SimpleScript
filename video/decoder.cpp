@@ -128,7 +128,7 @@ void VideoDecoder::open(const VideoFile &video_file)
                              nullptr
                              );
 
-    if (!frame_cycle.isValid()) {
+    if (sws_ctx == nullptr) {
         errorMsg("Failed to get scaling context");
         return;
     }
