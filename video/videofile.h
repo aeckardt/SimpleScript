@@ -33,3 +33,4 @@ inline VideoFile temporaryVideo()
 }
 
 #endif // VIDEOFILE_H
+
