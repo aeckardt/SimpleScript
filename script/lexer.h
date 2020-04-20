@@ -79,17 +79,22 @@ public:
 
 private:
     std::string error_msg;
-    std::list<Line>::reverse_iterator line;
+
+    Line *cur_line;
+    token_pos it;
+    token_pos end;
 
     void pushError(const std::string &msg);
 
-    void readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs);
-    Token readName(token_pos &it, const token_pos &end);
-    Token readNumber(token_pos &it, const token_pos &end);
-    Token readString(token_pos &it, const token_pos &end);
-    Token readSingleChar(token_pos &it);
-    Token readOperator(token_pos &it, const token_pos &end);
-    void skipComment(token_pos &it, const token_pos &end);
+    Token &newToken() { return cur_line->tokens.emplace_back(); }
+
+    void readIndent(uint32_t &spaces, uint32_t &tabs);
+    void readName();
+    void readNumber();
+    void readString();
+    void readSingleChar();
+    void readOperator();
+    void skipComment();
 };
 
 } // namespace lx

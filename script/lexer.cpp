@@ -61,12 +61,12 @@ inline void Lexer::pushError(const std::string &msg)
 {
     if (error_msg.empty()) {
         char buf[20];
-        sprintf(buf, "%d", (line->index + 1));
+        sprintf(buf, "%d", (cur_line->index + 1));
         error_msg = std::string("At line ") + buf + ": " + msg;
     }
 }
 
-inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spaces, uint32_t &tabs)
+inline void Lexer::readIndent(uint32_t &spaces, uint32_t &tabs)
 {
     while (it != end && token_at(it) == Whitespace) {
         if (*it == ' ')
@@ -77,9 +77,9 @@ inline void Lexer::readIndent(token_pos &it, const token_pos &end, uint32_t &spa
     }
 }
 
-inline Token Lexer::readName(token_pos &it, const token_pos &end)
+inline void Lexer::readName()
 {
-    Token token;
+    Token &token = newToken();
 
     // *it is in [A-Za-z_]
     token.begin = it++;
@@ -87,16 +87,15 @@ inline Token Lexer::readName(token_pos &it, const token_pos &end)
         it++;
     token.id = AlphaNumeric;
     token.end = it;
-
-    return token;
 }
 
-inline Token Lexer::readNumber(token_pos &it, const token_pos &end)
+inline void Lexer::readNumber()
 {
+    Token &token = newToken();
+
     // *it is in [0-9.]
     bool contains_dot = *it == '.';
 
-    Token token;
     token.begin = it++;
     if (!contains_dot) {
         while (it != end && token_at(it) == Digit)
@@ -112,13 +111,11 @@ inline Token Lexer::readNumber(token_pos &it, const token_pos &end)
         pushError("A number needs to have at least one digit");
     token.id = contains_dot ? Float : Integer;
     token.end = it;
-
-    return token;
 }
 
-inline Token Lexer::readString(token_pos &it, const token_pos &end)
+inline void Lexer::readString()
 {
-    Token token;
+    Token &token = newToken();
 
     // *it is '"'
     token.begin = it++;
@@ -129,18 +126,16 @@ inline Token Lexer::readString(token_pos &it, const token_pos &end)
     it++;
     token.id = String;
     token.end = it;
-
-    return token;
 }
 
-inline Token Lexer::readSingleChar(token_pos &it)
+inline void Lexer::readSingleChar()
 {
-    return {token_at(it), it, ++it};
+    cur_line->tokens.push_back({token_at(it), it, ++it});
 }
 
-inline Token Lexer::readOperator(token_pos &it, const token_pos &end)
+inline void Lexer::readOperator()
 {
-    Token token;
+    Token &token = newToken();
 
     token.begin = it;
     token.id = token_at(it);
@@ -150,11 +145,9 @@ inline Token Lexer::readOperator(token_pos &it, const token_pos &end)
         token.id = static_cast<TokenId>(static_cast<uint32_t>(token.id) + 1);
         token.end = ++it;
     }
-
-    return token;
 }
 
-inline void Lexer::skipComment(token_pos &it, const token_pos &end)
+inline void Lexer::skipComment()
 {
     // *it is '#'
     ++it;
@@ -166,8 +159,8 @@ void Lexer::run(const std::string &context, TokenList &tokens)
 {
     error_msg.clear();
 
-    token_pos       it  = context.begin();
-    const token_pos end = context.end();
+    it  = context.begin();
+    end = context.end();
 
     uint32_t line_index = 0;
 
@@ -178,32 +171,31 @@ void Lexer::run(const std::string &context, TokenList &tokens)
 
     while (it != end) {
 
-        tokens.push_back(Line());
-        line = tokens.rbegin();
-        line->index = line_index;
+        cur_line = &tokens.emplace_back();
+        cur_line->index = line_index;
 
         spaces = 0;
         tabs   = 0;
-        readIndent(it, end, spaces, tabs);
+        readIndent(spaces, tabs);
 
         while (it != end && *it != '\n') {
 
             switch (token_at(it)) {
             case AlphabetChar:
-                line->tokens.push_back(readName(it, end));
+                readName();
                 break;
             case Digit:
             case Dot:
-                line->tokens.push_back(readNumber(it, end));
+                readNumber();
                 break;
             case Quote:
-                line->tokens.push_back(readString(it, end));
+                readString();
                 break;
             case Comma:
             case Colon:
             case LeftParen:
             case RightParen:
-                line->tokens.push_back(readSingleChar(it));
+                readSingleChar();
                 break;
             case Equal:      // Equal or EqualEqual
             case Not:        // Not or NotEqual
@@ -211,10 +203,10 @@ void Lexer::run(const std::string &context, TokenList &tokens)
             case Slash:      // Slash or SlashEqual
             case Plus:       // Plus or PlusEqual
             case Minus:      // Minus or MinusEqual
-                line->tokens.push_back(readOperator(it, end));
+                readOperator();
                 break;
             case Comment:
-                skipComment(it, end);
+                skipComment();
                 break;
             case Whitespace: // ' '  or '\t' -> skip
             case Return:     // '\r'         -> skip
@@ -229,7 +221,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
         if (it != end && *it == '\n')
             ++it;
 
-        if (line->tokens.size() == 0)
+        if (cur_line->tokens.size() == 0)
             tokens.pop_back();
         else {
             // check if indentation is correct
@@ -239,7 +231,7 @@ void Lexer::run(const std::string &context, TokenList &tokens)
             tabs_total   += tabs;
             if ((spaces_total > 0) && (tabs_total > 0))
                 return pushError("Invalid indentation, inconsistent use of tabs and spaces");
-            line->indent_level = tabs + spaces / 4;
+            cur_line->indent_level = tabs + spaces / 4;
         }
 
         if (!error_msg.empty())
