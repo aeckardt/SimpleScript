@@ -413,9 +413,7 @@ void DecoderThread::run()
         mutex.unlock();
 
         if (!quit) {
-            mutex.lock();
             decoder.swsScale();
-            mutex.unlock();
 
             // Continue reading only when next() is called
             // to avoid a race-condition for decoder.frame()
