@@ -147,6 +147,7 @@ VideoDecoder::VideoDecoder() :
     sws_ctx(nullptr),
     _eof(true)
 {
+    av_log_set_level(AV_LOG_ERROR);
 }
 
 void VideoDecoder::cleanUp()
