@@ -26,11 +26,14 @@ template<> ObjectReference ParameterObjectBase<VideoFile>::ref  = VideoRef;
 
 bool cmdCapture(const ParameterList &in_params, Parameter &out_param)
 {
-    if (in_params.empty())
-        out_param.createObject<Image>(captureDesktop());
+    if (in_params.empty()) {
+        Image &image = out_param.createObject<Image>();
+        image.captureDesktop();
+    }
     else {
         const QRect &rect = in_params[0].asRect();
-        out_param.createObject<Image>(captureRect(rect));
+        Image &image = out_param.createObject<Image>();
+        image.captureRect(rect);
     }
     return out_param.asObject<Image>().size() != QSize(0, 0);
 }
@@ -114,8 +117,11 @@ bool cmdRecord(const ParameterList &in_params, Parameter &out_param)
 
     engine->mainWindow->hide();
 
+    VideoFile &video_file = out_param.createObject<VideoFile>();
+    video_file.createTemporary();
+
     ScreenRecorder recorder;
-    recorder.exec(out_param.createObject<VideoFile>(temporaryVideo()), rect, frame_rate);
+    recorder.exec(video_file, rect, frame_rate);
 
     engine->mainWindow->show();
 
