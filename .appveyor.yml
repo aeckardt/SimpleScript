@@ -1,5 +1,5 @@
 environment:
-  QTDIR: C:\Qt\5.12.6\mingw73_64
+  QTDIR: C:\Qt\5.12\mingw73_64
   MINGW: C:\Qt\Tools\mingw730_64
   make_cmd: mingw32-make
   
