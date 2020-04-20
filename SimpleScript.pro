@@ -88,7 +88,3 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     "resources/resources.qrc"
-
-*-g++* {
-    QMAKE_CXXFLAGS += "-fno-omit-frame-pointer"
-}
