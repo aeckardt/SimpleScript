@@ -72,7 +72,7 @@ typedef TokenList::const_iterator line_pos;
 class Lexer
 {
 public:
-    void run(const std::string &context, TokenList &tokens);
+    void tokenize(const std::string &context, TokenList &tokens);
 
     const std::string &getLastError() const
     { return error_msg; }

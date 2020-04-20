@@ -57,6 +57,9 @@ inline bool operator!=(const Token &np1, const Token &np2)
 
 struct Node
 {
+    Node() {}
+    Node(ParserRule rule) : rule(rule) {}
+
     ParserRule rule;
     std::list<Node> children;
 
@@ -69,7 +72,7 @@ typedef std::list<Node>::const_iterator tree_pos;
 class Parser
 {
 public:
-    void run(const lx::TokenList &tokens, Node &root);
+    void createAST(const lx::TokenList &tokens, Node &root);
 
     const std::string &getLastError() const
     { return error_msg; }
@@ -85,7 +88,9 @@ private:
 
     void pushError(const std::string &msg);
 
-    Node &addNode(Node &parent, ParserRule rule);
+    Node &addNode(Node &parent, ParserRule rule)
+    { return parent.children.emplace_back(rule); }
+
     void expectToken(const std::vector<lx::TokenId> &ids);
     void readParam(Node &node);
     void readOperator(Node &node);

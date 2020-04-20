@@ -155,7 +155,7 @@ inline void Lexer::skipComment()
         ++it;
 }
 
-void Lexer::run(const std::string &context, TokenList &tokens)
+void Lexer::tokenize(const std::string &context, TokenList &tokens)
 {
     error_msg.clear();
 

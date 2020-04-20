@@ -14,14 +14,6 @@ static const std::unordered_map<uint32_t, std::string> token_desc = {
     {Star,     "'*'"}, {StarEqual,  "'*='"}, {Slash,     "'/'"}, {SlashEqual,  "'/='"},
     {Plus,     "'+'"}, {PlusEqual,  "'+='"}, {Minus,     "'-'"}, {MinusEqual,  "'-='"}};
 
-inline Node &Parser::addNode(Node &parent, ParserRule rule)
-{
-    parent.children.push_back(Node());
-    Node &child = parent.children.back();
-    child.rule = rule;
-    return child;
-}
-
 inline void Parser::expectToken(const std::vector<TokenId> &ids)
 {
     if (cur_token != lineEnd()) {
@@ -80,7 +72,7 @@ inline void Parser::readParam(Node &node)
     }
 }
 
-void Parser::run(const TokenList &tokens, Node &root)
+void Parser::createAST(const TokenList &tokens, Node &root)
 {
     error_msg.clear();
 

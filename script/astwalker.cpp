@@ -81,7 +81,7 @@ bool ASTWalker::run(const std::string &str)
 {
     lx::TokenList tokens;
     lx::Lexer lexer;
-    lexer.run(str, tokens);
+    lexer.tokenize(str, tokens);
 
     if (!lexer.getLastError().empty()) {
         errorMsg("Error lexing:");
@@ -91,7 +91,8 @@ bool ASTWalker::run(const std::string &str)
 
     Node ast_root;
     ps::Parser parser;
-    parser.run(tokens, ast_root);
+    parser.createAST(tokens, ast_root);
+
     if (!parser.getLastError().empty()) {
         errorMsg("Error parsing:");
         errorMsg(parser.getLastError().c_str());

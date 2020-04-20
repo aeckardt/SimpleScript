@@ -1,8 +1,11 @@
 TEMPLATE = app
-CONFIG += console
+CONFIG += \
+    c++17 \
+    console \
+    thread \
+    sdk_no_version_check
+
 CONFIG -= app_bundle
-CONFIG += thread
-CONFIG += sdk_no_version_check
 
 HEADERS += \
     createimage.h \
