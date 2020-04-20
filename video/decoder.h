@@ -42,7 +42,7 @@ private:
     int height;
     int num_bytes;
 
-    int current;
+    size_t current;
 
     struct Cycle
     {
@@ -56,6 +56,13 @@ private:
     std::vector<Cycle> cycles;
 };
 
+struct VideoInfo
+{
+    int width;
+    int height;
+    int framerate;
+};
+
 class VideoDecoder
 {
 public:
@@ -66,11 +73,12 @@ public:
     bool readFrame();
     void swsScale();
 
-    void resize(const QSize &size);
-
-    bool eof() const { return _eof; }
+    const VideoInfo &info() const { return _info; }
 
     const Image &frame() { return frame_rgb.image(); }
+    bool eof() const { return _eof; }
+
+    void resize(const QSize &size);
 
     int av_error;
     QString last_error;
@@ -92,6 +100,8 @@ private:
 
     struct AVCodecContext *codec_ctx;
     struct AVCodec        *codec;
+
+    VideoInfo _info;
 
     struct AVFrame *frame_;
     DecoderFrame frame_rgb;
@@ -117,7 +127,7 @@ public:
 
     void setFile(const VideoFile &video);
 
-    int frameRate() const { return decoder.frame_rate; }
+    const VideoInfo &info() const { return decoder.info(); }
 
     void next();
     void stop();

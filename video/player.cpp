@@ -52,9 +52,9 @@ void VideoPlayer::receiveFrame(const Image *image)
     this->image = image->toQImage();
 
     if (first_frame && isVisible()) {
-        resize(image->size());
+        resize(decoder.info().width, decoder.info().height);
+        frame_rate = decoder.info().framerate;
         first_frame = false;
-        frame_rate = decoder.frameRate();
     }
 
     frame_index++;

@@ -142,6 +142,7 @@ VideoDecoder::VideoDecoder() :
     codec_par(nullptr),
     codec_ctx(nullptr),
     codec(nullptr),
+    _info({0, 0, 0}),
     frame_(nullptr),
     pkt(nullptr),
     sws_ctx(nullptr),
@@ -156,6 +157,7 @@ void VideoDecoder::cleanUp()
         avformat_close_input(&format_ctx);
     if (codec_ctx != nullptr)
         avcodec_close(codec_ctx);
+    _info = {0, 0, 0};
     if (frame_ != nullptr)
         av_frame_free(&frame_);
     if (pkt != nullptr)
@@ -267,8 +269,12 @@ void VideoDecoder::open(const VideoFile &video_file)
         return;
     }
 
+    _info = {codec_ctx->width, codec_ctx->height, frame_rate};
     _eof = false;
 }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
 
 bool VideoDecoder::readFrame()
 {
@@ -308,6 +314,8 @@ bool VideoDecoder::readFrame()
 
     return !_eof;
 }
+
+#pragma clang diagnostic pop
 
 void VideoDecoder::swsScale()
 {
