@@ -118,9 +118,6 @@ void VideoEncoder::open(const VideoFile &video_file, int width, int height, int 
         return errorMsg("Could not open file");
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-
 void VideoEncoder::encodeFrame(bool flush)
 {
     if (ctx == nullptr || frame_ == nullptr || file == nullptr) {
@@ -159,8 +156,6 @@ void VideoEncoder::encodeFrame(bool flush)
         av_packet_unref(pkt);
     }
 }
-
-#pragma clang diagnostic pop
 
 void VideoEncoder::errorMsg(const char *msg)
 {

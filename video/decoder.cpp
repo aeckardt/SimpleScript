@@ -263,9 +263,6 @@ void VideoDecoder::open(const VideoFile &video_file)
     _eof = false;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wold-style-cast"
-
 bool VideoDecoder::readFrame()
 {
     while (!_eof && (av_error = av_read_frame(format_ctx, pkt)) >= 0) {
@@ -303,8 +300,6 @@ bool VideoDecoder::readFrame()
 
     return !_eof;
 }
-
-#pragma clang diagnostic pop
 
 void VideoDecoder::swsScale()
 {
