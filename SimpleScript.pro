@@ -41,8 +41,7 @@ SOURCES += \
     video/decoder.cpp \
     video/encoder.cpp \
     video/player.cpp \
-    video/recorder.cpp \
-    video/videoframe.cpp
+    video/recorder.cpp
 
 HEADERS += \
     mainWindow/mainwindow.h \
@@ -61,8 +60,7 @@ HEADERS += \
     video/encoder.h \
     video/player.h \
     video/recorder.h \
-    video/videofile.h \
-    video/videoframe.h
+    video/videofile.h
 
 win32 {
     SOURCES += \
