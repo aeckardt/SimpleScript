@@ -1,6 +1,6 @@
 environment:
-  QTDIR: C:\Qt\5.12\mingw73_64
-  MINGW: C:\Qt\Tools\mingw730_64
+  QTDIR: C:\Qt\5.14\mingw73_64
+  MINGW: C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0
   make_cmd: mingw32-make
   
 install:
