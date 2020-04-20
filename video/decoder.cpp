@@ -40,7 +40,8 @@ void DecoderFrame::resize(int width, int height)
         this->width = width;
         this->height = height;
 
-        num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
+        // Linesize alignment for scaled RGB32 frame should be 1 (or 4)
+        num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
 
         size_t index;
         for (index = 0; index < FRAME_CYCLES; index++)
@@ -103,9 +104,7 @@ void DecoderFrame::alloc(size_t frame_index)
 
 void DecoderFrame::allocAll()
 {
-    // Remark: Not sure if align needs to be 1 or 32, see
-    // https://stackoverflow.com/questions/35678041/what-is-linesize-alignment-meaning
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 32);
+    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
 
     size_t index;
     for (index = 0; index < cycles.size(); index++)
