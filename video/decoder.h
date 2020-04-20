@@ -24,17 +24,18 @@ public:
     void resize(int width, int height);
     void resizeHard(int width, int height) { resize(width, height); reset(); }
 
-    struct AVFrame *frame() { return cycles[current].frame; }
     const Image &image() const { return cycles[current].image; }
 
     void shift();
     void reset(); // -> shift one cycle
 
 private:
-    void alloc(size_t frame_index);
+    void alloc(size_t index);
     void allocAll();
-    void cleanUp(size_t frame_index);
+    void cleanUp(size_t index);
     void cleanUpAll();
+
+    struct AVFrame *frame() { return cycles[current].frame; }
 
     void errorMsg(const char *msg);
 
@@ -54,6 +55,8 @@ private:
     };
 
     std::vector<Cycle> cycles;
+
+    friend class VideoDecoder;
 };
 
 struct VideoInfo

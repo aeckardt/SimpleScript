@@ -44,7 +44,7 @@ void DecoderFrame::resize(int width, int height)
         num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
 
         size_t index;
-        for (index = 0; index < FRAME_CYCLES; index++)
+        for (index = 0; index < cycles.size(); index++)
             cycles[index].need_resize = true;
     }
 }
@@ -61,13 +61,13 @@ void DecoderFrame::shift()
 void DecoderFrame::reset()
 {
     size_t index;
-    for (index = 0; index < FRAME_CYCLES; index++)
+    for (index = 0; index < cycles.size(); index++)
         shift();
 }
 
-void DecoderFrame::alloc(size_t frame_index)
+void DecoderFrame::alloc(size_t index)
 {
-    Cycle &cycle = cycles[frame_index];
+    Cycle &cycle = cycles[index];
 
     // Allocate an AVFrame structure
     cycle.frame = av_frame_alloc();
@@ -84,16 +84,6 @@ void DecoderFrame::alloc(size_t frame_index)
         return;
     }
 
-    // Assign appropriate parts of buffer to image planes in frame_rgb
-    // Note that frame_rgb is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-
-    // Replace avpicture_fill -> deprecated
-    // with av_image_fill_arrays
-
-    // Examples of av_image_fill_arrays from
-    // https://mail.gnome.org/archives/commits-list/2016-February/msg05531.html
-    // https://github.com/bernhardu/dvbcut-deb/blob/master/src/avframe.cpp
     av_image_fill_arrays(cycle.frame->data, cycle.frame->linesize, cycle.buffer, AV_PIX_FMT_RGB32,
                          width, height, 1);
 
@@ -111,9 +101,9 @@ void DecoderFrame::allocAll()
         alloc(index);
 }
 
-void DecoderFrame::cleanUp(size_t frame_index)
+void DecoderFrame::cleanUp(size_t index)
 {
-    Cycle &cycle = cycles[frame_index];
+    Cycle &cycle = cycles[index];
 
     // Clean up
     if (cycle.frame != nullptr)
@@ -284,7 +274,6 @@ bool VideoDecoder::readFrame()
             // Decode video frame
             frame_finished = 0;
 
-            // Replace avcodec_decode_video2 -> deprecated
             // with avcodec_send_packet and avcodec_receive_frame
             // see https://github.com/pesintta/vdr-plugin-vaapidevice/issues/31
             if (codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ||
