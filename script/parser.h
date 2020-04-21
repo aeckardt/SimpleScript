@@ -57,9 +57,6 @@ inline bool operator!=(const Token &np1, const Token &np2)
 
 struct Node
 {
-    Node() {}
-    Node(ParserRule rule) : rule(rule) {}
-
     ParserRule rule;
     std::list<Node> children;
 
@@ -89,7 +86,7 @@ private:
     void pushError(const std::string &msg);
 
     Node &addNode(Node &parent, ParserRule rule)
-    { return parent.children.emplace_back(rule); }
+    { parent.children.emplace_back().rule = rule; return parent.children.back(); }
 
     void expectToken(const std::vector<lx::TokenId> &ids);
     void readParam(Node &node);
