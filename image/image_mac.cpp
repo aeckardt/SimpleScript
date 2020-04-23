@@ -23,7 +23,7 @@ inline void captureFromRef(Image &dest, CGImageRef &image_ref)
 
         size_t h;
         for (h = 0; h < static_cast<size_t>(height); ++h)
-            memcpy(dest.scanLine(h), bits + h * bpr, static_cast<size_t>(width) * bpp);
+            memcpy(dest.scanLine(h), bits + h * bpr, static_cast<size_t>(width) * 4);
     } else
         // Cannot use format other than QImage::Format_RGB32
         dest.clear();
