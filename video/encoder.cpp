@@ -3,6 +3,7 @@
 extern "C"
 {
 #include "libavcodec/avcodec.h"
+#include "libavutil/imgutils.h"
 #include "libavutil/opt.h"
 }
 
@@ -80,12 +81,12 @@ void VideoEncoder::allocFrame()
     frame_->format = pix_fmt;
     frame_->width  = width;
     frame_->height = height;
+}
 
-    av_error = av_frame_get_buffer(frame_, 32);
-    if (av_error < 0) {
-        av_frame_free(&frame_);
-        return errorMsg("Could not allocate the video frame data");
-    }
+void VideoEncoder::allocFrameBuffer(uint8_t *bits)
+{
+    // Write frame into external buffer to avoid to make an extra copy, if possible!
+    av_image_fill_arrays(frame_->data, frame_->linesize, bits, AV_PIX_FMT_RGB32, width, height, 1);
 }
 
 void VideoEncoder::cleanUp()
@@ -177,8 +178,8 @@ void VideoEncoder::initialize()
     if (frame_ == nullptr)
         return;
 
-    image.assign(frame_->data[0], width, height);
-    image.enableReallocation(false);
+    // The frame buffer is allocated externally
+    connect(&image, &Image::reallocate, this, &VideoEncoder::allocFrameBuffer);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {

@@ -1,14 +1,17 @@
 #ifndef VIDEO_H
 #define VIDEO_H
 
+#include <QObject>
 #include <QImage>
 #include <QString>
 
 #include "image/image.h"
 #include "videofile.h"
 
-class VideoEncoder
+class VideoEncoder : public QObject
 {
+    Q_OBJECT
+
 public:
     VideoEncoder();
     ~VideoEncoder() { cleanUp(); }
@@ -21,6 +24,9 @@ public:
 
     int av_error;
     QString last_error;
+
+private slots:
+    void allocFrameBuffer(uint8_t *bits);
 
 private:
     void allocContext();

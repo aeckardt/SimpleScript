@@ -2,6 +2,8 @@
 
 #include "image/image.h"
 
+#include <QDebug>
+
 void RecorderThread::setupVideo(const VideoFile &video_file, const QRect &rect, int frame_rate)
 {
     screen_rect = rect;
@@ -33,12 +35,19 @@ void RecorderThread::run()
     while (!quit) {
         mutex.unlock();
 
+        qint64 t_before_capturing = elapsed_timer.elapsed();
+        qDebug() << "Timer at" << elapsed_timer.elapsed() << "ms before capturing";
         encoder.frame().captureRect(screen_rect);
+        qDebug() << "Timer at" << elapsed_timer.elapsed() << "ms before writing (capturing took" << elapsed_timer.elapsed() - t_before_capturing << "ms)";
+        qint64 t_before_writing = elapsed_timer.elapsed();
         encoder.writeFrame();
+        qDebug() << "Timer at" << elapsed_timer.elapsed() << "ms after writing (writing took" << elapsed_timer.elapsed() - t_before_writing << "ms)";
         captured++;
 
         // Determine time till next frame should be captured
         interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
+
+        qDebug() << "Calculated interval to next is:" << interval << "ms";
 
         // This loop keeps the focus in this thread
         // -> It works, but it should be improved!
@@ -47,6 +56,8 @@ void RecorderThread::run()
         while (interval > 0) {
             interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
         }
+
+        qDebug() << "---------------------------------------------------------------------------";
 
         mutex.lock();
     }
