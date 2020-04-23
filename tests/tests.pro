@@ -9,7 +9,9 @@ CONFIG -= app_bundle
 
 HEADERS += \
     createimage.h \
+    ../image/image.h \ # for moc creation
     ../video/decoder.h \ # for moc creation
+    ../video/encoder.h \ # for moc creation
     test_image.h \
     test_script.h \
     test_video.h

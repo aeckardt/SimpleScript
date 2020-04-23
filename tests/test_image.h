@@ -45,7 +45,6 @@ TEST(Image, UseExternalBuffer)
     // Setup image and image2 to share the same memory
     Image image(linesize_alignment);
     image.assign(buffer, width, height);
-    image.enableReallocation(false);
 
     Image image2(linesize_alignment);
     image2.assign(buffer, width, height);
@@ -87,14 +86,15 @@ TEST(Image, Screenshot)
     int height = 256;
     int linesize_alignment = 32;
 
-    // In the first step, capture the screen and verify that the dimensions are correct
-
     // Create image
     Image image(linesize_alignment);
 
     // Capture screen area
     QRect screenRect = {100, 100, width, height};
     image.captureRect(screenRect);
+
+    // Verify that image buffer was allocated
+    EXPECT_NE(image.bits(), nullptr);
 
     // Retrieve dimensions from screenshot
     int image_width = image.width();
@@ -104,39 +104,10 @@ TEST(Image, Screenshot)
     EXPECT_NE(image.size(), QSize());
 
     // Verify that image has at least the dimensions of the area on the screen
-    // This is particularly relevant for MacOS, because the screenshot image can
-    // be bigger than the screen area
+    // This is particularly relevant for Retina displays on MacOS,
+    // because the screenshot image can be 2x the size of the actual screen area
     EXPECT_GE(image_width, width);
     EXPECT_GE(image_height, height);
-
-    // In the second step, allocate a buffer and write image into the buffer
-    // Verify that something was written into the allocated buffer
-
-    // Setup buffer to have bytes_per_row > width * 4
-    size_t bytes_per_row = (image_width * 4 + linesize_alignment - 1) / linesize_alignment * linesize_alignment;
-    size_t buffer_size = bytes_per_row * image_height;
-
-    // Allocate buffer
-    uint8_t *buffer = new uint8_t[buffer_size];
-    memset(buffer, 0, buffer_size);
-
-    // Create another buffer for comparison
-    uint8_t *cmp_buffer = new uint8_t[buffer_size];
-    memset(cmp_buffer, 0, buffer_size);
-
-    // Assign buffer to image
-    image.assign(buffer, image_width, image_height);
-    image.enableReallocation(false);
-
-    image.captureRect(screenRect);
-
-    // See if anything was written into the buffer
-    // -> validates that the screenshot function has done something!
-    EXPECT_NE(memcmp(buffer, cmp_buffer, buffer_size), 0);
-
-    // Clean up
-    delete [] buffer;
-    delete [] cmp_buffer;
 }
 
 #endif // TEST_IMAGE_H
