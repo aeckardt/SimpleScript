@@ -30,20 +30,26 @@ void Image::captureRect(const QRect &rect)
     HDC hScreenDC = GetDC(nullptr);
     HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
 
-    BITMAPINFOHEADER bih;
-    memset(&bih, 0, sizeof(BITMAPINFOHEADER));
-    bih.biWidth = rect.width();
-    bih.biHeight = -rect.height(); // force top-down
-    bih.biSize = sizeof(BITMAPINFOHEADER);
-    bih.biPlanes = 1;
-    bih.biBitCount = 32;
-    bih.biSizeImage = static_cast<DWORD>(static_cast<size_t>(rect.height()) * bpr);
-
     HBITMAP hbmp = reinterpret_cast<HBITMAP>(cleanup_info);
     if (hbmp == nullptr || rect.size() != size()) {
-        uint8_t* bitmap_data;
+        BITMAPINFOHEADER bih;
+        memset(&bih, 0, sizeof(BITMAPINFOHEADER));
+        bih.biWidth = rect.width();
+        bih.biHeight = -rect.height(); // force top-down
+        bih.biSize = sizeof(BITMAPINFOHEADER);
+        bih.biPlanes = 1;
+        bih.biBitCount = 32;
+        bih.biSizeImage = static_cast<DWORD>(rect.height() * bpr);
 
-        hbmp = CreateDIBSection(nullptr, reinterpret_cast<LPBITMAPINFO>(&bih), DIB_RGB_COLORS, reinterpret_cast<void **>(&bitmap_data), nullptr, 0);
+        uint8_t *bitmap_data;
+
+        hbmp = CreateDIBSection(nullptr, 
+                                reinterpret_cast<LPBITMAPINFO>(&bih), 
+                                DIB_RGB_COLORS, 
+                                reinterpret_cast<void **>(&bitmap_data), 
+                                nullptr, 
+                                0);
+                                
         assign(reinterpret_cast<uint8_t *>(bitmap_data),
                rect.width(),
                rect.height(),
