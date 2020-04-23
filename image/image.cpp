@@ -1,14 +1,13 @@
 #include "image.h"
 
 Image::Image(int linesize_alignment) :
-    bits(nullptr),
+    _bits(nullptr),
     _width(0),
     _height(0),
     linesize_alignment(linesize_alignment),
     bpr(0),
     cleanup_fnc(nullptr),
-    cleanup_info(nullptr),
-    can_reallocate(true)
+    cleanup_info(nullptr)
 {
 }
 
@@ -16,7 +15,7 @@ Image::Image(const Image &src) :
     Image(src.linesize_alignment)
 {
     resize(src.size());
-    memcpy(bits, src.bits, bpr * static_cast<size_t>(_height));
+    memcpy(_bits, src._bits, bpr * static_cast<size_t>(_height));
 }
 
 Image::Image(const QString &file_name) :
@@ -38,8 +37,9 @@ void Image::clear()
     if (cleanup_fnc != nullptr) {
         cleanup_fnc(cleanup_info);
         cleanup_fnc = nullptr;
+        cleanup_info = nullptr;
     }
-    bits = nullptr;
+    _bits = nullptr;
     _width = 0;
     _height = 0;
 }
@@ -54,9 +54,11 @@ size_t Image::bytesPerRow(int width)
 
 void Image::assign(uint8_t *bits, int width, int height, ImageCleanupFunction cleanup_fnc, void *cleanup_info)
 {
+    emit reallocate(bits);
+
     clear();
 
-    this->bits = bits;
+    this->_bits = bits;
     this->_width = width;
     this->_height = height;
 
@@ -80,7 +82,7 @@ QImage Image::toQImage() const
 {
     if (linesize_alignment == 0)
         // Returned QImage does not have ownership over its image data
-        return QImage(bits, _width, _height, QImage::Format_RGB32);
+        return QImage(_bits, _width, _height, QImage::Format_RGB32);
     else {
         // New QImage is created that owns its image data
         QImage image = QImage(_width, _height, QImage::Format_RGB32);
@@ -97,12 +99,8 @@ QImage Image::toQImage() const
 
 Image &Image::operator=(const Image &src)
 {
-    if (_width != src._width || _height != src._height) {
-        if (can_reallocate)
-            resize(src.size());
-        else
-            return *this;
-    }
+    if (_width != src._width || _height != src._height)
+        resize(src.size());
 
     size_t line;
     for (line = 0; line < static_cast<size_t>(_height); line++)

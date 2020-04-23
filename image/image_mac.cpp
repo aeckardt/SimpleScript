@@ -12,22 +12,20 @@ inline void captureFromRef(Image &dest, CGImageRef &image_ref, bool can_realloca
     CGDataProviderRef provider = CGImageGetDataProvider(image_ref);
     CFDataRef dataref = CGDataProviderCopyData(provider);
 
-    size_t bpp = CGImageGetBitsPerPixel(image_ref) >> 3;
+    size_t bpp = CGImageGetBitsPerPixel(image_ref);
     size_t bpr = CGImageGetBytesPerRow(image_ref);
 
-    if (bpp == 4) {
-        if (dest.size() != QSize(width, height) && can_reallocate) {
+    if (bpp == 32) {
+        if (dest.size() != QSize(width, height))
             dest.resize(width, height);
-        }
 
-        if (dest.size() == QSize(width, height)) {
-            const UInt8 *bits = CFDataGetBytePtr(dataref);
+        const UInt8 *bits = CFDataGetBytePtr(dataref);
 
-            size_t h;
-            for (h = 0; h < static_cast<size_t>(height); ++h)
-                memcpy(dest.scanLine(h), bits + h * bpr, static_cast<size_t>(width) * bpp);
-        }
-    } else if (can_reallocate)
+        size_t h;
+        for (h = 0; h < static_cast<size_t>(height); ++h)
+            memcpy(dest.scanLine(h), bits + h * bpr, static_cast<size_t>(width) * bpp);
+    } else
+        // Cannot use format other than QImage::Format_RGB32
         dest.clear();
 
     CFRelease(dataref);

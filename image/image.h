@@ -1,14 +1,17 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <QObject>
 #include <QImage>
 #include <QRect>
 #include <QString>
 
 typedef void (*ImageCleanupFunction)(void *);
 
-class Image
+class Image : public QObject
 {
+    Q_OBJECT
+
 public:
     Image() : Image(0) {}
     Image(int linesize_alignment);
@@ -18,10 +21,8 @@ public:
 
     void clear();
 
-    void assign(uint8_t *bits, int _width, int _height,
+    void assign(uint8_t *_bits, int _width, int _height,
                 ImageCleanupFunction cleanup_fnc = nullptr, void *cleanup_info = nullptr);
-
-    void enableReallocation(bool value) { can_reallocate = value; }
 
     void resize(const QSize &new_size) { resize(new_size.width(), new_size.height()); }
     void resize(int _width, int _height);
@@ -32,8 +33,9 @@ public:
     void captureDesktop();
     void captureRect(const QRect &rect);
 
-    uint8_t *scanLine(size_t line) { return bits + bpr * line; }
-    const uint8_t *scanLine(size_t line) const { return bits + bpr * line; }
+    uint8_t *scanLine(size_t line) { return _bits + bpr * line; }
+    const uint8_t *scanLine(size_t line) const { return _bits + bpr * line; }
+    const uint8_t *bits() const { return _bits; }
 
     QImage toQImage() const;
 
@@ -42,8 +44,11 @@ public:
     bool operator==(const Image &cmp) const;
     bool operator!=(const Image &cmp) const { return !operator==(cmp); }
 
+signals:
+    void reallocate(uint8_t *bits);
+
 private:
-    uint8_t *bits;
+    uint8_t *_bits;
     int _width;
     int _height;
     int linesize_alignment;
@@ -53,8 +58,6 @@ private:
 
     ImageCleanupFunction cleanup_fnc;
     void *cleanup_info;
-
-    bool can_reallocate;
 };
 
 #endif // IMAGE_H
