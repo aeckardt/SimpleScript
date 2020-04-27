@@ -38,6 +38,7 @@ SOURCES += \
     frameSelector/selectframewidget.cpp \
     image/image.cpp \
     image/imageviewer.cpp \
+    utils/memoryusage_mac.cpp \
     video/decoder.cpp \
     video/encoder.cpp \
     video/player.cpp \
@@ -56,6 +57,7 @@ HEADERS += \
     frameSelector/selectframewidget.h \
     image/image.h \
     image/imageviewer.h \
+    utils/memoryusage.h \
     video/decoder.h \
     video/encoder.h \
     video/player.h \
