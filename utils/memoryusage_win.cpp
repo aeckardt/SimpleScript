@@ -22,5 +22,4 @@ void MemoryUsage::clear()
     _unused = 0;
 }
 
-
 #endif // _WIN32
