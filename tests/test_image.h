@@ -50,13 +50,13 @@ TEST(Image, UseExternalBuffer)
     image2.assign(buffer, width, height);
 
     // When image is changed, image2 should be too!
-    image = createImage(width, height, 0);
-    EXPECT_EQ(image2, createImage(width, height, 0));
+    fillImage(image, 0);
+    EXPECT_EQ(image2, createImage(width, height, 0, 32));
 
     // Test again!
-    image = createImage(width, height, 1);
-    EXPECT_NE(image2, createImage(width, height, 0));
-    EXPECT_EQ(image2, createImage(width, height, 1));
+    fillImage(image, 1);
+    EXPECT_NE(image2, createImage(width, height, 0, 32));
+    EXPECT_EQ(image2, createImage(width, height, 1, 32));
 
     // Clean up
     delete [] buffer;

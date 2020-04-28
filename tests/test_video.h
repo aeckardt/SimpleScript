@@ -37,10 +37,12 @@ TEST(Video, EncodeAndDecode)
 
     ASSERT_EQ(encoder.last_error, "");
 
+    encoder.frame().resize(width, height);
+
     // Encode frames
     int i;
     for (i = 0; i < frames; i++) {
-        encoder.frame() = createImage(width, height, i, 32);
+        fillImage(encoder.frame(), i);
         encoder.writeFrame();
     }
 
