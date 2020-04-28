@@ -6,6 +6,7 @@ cd build-Release
 "${make_cmd[@]}"
 result=$?
 if [[ $result -eq 0 ]]; then
+  ls -all
   ./tests;
   result=$?;
 fi;
