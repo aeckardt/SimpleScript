@@ -16,6 +16,7 @@ public:
     Image() : Image(0) {}
     Image(int linesize_alignment);
     Image(const Image &src);
+    Image(Image &&src);
     Image(const QString &file_name);
     ~Image() { clear(); }
 
@@ -40,6 +41,7 @@ public:
     QImage toQImage() const;
 
     Image &operator=(const Image &src);
+    Image &operator=(Image &&src);
 
     bool operator==(const Image &cmp) const;
     bool operator!=(const Image &cmp) const { return !operator==(cmp); }

@@ -2,6 +2,4 @@
 *.autosave
 *.pro.user
 .DS_Store
-/build*/*
-/output/*
-/*.sh
+build*/*
