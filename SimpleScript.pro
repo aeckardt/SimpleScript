@@ -38,7 +38,6 @@ SOURCES += \
     frameSelector/selectframewidget.cpp \
     image/image.cpp \
     image/imageviewer.cpp \
-    utils/memoryusage_mac.cpp \
     video/decoder.cpp \
     video/encoder.cpp \
     video/player.cpp \
@@ -66,7 +65,8 @@ HEADERS += \
 
 win32 {
     SOURCES += \
-        image/image_win.cpp
+        image/image_win.cpp \
+        utils/memoryusage_win.cpp
 
     LIBS += \
         -lgdi32
@@ -74,7 +74,8 @@ win32 {
 
 macx {
     SOURCES += \
-        image/image_mac.cpp
+        image/image_mac.cpp \
+        utils/memoryusage_mac.cpp
 
     LIBS += \
         -framework ApplicationServices

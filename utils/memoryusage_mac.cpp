@@ -1,6 +1,6 @@
 #ifdef __APPLE__
 
-#include "MemoryUsage.h"
+#include "memoryusage.h"
 
 #include <QProcess>
 
