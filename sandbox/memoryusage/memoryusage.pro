@@ -6,7 +6,6 @@ SOURCES += \
     main.cpp \
     ../../image/image.cpp \
     ../../tests/createimage.cpp \
-    ../../utils/memoryusage_mac.cpp
 
 HEADERS += \
     ../../image/image.h \
@@ -14,3 +13,16 @@ HEADERS += \
 
 INCLUDEPATH += \
     $$PWD/../..
+
+win32 {
+    SOURCES += \
+        ../../utils/memoryusage_win.cpp
+
+    LIBS += \
+        -lpsapi
+}
+
+macx {
+    SOURCES += \
+        ../../utils/memoryusage_mac.cpp
+}
