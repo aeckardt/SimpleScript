@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <sys/sysctl.h>
+
 // grammar [A-Za-z0-9] skip rest
 
 MemoryUsage::MemoryUsage() :
@@ -79,7 +81,17 @@ void MemoryUsage::retrieveInfo()
         token_it++;
     }
 
-    _total = _used + _unused;
+    int mib[2];
+    int64_t physical_memory = 0;
+    size_t length;
+
+    // Get the Physical memory size
+    mib[0] = CTL_HW;
+    mib[1] = HW_MEMSIZE;
+    length = sizeof(int64_t);
+    sysctl(mib, 2, &physical_memory, &length, NULL, 0);
+
+    _total = (physical_memory / 1024 / 1024);
 }
 
 void MemoryUsage::clear()

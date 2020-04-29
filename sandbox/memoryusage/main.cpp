@@ -20,6 +20,7 @@ int main(int argc, char **argv)
 
     qDebug() << "Used memory:" << usage_stats.used() << "MB";
     qDebug() << "Unused memory:" << usage_stats.unused() << "MB";
+    qDebug() << "Total memory:" << usage_stats.total() << "MB";
 
     qint64 t = elapsed_timer.elapsed();
 
@@ -34,8 +35,8 @@ int main(int argc, char **argv)
 
     int num_bytes = height * width * 4;
 
-    int max_frames = (unused * 1000) / (num_bytes / 1000);
-    int max_frames_using_buffer = (unused_with_buffer * 1000) / (num_bytes / 1000);
+    int max_frames = (unused * 1024) / (num_bytes / 1024);
+    int max_frames_using_buffer = (unused_with_buffer * 1024) / (num_bytes / 1024);
 
     qDebug() << "Frame size:" << QSize(width, height) << "-> corresponding to" << num_bytes << "Bytes";
     qDebug() << "Max frames to store:" << max_frames;
