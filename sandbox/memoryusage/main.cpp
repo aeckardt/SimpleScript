@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QElapsedTimer>
-#include <QDebug>
 
+#include <iostream>
 #include <vector>
 
 #include "image/image.h"
@@ -18,13 +18,13 @@ int main(int argc, char **argv)
     MemoryUsage usage_stats;
     usage_stats.retrieveInfo();
 
-    qDebug() << "Used memory:" << usage_stats.used() << "MB";
-    qDebug() << "Unused memory:" << usage_stats.unused() << "MB";
-    qDebug() << "Total memory:" << usage_stats.total() << "MB";
+    std::cout << "Used memory: " << usage_stats.used() << " MB" << std::endl;
+    std::cout << "Unused memory: " << usage_stats.unused() << " MB" << std::endl;
+    std::cout << "Total memory: " << usage_stats.total() << " MB" << std::endl;
 
     qint64 t = elapsed_timer.elapsed();
 
-    qDebug() << "The memory usage request took" << t << "ms";
+    std::cout << "The memory usage request took " << t << " ms" << std::endl;
 
     int memory_buffer;
     if (usage_stats.total() < 8000)
@@ -48,10 +48,10 @@ int main(int argc, char **argv)
     int max_frames_using_buffer_cap = (unused_with_buffer_cap * 1024) / (num_bytes / 1024);
     int max_frames_using_buffer_rest = (unused_with_buffer_rest * 1024) / (num_bytes / 1024);
 
-    qDebug() << "Frame size:" << QSize(width, height) << "-> corresponding to" << num_bytes << "Bytes";
-    qDebug() << "Max frames to store:" << max_frames;
-    qDebug() << "With" << memory_buffer << "MB left as buffer:" << max_frames_using_buffer;
-    qDebug() << "That would result in" << (max_frames_using_buffer / framerate) << "seconds with a framefrate of" << framerate << "fps";
+    std::cout << "Frame size: QSize(" << width << ", " << height << ") -> corresponding to " << num_bytes << " Bytes" << std::endl;
+    std::cout << "Max frames to store: " << max_frames << std::endl;
+    std::cout << "With " << memory_buffer << " MB left as buffer: " << max_frames_using_buffer << std::endl;
+    std::cout << "That would result in " << (max_frames_using_buffer / framerate) << " seconds with a framefrate of " << framerate << " fps" << std::endl;
 
     std::vector<Image> images;
     std::vector<Image> images_over_4gb;
@@ -60,14 +60,14 @@ int main(int argc, char **argv)
     for (index = 0; index < max_frames_using_buffer_cap; index++)
         images.push_back(createImage(width, height, index));
     if (max_frames_using_buffer_rest > 0)
-        qDebug() << "4096 MB allocated so far...";
+        std::cout << "4096 MB allocated so far..." << std::endl;
     for (index = 0; index < max_frames_using_buffer_rest; index++)
         images_over_4gb.push_back(createImage(width, height, index));
 
     usage_stats.retrieveInfo();
 
-    qDebug() << "Used memory after storing images:" << usage_stats.used() << "MB";
-    qDebug() << "Unused memory after storing images:" << usage_stats.unused() << "MB";
+    std::cout << "Used memory after storing images: " << usage_stats.used() << " MB" << std::endl;
+    std::cout << "Unused memory after storing images: " << usage_stats.unused() << " MB" << std::endl;
 
     return 0;
 }
