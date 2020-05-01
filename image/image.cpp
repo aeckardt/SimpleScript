@@ -125,6 +125,29 @@ Image &Image::operator=(const Image &src)
     return *this;
 }
 
+Image &Image::operator=(Image &&src)
+{
+    clear();
+
+    emit reallocate(src._bits);
+
+    _bits = src._bits;
+    _width = src._width;
+    _height = src._height;
+    linesize_alignment = src.linesize_alignment;
+    bpr = src.bpr;
+    cleanup_fnc = src.cleanup_fnc;
+    cleanup_info = src.cleanup_info;
+
+    src._bits = nullptr;
+    src._width = 0;
+    src._height = 0;
+    src.cleanup_fnc = nullptr;
+    src.cleanup_info = nullptr;
+
+    return *this;
+}
+
 bool Image::operator==(const Image &cmp) const
 {
     if (_width != cmp._width || _height != cmp._height)

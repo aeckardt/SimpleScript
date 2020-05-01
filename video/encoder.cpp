@@ -179,7 +179,7 @@ void VideoEncoder::initialize()
         return;
 
     // The frame buffer is allocated externally
-    connect(&image, &Image::reallocate, this, &VideoEncoder::allocFrameBuffer);
+    connect(&image, &Image::reallocate, this, &VideoEncoder::allocFrameBuffer, Qt::DirectConnection);
 
     pkt = av_packet_alloc();
     if (pkt == nullptr) {
