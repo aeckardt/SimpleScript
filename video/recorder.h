@@ -6,46 +6,21 @@
 #include <QElapsedTimer>
 #include <QEventLoop>
 #include <QMutex>
-#include <QWaitCondition>
 
 #include "image/image.h"
+#include "utils/circularqueue.h"
 #include "encoder.h"
 
-#include <queue>
-
-#include <iostream>
+#include <vector>
 
 #include "qhotkey.h"
 
-class FrameQueue
+class FrameQueue : public CircularQueue<Image>
 {
 public:
     FrameQueue(int width, int height, int linesize_alignment);
 
-    inline void setLimit(int val) { QMutexLocker locker(&mutex); limit = std::min(val, max_queue_size); }
-
-    void push(Image &img);
-    void pop(Image &img);
-
-    inline bool empty() { QMutexLocker locker(&mutex); return total_size == 0; }
-    inline bool full() { QMutexLocker locker(&mutex); return total_size == limit; }
-    inline int size() { QMutexLocker locker(&mutex); return total_size; }
-
-private:
-    int width;
-    int height;
-    int linesize_alignment;
-    int bpr;
-    int num_bytes;
-
-    int max_queue_size;
-    int total_size;
-    int limit;
-
-    std::queue<Image> images;
-
-    QMutex mutex;
-    QWaitCondition cond;
+    size_t frameSize() { return obj_size; }
 };
 
 class RecorderThread : public QThread

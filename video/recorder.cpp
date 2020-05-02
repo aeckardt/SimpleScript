@@ -1,47 +1,17 @@
 #include "recorder.h"
 
 #include "image/image.h"
+#include "utils/memoryusage.h"
+
+#include <iostream>
 
 #ifdef __APPLE__
 #define _RETINA_DISPLAY_
 #endif
 
 FrameQueue::FrameQueue(int width, int height, int linesize_alignment) :
-    width(width),
-    height(height),
-    linesize_alignment(linesize_alignment),
-    total_size(0),
-    limit(0)
+    CircularQueue<Image>(((width * 4 + linesize_alignment - 1) / linesize_alignment * linesize_alignment) * height)
 {
-    if (linesize_alignment == 0)
-        bpr = static_cast<size_t>(this->width * 4);
-    else
-        bpr = static_cast<size_t>(((this->width * 4 + this->linesize_alignment - 1) / this->linesize_alignment) * this->linesize_alignment);
-    num_bytes = this->height * bpr;
-    max_queue_size = INT32_MAX / num_bytes;
-}
-
-void FrameQueue::push(Image &img)
-{
-    QMutexLocker locker(&mutex);
-
-    if (total_size == limit)
-        return;
-
-    images.push(std::move(img));
-    total_size++;
-}
-
-void FrameQueue::pop(Image &img)
-{
-    QMutexLocker locker(&mutex);
-
-    if (total_size == 0)
-        return;
-
-    img = std::move(images.front());
-    images.pop();
-    total_size--;
 }
 
 RecorderThread::RecorderThread(QObject *parent)
@@ -92,7 +62,7 @@ void RecorderThread::run()
         // Determine time till next frame should be captured
         interval = captured * 1000 / frame_rate - elapsed_timer.elapsed();
 
-        fprintf(stderr, "Calculated interval to next is: %llums\n", interval);
+        fprintf(stderr, "Calculated interval to next is: %llims\n", interval);
 
         // Same awful thing as above!!
         while (interval > 0) {
@@ -150,27 +120,23 @@ void EncoderThread::run()
     elapsed_timer.start();
 
     mutex.lock();
-    while (!quit) {
-        mutex.unlock();
+    while (true) {
+        fprintf(stderr, "Checking if queue is empty...\n");
 
-        // This loop keeps the focus in this thread
-        // -> It works, but it should be improved!
-        // -> Unfortunately, sleep does not guarantee to return in a specified timeframe
-        //    which makes it impossible to record the screen with a certain framerate
-        mutex.lock();
-        fprintf(stderr, "Checking if queue empty...\n");
-        while (queue->empty() && !quit)
-        {
+        while (queue->empty() && !quit) {
             mutex.unlock();
+            // No problem going to sleep, even if the accuracy
+            // cannot be guaranteed, because the frames are stacked
+            // up in the queue
+            QThread::msleep(1);
             mutex.lock();
         }
 
-        if (queue->empty() && quit) {
+        if (queue->empty() && quit)
             break;
-        }
         mutex.unlock();
 
-        fprintf(stderr, "Queue is not empty, has %d elements -> popping image...\n", queue->size());
+        fprintf(stderr, "Queue is not empty, has %zu elements -> popping image...\n", queue->size());
 
         qint64 t_before_encoding = elapsed_timer.elapsed();
         fprintf(stderr, "Timer at %llums before encoding\n", elapsed_timer.elapsed());
@@ -207,19 +173,23 @@ ScreenRecorder::ScreenRecorder()
 
 void ScreenRecorder::exec(const VideoFile &video_file, QRect rect, int frame_rate, QString hotkeySequence)
 {
-#ifndef __APPLE
     // Width / height need to be aligned by a factor of 2 for video encoding
-    // -> on MacOS this step can be skipped
-    //    as to why look into RecorderThread::setupVideo!
     rect.setSize(QSize(rect.width() & 0xfffe, rect.height() & 0xfffe));
-#endif
 
     if (rect.width() == 0 || rect.height() == 0)
         // Cannot record empty frames
         return;
 
+    MemoryUsage usage_stats;
+    usage_stats.retrieveInfo();
+    int max_buffer_size = std::max(0, usage_stats.unused() - 600);
+
     frame_queue = new FrameQueue(rect.width(), rect.height(), 32);
-    frame_queue->setLimit(100);
+    fprintf(stderr, "The frame size is: %zu bytes\n", frame_queue->frameSize());
+    fprintf(stderr, "The remaining rame size is: %d MB\n", usage_stats.unused());
+    int queue_size = std::max(50, (max_buffer_size * 1024) / (static_cast<int>(frame_queue->frameSize()) / 1024));
+    fprintf(stderr, "The queue size is: %d\n", queue_size);
+    frame_queue->resize(queue_size);
 
     // Prepare recording
     hotkey.setShortcut(hotkeySequence);

@@ -1,6 +1,7 @@
 QT += widgets
 
-CONFIG += sdk_no_version_check
+CONFIG += \
+    sdk_no_version_check
 
 SOURCES += \
     main.cpp \
@@ -9,6 +10,7 @@ SOURCES += \
 
 HEADERS += \
     ../../image/image.h \
+    ../../utils/circularqueue.h \
     ../../utils/memoryusage.h
 
 INCLUDEPATH += \
