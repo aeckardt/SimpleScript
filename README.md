@@ -4,9 +4,9 @@
 
 |&nbsp;&nbsp;&nbsp; Description &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 | ----------- |:--------:|
-| Windows Build | [![Build Status](https://ci.appveyor.com/api/projects/status/github/aeckardt/SimpleScript?branch=sandbox&svg=true)](https://ci.appveyor.com/project/aeckardt/SimpleScript/branch/sandbox)
-| MacOS Build | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/sandbox/1)](https://travis-ci.org/aeckardt/SimpleScript) |
-| Unit Tests | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/sandbox/2)](https://travis-ci.org/aeckardt/SimpleScript) |
+| Windows Build | [![Build Status](https://ci.appveyor.com/api/projects/status/github/aeckardt/SimpleScript?branch=master&svg=true)](https://ci.appveyor.com/project/aeckardt/SimpleScript/branch/master)
+| MacOS Build | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript) |
+| Unit Tests | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript) |
 
 ## Goal of the project
 
