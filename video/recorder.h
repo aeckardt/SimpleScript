@@ -20,7 +20,7 @@ class FrameQueue : public CircularQueue<Image>
 public:
     FrameQueue(int width, int height, int linesize_alignment);
 
-    size_t frameSize() { return obj_size; }
+    size_t frameSize() const { return obj_size; }
 };
 
 class RecorderThread : public QThread

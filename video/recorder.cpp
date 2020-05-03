@@ -186,7 +186,7 @@ void ScreenRecorder::exec(const VideoFile &video_file, QRect rect, int frame_rat
 
     frame_queue = new FrameQueue(rect.width(), rect.height(), 32);
     fprintf(stderr, "The frame size is: %zu bytes\n", frame_queue->frameSize());
-    fprintf(stderr, "The remaining rame size is: %d MB\n", usage_stats.unused());
+    fprintf(stderr, "The remaining RAM size is: %d MB\n", usage_stats.unused());
     int queue_size = std::max(50, (max_buffer_size * 1024) / (static_cast<int>(frame_queue->frameSize()) / 1024));
     fprintf(stderr, "The queue size is: %d\n", queue_size);
     frame_queue->resize(queue_size);

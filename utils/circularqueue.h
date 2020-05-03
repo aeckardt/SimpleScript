@@ -72,8 +72,6 @@ void CircularQueue<T>::resize(size_t val)
         vec.resize(vector_size, T());
 }
 
-#include <iostream>
-
 template<typename T>
 void CircularQueue<T>::push(T &val)
 {
