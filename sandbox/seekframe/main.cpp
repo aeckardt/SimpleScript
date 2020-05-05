@@ -9,7 +9,11 @@ extern "C"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/opt.h>
+#include <libavutil/imgutils.h>
 }
+
+#include "image/image.h"
+#include "tests/createimage.h"
 
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 
@@ -46,6 +50,74 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
         return av_error;
     }
 
+    AVFrame *frame = av_frame_alloc();
+    if (frame == nullptr) {
+        fprintf(stderr, "Could not allocate frame.\n");
+        return -1;
+    }
+
+    size_t num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
+
+    uint8_t *buffer = static_cast<uint8_t*>(av_malloc(num_bytes));
+    if (buffer == nullptr) {
+        fprintf(stderr, "Could not allocate frame buffer.\n");
+        return -1;
+    }
+
+    av_image_fill_arrays(frame->data, frame->linesize, buffer, AV_PIX_FMT_RGB32,
+                         width, height, 1);
+
+    Image image;
+    image.assign(frame->data[0], width, height);
+    fillImage(image, 0);
+
+    // Find the decoder for the video stream
+    AVCodec *codec = avcodec_find_decoder(stream->codecpar->codec_id);
+    if (codec == nullptr) {
+        fprintf(stderr, "Unsupported codec!\n");
+        return -1;
+    }
+
+    // Copy context
+    AVCodecContext *codec_ctx = avcodec_alloc_context3(codec);
+    if (avcodec_parameters_to_context(codec_ctx, stream->codecpar) < 0) {
+        fprintf(stderr, "Could not copy codec parameters to context.\n");
+        return -1;
+    }
+
+    // Open codec
+    if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
+        fprintf(stderr, "Could not open codec.\n");
+        return -1;
+    }
+
+    AVPacket *pkt = av_packet_alloc();
+    if (pkt == nullptr) {
+        fprintf(stderr, "Could not allocate packet.\n");
+        return -1;
+    }
+
+    av_error = avcodec_send_frame(codec_ctx, frame);
+    if (av_error < 0) {
+        fprintf(stderr, "Could not send frame.\n");
+        return av_error;
+    }
+    av_error = avcodec_receive_packet(codec_ctx, pkt);
+    if (av_error < 0) {
+        fprintf(stderr, "Could not receive packet.\n");
+        return av_error;
+    }
+
+    av_error = av_write_frame(format_ctx, pkt);
+    if (av_error < 0) {
+        fprintf(stderr, "Could not write frame.\n");
+        return av_error;
+    }
+
+    av_packet_unref(pkt);
+    av_packet_free(&pkt);
+    av_frame_free(&frame);
+
     av_write_trailer(format_ctx);
     avio_close(format_ctx->pb);
     avformat_free_context(format_ctx);
@@ -57,17 +129,21 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    const char *file_name = video_file_createheader.toStdString().c_str();
+    QSettings settings;
+//    settings.setValue("video_file_header", "...");
+//    settings.setValue("video_file_noheader", "...");
+//    settings.setValue("video_file_createheader", "...");
+
+    QString video_file_createheader = settings.value("video_file_createheader").toString();
+
+    std::string file_name_str = video_file_createheader.toStdString();
+    const char *file_name = file_name_str.c_str();
 
     int av_error = createVideoFile(file_name, 540, 405, 25);
     if (av_error < 0) {
         fprintf(stderr, "Error creating video file.\n");
         return -1;
     }
-
-//    QSettings settings;
-//    settings.setValue("video_file_header", "...");
-//    settings.setValue("video_file_noheader", "...");
 
     std::string video_file_path = video_file_createheader.toStdString();
     fprintf(stdout, "The video file path is: %s\n", video_file_path.c_str());
