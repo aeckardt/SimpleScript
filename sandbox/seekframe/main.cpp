@@ -16,6 +16,8 @@ extern "C"
 #include "tests/createimage.h"
 
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
+static const AVCodecID codec_id = AV_CODEC_ID_H264;
+static const char *codec_name = "libx264rgb";
 
 int createVideoFile(const char *file_name, int width, int height, int framerate)
 {
@@ -37,10 +39,40 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
     stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
     stream->codecpar->width = width;
     stream->codecpar->height = height;
-    stream->codecpar->codec_id = AV_CODEC_ID_H264;
+    stream->codecpar->codec_id = codec_id;
     stream->codecpar->format = pix_fmt;
     stream->time_base = AVRational{1, framerate};
     stream->r_frame_rate = AVRational{framerate, 1};
+
+    // Find the decoder for the video stream
+    AVCodec *codec = avcodec_find_encoder_by_name(codec_name);
+    if (codec == nullptr) {
+        fprintf(stderr, "Unsupported codec!\n");
+        return -1;
+    }
+
+    // Copy context
+    AVCodecContext *codec_ctx = avcodec_alloc_context3(codec);
+    if (avcodec_parameters_to_context(codec_ctx, stream->codecpar) < 0) {
+        fprintf(stderr, "Could not copy codec parameters to context.\n");
+        return -1;
+    }
+    codec_ctx->max_b_frames = 2;
+    codec_ctx->gop_size = 12;
+    codec_ctx->time_base = stream->time_base;
+    codec_ctx->framerate = AVRational{framerate, 1};
+
+    av_error = avcodec_parameters_from_context(stream->codecpar, codec_ctx);
+    if (av_error < 0) {
+        fprintf(stderr, "Could not copy codec context back to codec parameters.\n");
+        return av_error;
+    }
+
+    // Open codec
+    if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
+        fprintf(stderr, "Could not open codec.\n");
+        return -1;
+    }
 
     avio_open(&format_ctx->pb, file_name, AVIO_FLAG_WRITE);
 
@@ -55,8 +87,13 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
         fprintf(stderr, "Could not allocate frame.\n");
         return -1;
     }
+    frame->format = pix_fmt;
+    frame->width = width;
+    frame->height = height;
 
-    size_t num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
+    int linesize_alignment = 32;
+
+    size_t num_bytes = av_image_get_buffer_size(pix_fmt, width, height, linesize_alignment);
 
     uint8_t *buffer = static_cast<uint8_t*>(av_malloc(num_bytes));
     if (buffer == nullptr) {
@@ -64,32 +101,12 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
         return -1;
     }
 
-    av_image_fill_arrays(frame->data, frame->linesize, buffer, AV_PIX_FMT_RGB32,
-                         width, height, 1);
+    av_image_fill_arrays(frame->data, frame->linesize, buffer, pix_fmt,
+                         width, height, linesize_alignment);
 
-    Image image;
+    Image image(linesize_alignment);
     image.assign(frame->data[0], width, height);
     fillImage(image, 0);
-
-    // Find the decoder for the video stream
-    AVCodec *codec = avcodec_find_decoder(stream->codecpar->codec_id);
-    if (codec == nullptr) {
-        fprintf(stderr, "Unsupported codec!\n");
-        return -1;
-    }
-
-    // Copy context
-    AVCodecContext *codec_ctx = avcodec_alloc_context3(codec);
-    if (avcodec_parameters_to_context(codec_ctx, stream->codecpar) < 0) {
-        fprintf(stderr, "Could not copy codec parameters to context.\n");
-        return -1;
-    }
-
-    // Open codec
-    if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
-        fprintf(stderr, "Could not open codec.\n");
-        return -1;
-    }
 
     AVPacket *pkt = av_packet_alloc();
     if (pkt == nullptr) {
@@ -104,8 +121,23 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
     }
     av_error = avcodec_receive_packet(codec_ctx, pkt);
     if (av_error < 0) {
-        fprintf(stderr, "Could not receive packet.\n");
-        return av_error;
+        if (av_error == AVERROR(EAGAIN)) {
+            // Flushing...
+            av_error = avcodec_send_frame(codec_ctx, nullptr);
+            if (av_error < 0) {
+                fprintf(stderr, "Could not flush frame.\n");
+                return av_error;
+            }
+
+            av_error = avcodec_receive_packet(codec_ctx, pkt);
+            if (av_error < 0) {
+                fprintf(stderr, "Could not receive packet by flushing.\n");
+                return av_error;
+            }
+        } else {
+            fprintf(stderr, "Could not receive packet.\n");
+            return av_error;
+        }
     }
 
     av_error = av_write_frame(format_ctx, pkt);
@@ -117,6 +149,8 @@ int createVideoFile(const char *file_name, int width, int height, int framerate)
     av_packet_unref(pkt);
     av_packet_free(&pkt);
     av_frame_free(&frame);
+
+    av_freep(&buffer);
 
     av_write_trailer(format_ctx);
     avio_close(format_ctx->pb);
@@ -184,6 +218,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    fflush(stderr);
+
     AVStream *stream = format_ctx->streams[video_stream];
     fprintf(stdout, "- id: %d\n", stream->id);
     fprintf(stdout, "- index: %d\n", stream->index);
@@ -196,11 +232,6 @@ int main(int argc, char **argv)
     fprintf(stdout, "- dispositon: %d\n", stream->disposition);
     fprintf(stdout, "- dts_ordered: %d\n", stream->dts_ordered);
     fprintf(stdout, "- r_frame_rate: (%d, %d)\n", stream->r_frame_rate.num, stream->r_frame_rate.den);
-
-    int64_t divisor = int64_t(AV_TIME_BASE) * stream->r_frame_rate.den;
-    int framecount = ((format_ctx->duration - 1) * stream->r_frame_rate.num + divisor - 1) / divisor;
-
-    fprintf(stdout, "Calculated framcount is: %d\n", framecount);
 
     avformat_close_input(&format_ctx);
 
