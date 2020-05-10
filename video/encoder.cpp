@@ -106,7 +106,9 @@ void VideoEncoder::allocCodecContext()
 
     // Use global header only if format container is not mp4
     // see https://stackoverflow.com/questions/46444474/c-ffmpeg-create-mp4-file
-    if (format_ctx->oformat->flags & AVFMT_GLOBALHEADER && strcmp(format_container, "mp4") != 0)
+    if (format_ctx->oformat->flags & AVFMT_GLOBALHEADER &&
+            strcmp(format_container, "mp4") != 0 &&
+            strcmp(format_container, "mov") != 0)
         codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
     // Copy codec context back to stream parameters

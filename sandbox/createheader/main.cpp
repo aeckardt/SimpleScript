@@ -14,11 +14,12 @@ extern "C"
 
 #include "image/image.h"
 #include "tests/createimage.h"
+#include "video/decoder.h"
 
-static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
+static const char *format_container = "avi";
 static const AVCodecID codec_id = AV_CODEC_ID_H264;
 static const char *codec_name = "libx264rgb";
-static const char *format_container = "mp4";
+static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 
 int createVideoFile(const char *file_name, int width, int height, int framecount, int framerate)
 {
@@ -75,7 +76,7 @@ int createVideoFile(const char *file_name, int width, int height, int framecount
     codec_ctx->gop_size = 12;
     if (codec_id == AV_CODEC_ID_H264) {
         av_opt_set(codec_ctx->priv_data, "preset", "fast", 0);
-        av_opt_set(codec_ctx->priv_data, "crf",    "15",   0);
+        av_opt_set(codec_ctx->priv_data, "crf",    "0",    0);
     }
     if (format_ctx->oformat->flags & AVFMT_GLOBALHEADER && strcmp(format_container, "mp4") != 0)
          codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -218,9 +219,8 @@ int createVideoFile(const char *file_name, int width, int height, int framecount
             }
             av_packet_unref(&pkt);
         }
-        else {
+        else
             break;
-        }
 
         fflush(stderr);
     }
@@ -246,18 +246,24 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
+#ifdef FILE_FROM_SETTINGS
     QSettings settings;
 //    settings.setValue("video_file_header", "...");
 //    settings.setValue("video_file_noheader", "...");
 //    settings.setValue("video_file_createheader", "...");
+    VideoFile video_file(settings.value("video_file_createheader").toString());
+#else
+    VideoFile video_file;
+    video_file.createTemporary();
+#endif
 
-    QString video_file_createheader = settings.value("video_file_createheader").toString();
+    QString video_file_createheader = video_file.fileName();
 
     std::string file_name_str = video_file_createheader.toStdString();
     const char *file_name = file_name_str.c_str();
 
     int av_error;
-    av_error = createVideoFile(file_name, 352, 288, 600, 25);
+    av_error = createVideoFile(file_name, 350, 288, 600, 25);
     if (av_error < 0) {
         fprintf(stderr, "Error creating video file.\n");
         return -1;
@@ -337,10 +343,25 @@ int main(int argc, char **argv)
     fprintf(stdout, "--------------------------------------------------------------------\n");
     fprintf(stdout, "Calculated frame rate: %d\n", framerate);
     fprintf(stdout, "Calculated pts of frame %d: %lld\n", n_frame, t_frame);
+    fprintf(stdout, "--------------------------------------------------------------------\n");
 
     avformat_close_input(&format_ctx);
 
     // ------------------------------------------------------------------------------------------------------------ //
+
+    VideoDecoder decoder;
+    decoder.open(video_file);
+
+    const VideoInfo &info = decoder.info();
+
+    fprintf(stdout, "frame count in decoder: %d\n", info.framecount);
+
+    int i;
+    for (i = 0; i < info.framecount; i++) {
+        decoder.seek(i);
+        bool eof = !decoder.readFrame();
+        fprintf(stdout, "Reading frame %d: %s\n", i, (eof ? "failed" : "successful"));
+    }
 
     return 0;
 }

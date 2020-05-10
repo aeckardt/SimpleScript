@@ -24,7 +24,7 @@ TEST(Video, EncodeAndDecode)
 {
     int width = 350;
     int height = 288;
-    int framecount = 72;
+    int framecount = 70;
     int framerate = 25;
     int i;
 

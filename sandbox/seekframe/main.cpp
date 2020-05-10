@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     int width = 352;
     int height = 288;
     int framecount = 200;
-    int framerate = 30;
+    int framerate = 25;
     int i;
 
     // Create temporary file
@@ -70,15 +70,37 @@ int main(int argc, char **argv)
 
     fprintf(stdout, "Opening decoder took %lld milliseconds.\n", elapsed_timer.restart());
 
-    std::vector<int> frame_numbers = {99, 98, 23, 199, 198, 0, 199, 5, 6, 7, 6, 5, 209};
+    std::vector<int> frame_numbers = {
+        framecount / 2,
+        framecount / 2 - 1,
+        framecount / 3,
+        framecount - 1,
+        framecount - 2,
+        framecount - 3,
+        0,
+        framecount - 1,
+        5,
+        6,
+        7,
+        6,
+        5,
+        framecount + 10};
 
     for (int frame_number : frame_numbers) {
+        elapsed_timer.restart();
         decoder.seek(frame_number);
         qint64 tdelta_seeking = elapsed_timer.restart();
+        qint64 tdelta_reading = 0;
 
         bool eof = !decoder.readFrame();
-        fprintf(stdout, "Seeking frame %03d took %lld milliseconds -> reading %s, took %lld milliseconds.\n",
-                frame_number, tdelta_seeking, (eof ? "failed" : "successful"), elapsed_timer.restart());
+        bool check = !eof;
+        if (!eof) {
+            decoder.swsScale();
+            tdelta_reading = elapsed_timer.elapsed();
+            check = decoder.frame() == createImage(width, height, frame_number);
+        }
+        fprintf(stdout, "Seeking frame %03d took %lld milliseconds -> reading %s (%s), took %lld milliseconds.\n",
+                frame_number, tdelta_seeking, (eof ? "failed" : "successful"), (check ? "correct" : "---"), tdelta_reading);
     }
 
     return 0;

@@ -187,7 +187,7 @@ void VideoDecoder::open(const VideoFile &video_file)
             _info.height = stream->codecpar->height;
             _info.framecount = stream->nb_frames;
             if (stream->avg_frame_rate.den != 0)
-                _info.framerate =  static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.5);
+                _info.framerate =  static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.1);
             else {
                 errorMsg("Error: Could not determine framerate");
                 return;
@@ -341,9 +341,14 @@ void VideoDecoder::resize(const QSize &size)
 
 void VideoDecoder::seek(int n_frame)
 {
+    _eof = n_frame >= _info.framecount;
+
+    if (_eof)
+        return;
+
     int64_t t_frame = av_q2d({n_frame * video_stream->time_base.den, _info.framerate * video_stream->time_base.num});
 
-    av_error = avformat_seek_file(format_ctx, video_stream->index, t_frame, t_frame, t_frame, 0);
+    av_error = avformat_seek_file(format_ctx, video_stream->index, t_frame, t_frame, t_frame, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
     if (av_error < 0)
         return errorMsg("Error seeking frame");
 }

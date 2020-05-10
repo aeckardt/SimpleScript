@@ -66,7 +66,7 @@ bool cmdLoadVideo(const ParameterList &in_params, Parameter &out_param)
     else
         file_name = QFileDialog::getOpenFileName(nullptr,
             QObject::tr("Load video"), "",
-            QObject::tr("H264 video file (*.h264);;All files (*)"));
+            QObject::tr("AVI video file (*.avi);;All files (*)"));
 
     if (!QFileInfo::exists(file_name)) {
         engine->printError("File does not exist");
@@ -156,7 +156,7 @@ bool cmdSave(const ParameterList &in_params, Parameter &)
         else
             fileName = QFileDialog::getSaveFileName(nullptr,
                 QObject::tr("Save video"), "",
-                QObject::tr("H264 video file (*.h264);;All files (*)"));
+                QObject::tr("AVI video file (*.avi);;All files (*)"));
 
         if (!fileName.isEmpty())
             video.save(fileName);
