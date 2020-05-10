@@ -8,7 +8,7 @@
 #include <QMutex>
 
 #include "image/image.h"
-#include "utils/circularqueue.h"
+#include "utils/circularqueue.hpp"
 #include "encoder.h"
 
 #include <vector>

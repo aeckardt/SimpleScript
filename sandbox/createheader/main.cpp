@@ -18,12 +18,13 @@ extern "C"
 static const AVPixelFormat pix_fmt = AV_PIX_FMT_BGR0;
 static const AVCodecID codec_id = AV_CODEC_ID_H264;
 static const char *codec_name = "libx264rgb";
+static const char *format_container = "mp4";
 
 int createVideoFile(const char *file_name, int width, int height, int framecount, int framerate)
 {
     av_log_set_level(AV_LOG_DEBUG);
 
-    AVOutputFormat *output_fmt = av_guess_format("avi", nullptr, nullptr);
+    AVOutputFormat *output_fmt = av_guess_format(format_container, nullptr, nullptr);
     if (output_fmt == nullptr) {
         fprintf(stderr, "Could not guess format.\n");
         return -1;
@@ -76,7 +77,7 @@ int createVideoFile(const char *file_name, int width, int height, int framecount
         av_opt_set(codec_ctx->priv_data, "preset", "fast", 0);
         av_opt_set(codec_ctx->priv_data, "crf",    "15",   0);
     }
-    if (format_ctx->oformat->flags & AVFMT_GLOBALHEADER)
+    if (format_ctx->oformat->flags & AVFMT_GLOBALHEADER && strcmp(format_container, "mp4") != 0)
          codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
     fflush(stderr);
@@ -255,7 +256,8 @@ int main(int argc, char **argv)
     std::string file_name_str = video_file_createheader.toStdString();
     const char *file_name = file_name_str.c_str();
 
-    int av_error = createVideoFile(file_name, 352, 288, 600, 25);
+    int av_error;
+    av_error = createVideoFile(file_name, 352, 288, 600, 25);
     if (av_error < 0) {
         fprintf(stderr, "Error creating video file.\n");
         return -1;
@@ -326,6 +328,15 @@ int main(int argc, char **argv)
     fprintf(stdout, "- codec -> pix_fmt: %d\n", stream->codecpar->format);
     fprintf(stdout, "- codec -> width: %d\n", stream->codecpar->width);
     fprintf(stdout, "- codec -> height: %d\n", stream->codecpar->height);
+
+    int framerate = static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.5);
+
+    int n_frame = 100;
+    int64_t t_frame = av_q2d({(n_frame - 1) * stream->time_base.den, framerate * stream->time_base.num});
+
+    fprintf(stdout, "--------------------------------------------------------------------\n");
+    fprintf(stdout, "Calculated frame rate: %d\n", framerate);
+    fprintf(stdout, "Calculated pts of frame %d: %lld\n", n_frame, t_frame);
 
     avformat_close_input(&format_ctx);
 

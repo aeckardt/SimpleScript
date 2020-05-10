@@ -56,7 +56,7 @@ HEADERS += \
     frameSelector/selectframewidget.h \
     image/image.h \
     image/imageviewer.h \
-    utils/circularqueue.h \
+    utils/circularqueue.hpp \
     utils/memoryusage.h \
     video/decoder.h \
     video/encoder.h \

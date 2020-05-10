@@ -64,6 +64,7 @@ struct VideoInfo
     int width;
     int height;
     int framerate;
+    int framecount;
 };
 
 class VideoDecoder
@@ -76,12 +77,14 @@ public:
     bool readFrame();
     void swsScale();
 
-    const VideoInfo &info() const { return _info; }
+    inline const VideoInfo &info() const { return _info; }
 
-    const Image &frame() { return frame_rgb.image(); }
-    bool eof() const { return _eof; }
+    inline const Image &frame() const { return frame_rgb.image(); }
+    inline bool eof() const { return _eof; }
 
     void resize(const QSize &size);
+
+    void seek(int n_frame);
 
     int av_error;
     QString last_error;
@@ -96,7 +99,7 @@ private:
     Image image;
 
     struct AVFormatContext *format_ctx;
-    int video_stream;
+    const struct AVStream *video_stream;
 
     int frame_counter;
     struct AVCodecParameters *codec_par;
@@ -113,7 +116,6 @@ private:
     struct SwsContext *sws_ctx;
 
     int frame_finished;
-    int frame_rate;
 
     bool _eof;
 

@@ -142,7 +142,7 @@ void EncoderThread::run()
         fprintf(stderr, "Timer at %llums before encoding\n", elapsed_timer.elapsed());
 
         queue->pop(encoder.frame());
-        encoder.writeFrame();
+        encoder.addFrame();
         fprintf(stderr, "Timer at %llums after encoding (it took %llums)\n", elapsed_timer.elapsed(), elapsed_timer.elapsed() - t_before_encoding);
         captured++;
 
@@ -152,7 +152,7 @@ void EncoderThread::run()
 
     fprintf(stderr, "Encoding done, flushing...\n");
 
-    encoder.flush();
+    encoder.finish();
 
     emit finished();
 }

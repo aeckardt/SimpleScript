@@ -12,9 +12,9 @@ HEADERS += \
     ../image/image.h \ # for moc creation
     ../video/decoder.h \ # for moc creation
     ../video/encoder.h \ # for moc creation
+    test_encode.h \
     test_image.h \
-    test_script.h \
-    test_video.h
+    test_script.h
 
 SOURCES += \
     createimage.cpp \

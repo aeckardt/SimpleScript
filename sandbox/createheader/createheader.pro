@@ -5,12 +5,12 @@ CONFIG += \
 
 SOURCES += \
     main.cpp \
-    ..\..\image\image.cpp \
-    ..\..\tests\createimage.cpp
+    ../../image/image.cpp \
+    ../../tests/createimage.cpp
 
 HEADERS += \
-    ..\..\image\image.h \
-    ..\..\tests\createimage.h
+    ../../image/image.h \
+    ../../tests/createimage.h
 
 INCLUDEPATH += \
     $$PWD/../..

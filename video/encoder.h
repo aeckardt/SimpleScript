@@ -17,8 +17,8 @@ public:
     ~VideoEncoder() { cleanUp(); }
 
     void open(const VideoFile &video_file, int width, int height, int frame_rate);
-    void writeFrame() { encodeFrame(false); }
-    void flush() { encodeFrame(true); }
+    void addFrame();
+    void finish();
 
     Image &frame() { return image; }
 
@@ -29,30 +29,36 @@ private slots:
     void allocFrameBuffer(uint8_t *bits);
 
 private:
-    void allocContext();
+    void allocFormatContext();
+    void allocCodecContext();
+    void writeHeader();
     void allocFrame();
 
     void initialize();
     void cleanUp();
 
-    void encodeFrame(bool flush);
+    void encodeFrame(bool finish);
 
     void errorMsg(const char *msg);
 
     int width;
     int height;
+    int frame_counter;
     int frame_rate;
 
-    struct AVCodecContext *ctx;
+    struct AVOutputFormat *output_fmt;
+    struct AVFormatContext *format_ctx;
+    struct AVStream *video_stream;
+
     const struct AVCodec *codec;
-    struct AVFrame *frame_;
+    struct AVCodecContext *codec_ctx;
+
+    struct AVFrame *frame_rgb;
     struct AVPacket *pkt;
-    int pts;
 
     Image image;
 
     const VideoFile *video_file;
-    FILE *file;
 };
 
 #endif // VIDEO_H

@@ -128,11 +128,12 @@ void DecoderFrame::errorMsg(const char *msg)
 VideoDecoder::VideoDecoder() :
     av_error(0),
     format_ctx(nullptr),
+    video_stream(nullptr),
     frame_counter(0),
     codec_par(nullptr),
     codec_ctx(nullptr),
     codec(nullptr),
-    _info({0, 0, 0}),
+    _info({0, 0, 0, 0}),
     frame_(nullptr),
     pkt(nullptr),
     sws_ctx(nullptr),
@@ -147,7 +148,7 @@ void VideoDecoder::cleanUp()
         avformat_close_input(&format_ctx);
     if (codec_ctx != nullptr)
         avcodec_close(codec_ctx);
-    _info = {0, 0, 0};
+    _info = {0, 0, 0, 0};
     if (frame_ != nullptr)
         av_frame_free(&frame_);
     if (pkt != nullptr)
@@ -156,6 +157,7 @@ void VideoDecoder::cleanUp()
         sws_freeContext(sws_ctx);
         sws_ctx = nullptr;
     }
+    video_stream = nullptr;
     frame_counter = 0;
     _eof = true;
 }
@@ -177,13 +179,15 @@ void VideoDecoder::open(const VideoFile &video_file)
     }
 
     // Find the first video stream
-    video_stream = -1;
     for (frame_counter = 0; frame_counter < static_cast<int>(format_ctx->nb_streams); frame_counter++) {
         const AVStream *stream = format_ctx->streams[frame_counter];
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_stream = frame_counter;
+            video_stream = stream;
+            _info.width = stream->codecpar->width;
+            _info.height = stream->codecpar->height;
+            _info.framecount = stream->nb_frames;
             if (stream->avg_frame_rate.den != 0)
-                frame_rate =  static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.5);
+                _info.framerate =  static_cast<int>(av_q2d(stream->avg_frame_rate) + 0.5);
             else {
                 errorMsg("Error: Could not determine framerate");
                 return;
@@ -192,13 +196,13 @@ void VideoDecoder::open(const VideoFile &video_file)
         }
     }
 
-    if (video_stream == -1) {
+    if (video_stream == nullptr) {
         errorMsg("Error: Did not find a video stream");
         return;
     }
 
     // Get a pointer to the codec context for the video stream
-    codec_par = format_ctx->streams[video_stream]->codecpar;
+    codec_par = video_stream->codecpar;
 
     // Find the decoder for the video stream
     codec = avcodec_find_decoder(codec_par->codec_id);
@@ -259,7 +263,6 @@ void VideoDecoder::open(const VideoFile &video_file)
         return;
     }
 
-    _info = {codec_ctx->width, codec_ctx->height, frame_rate};
     _eof = false;
 }
 
@@ -267,7 +270,7 @@ bool VideoDecoder::readFrame()
 {
     while (!_eof && (av_error = av_read_frame(format_ctx, pkt)) >= 0) {
         // Is this a packet from the video stream?
-        if (pkt->stream_index == video_stream) {
+        if (pkt->stream_index == video_stream->index) {
             // Decode video frame
             frame_finished = 0;
 
@@ -334,6 +337,15 @@ void VideoDecoder::resize(const QSize &size)
                              nullptr,
                              nullptr
                              );
+}
+
+void VideoDecoder::seek(int n_frame)
+{
+    int64_t t_frame = av_q2d({n_frame * video_stream->time_base.den, _info.framerate * video_stream->time_base.num});
+
+    av_error = avformat_seek_file(format_ctx, video_stream->index, t_frame, t_frame, t_frame, 0);
+    if (av_error < 0)
+        return errorMsg("Error seeking frame");
 }
 
 void VideoDecoder::errorMsg(const char *msg)
