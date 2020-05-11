@@ -351,6 +351,8 @@ void VideoDecoder::seek(int n_frame)
     av_error = avformat_seek_file(format_ctx, video_stream->index, t_frame, t_frame, t_frame, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
     if (av_error < 0)
         return errorMsg("Error seeking frame");
+
+    frame_counter = n_frame;
 }
 
 void VideoDecoder::errorMsg(const char *msg)
