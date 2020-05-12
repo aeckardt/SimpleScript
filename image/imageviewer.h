@@ -25,7 +25,7 @@ class ImageViewer : public QDialog
     Q_OBJECT
 
 public:
-    ImageViewer();
+    ImageViewer(QDialog *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     void showImage(const Image &image);
 

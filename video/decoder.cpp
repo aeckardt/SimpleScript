@@ -7,7 +7,8 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 
-#define FRAME_CYCLES 2
+static const int frame_cycles = 2;
+static const AVPixelFormat pix_fmt = AV_PIX_FMT_RGB32;
 
 DecoderFrame::DecoderFrame(int width, int height) :
     width(width),
@@ -15,7 +16,7 @@ DecoderFrame::DecoderFrame(int width, int height) :
     current(0)
 {
     int index;
-    for (index = 0; index < FRAME_CYCLES; index++)
+    for (index = 0; index < frame_cycles; index++)
         cycles.push_back({Image(), nullptr, nullptr, false, false});
 
     if (width != 0 && height != 0)
@@ -41,7 +42,7 @@ void DecoderFrame::resize(int width, int height)
         this->height = height;
 
         // Linesize alignment for scaled RGB32 frame should be 1 (or 4)
-        num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
+        num_bytes = av_image_get_buffer_size(pix_fmt, width, height, 1);
 
         size_t index;
         for (index = 0; index < cycles.size(); index++)
@@ -69,32 +70,42 @@ void DecoderFrame::alloc(size_t index)
 {
     Cycle &cycle = cycles[index];
 
-    // Allocate an AVFrame structure
-    cycle.frame = av_frame_alloc();
-    if (cycle.frame == nullptr) {
-        cycle.has_errors = true;
-        errorMsg("Could not allocate frame");
-        return;
+    if (num_bytes > 0) {
+        // Allocate an AVFrame structure
+        cycle.frame = av_frame_alloc();
+        if (cycle.frame == nullptr) {
+            cycle.has_errors = true;
+            errorMsg("Could not allocate frame");
+            return;
+        }
+
+        cycle.frame->width = width;
+        cycle.frame->height = height;
+        cycle.frame->format = pix_fmt;
+
+        cycle.buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
+        if (cycle.buffer == nullptr) {
+            cycle.has_errors = true;
+            errorMsg("Could not allocate frame buffer");
+            return;
+        }
+
+        av_image_fill_arrays(cycle.frame->data, cycle.frame->linesize, cycle.buffer, pix_fmt,
+                             width, height, 1);
+
+        cycle.image.assign(cycle.frame->data[0], width, height);
+    } else {
+        cycle.buffer = nullptr;
+        cycle.frame = nullptr;
+        cycle.image.clear();
     }
-
-    cycle.buffer = static_cast<uint8_t*>(av_malloc(static_cast<size_t>(num_bytes)));
-    if (cycle.buffer == nullptr) {
-        cycle.has_errors = true;
-        errorMsg("Could not allocate frame buffer");
-        return;
-    }
-
-    av_image_fill_arrays(cycle.frame->data, cycle.frame->linesize, cycle.buffer, AV_PIX_FMT_RGB32,
-                         width, height, 1);
-
-    cycle.image.assign(cycle.frame->data[0], width, height);
 
     cycle.need_resize = false;
 }
 
 void DecoderFrame::allocAll()
 {
-    num_bytes = av_image_get_buffer_size(AV_PIX_FMT_RGB32, width, height, 1);
+    num_bytes = av_image_get_buffer_size(pix_fmt, width, height, 1);
 
     size_t index;
     for (index = 0; index < cycles.size(); index++)
@@ -308,10 +319,12 @@ void VideoDecoder::swsScale()
 {
     frame_rgb.shift();
 
-    // Convert the image from its native format to RGB
-    sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
-              frame_->linesize, 0, codec_ctx->height,
-              frame_rgb.frame()->data, frame_rgb.frame()->linesize);
+    if (sws_ctx != nullptr) {
+        // Convert the image from its native format to RGB
+        sws_scale(sws_ctx, static_cast<uint8_t const * const *>(frame_->data),
+                  frame_->linesize, 0, codec_ctx->height,
+                  frame_rgb.frame()->data, frame_rgb.frame()->linesize);
+    }
 
     frame_counter++;
 
@@ -321,22 +334,30 @@ void VideoDecoder::swsScale()
 
 void VideoDecoder::resize(const QSize &size)
 {
-    frame_rgb.resize(size.width(), size.height());
+    if (size == QSize(frame_rgb.width, frame_rgb.height))
+        return;
 
-    sws_freeContext(sws_ctx);
+    if (sws_ctx != nullptr)
+        sws_freeContext(sws_ctx);
 
-    // Also initialize scaling context
-    sws_ctx = sws_getContext(codec_ctx->width,
-                             codec_ctx->height,
-                             codec_ctx->pix_fmt,
-                             size.width(),
-                             size.height(),
-                             AV_PIX_FMT_RGB32,
-                             SWS_BILINEAR,
-                             nullptr,
-                             nullptr,
-                             nullptr
-                             );
+    if (size.width() < 1 || size.height() < 1) {
+        frame_rgb.resize(0, 0);
+        sws_ctx = nullptr;
+    } else {
+        frame_rgb.resize(size.width(), size.height());
+        // Also initialize scaling context
+        sws_ctx = sws_getContext(codec_ctx->width,
+                                 codec_ctx->height,
+                                 codec_ctx->pix_fmt,
+                                 size.width(),
+                                 size.height(),
+                                 AV_PIX_FMT_RGB32,
+                                 SWS_BILINEAR,
+                                 nullptr,
+                                 nullptr,
+                                 nullptr
+                                 );
+    }
 }
 
 void VideoDecoder::seek(int n_frame)

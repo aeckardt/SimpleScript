@@ -2,8 +2,9 @@
 
 #include "imageviewer.h"
 
-ImageViewer::ImageViewer()
-   : scalableImage(new ScalableImage)
+ImageViewer::ImageViewer(QDialog *parent, Qt::WindowFlags f)
+   : QDialog(parent, f)
+   , scalableImage(new ScalableImage)
    , scrollArea(new QScrollArea)
    , toolBar(new QToolBar)
    , mainLayout(new QVBoxLayout(this))

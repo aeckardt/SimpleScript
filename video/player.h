@@ -1,21 +1,25 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <QWidget>
 #include <QDialog>
-#include <QThread>
-#include <QPixmap>
-#include <QImage>
 #include <QElapsedTimer>
 
 #include "decoder.h"
 #include "videofile.h"
+
+QT_BEGIN_NAMESPACE
+class QVBoxLayout;
+QT_END_NAMESPACE
+
+class VideoProgressBar;
 
 class VideoPlayer : public QDialog
 {
     Q_OBJECT
 
 public:
-    VideoPlayer(QWidget *parent = nullptr);
+    VideoPlayer(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     void paintEvent(QPaintEvent *event) override;
 
@@ -30,13 +34,27 @@ private slots:
     void error(const QString &msg);
 
 private:
+    QVBoxLayout *mainLayout;
+    VideoProgressBar *progressBar;
+
     DecoderThread decoder;
     QImage image;
-    bool first_frame;
-    int frame_index;
-    int frame_rate;
+    bool firstFrame;
+    int frameIndex;
+    int frameRate;
 
-    QElapsedTimer elapsed_timer;
+    QElapsedTimer elapsedTimer;
+};
+
+class VideoProgressBar : public QWidget
+{
+    Q_OBJECT
+
+public:
+    VideoProgressBar(QWidget *parent = nullptr);
+
+protected:
+    QSize sizeHint() const override;
 };
 
 #endif // PLAYER_H

@@ -4,10 +4,19 @@
 #include <QPainter>
 #include <QtWidgets>
 
-VideoPlayer::VideoPlayer(QWidget *parent) : QDialog(parent)
+#define PROGRESS_BAR_HEIGHT 35
+
+VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
+    QDialog(parent, f)
+  , mainLayout(new QVBoxLayout(this))
 {
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
     connect(&decoder, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
     connect(&decoder, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
+
+    setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 }
 
 void VideoPlayer::paintEvent(QPaintEvent *)
@@ -22,10 +31,12 @@ void VideoPlayer::runVideo(const VideoFile &video)
     decoder.setFile(video.fileName());
     decoder.start();
 
-    first_frame = true;
-    frame_index = 0;
+    firstFrame = true;
+    frameIndex = 0;
 
-    elapsed_timer.start();
+    elapsedTimer.start();
+
+    setMinimumSize(QSize(0, PROGRESS_BAR_HEIGHT));
 
     show();
 
@@ -43,30 +54,32 @@ void VideoPlayer::keyPressEvent(QKeyEvent *event)
 
 void VideoPlayer::resizeEvent(QResizeEvent *event)
 {
-    if (!first_frame && isVisible())
-        decoder.resize(event->size());
+    if (!firstFrame && isVisible())
+        decoder.resize(event->size() - QSize(0, PROGRESS_BAR_HEIGHT));
 }
 
 void VideoPlayer::receiveFrame(const Image *image)
 {
+    // This just creates a representation as QImage
+    // -> no copy is made!
     this->image = image->toQImage();
 
-    if (first_frame && isVisible()) {
-        resize(decoder.info().width, decoder.info().height);
-        frame_rate = decoder.info().framerate;
-        first_frame = false;
+    if (firstFrame && isVisible()) {
+        resize(decoder.info().width, decoder.info().height + PROGRESS_BAR_HEIGHT);
+        frameRate = decoder.info().framerate;
+        firstFrame = false;
     }
 
-    frame_index++;
+    frameIndex++;
 
     update();
 
     // Determine interval till next frame
-    qint64 interval = frame_index * 1000 / frame_rate - elapsed_timer.elapsed();
+    qint64 interval = frameIndex * 1000 / frameRate - elapsedTimer.elapsed();
     if (interval <= 0) {
         // In case the player lags, reset the frame counter and timer
-        frame_index = 0;
-        elapsed_timer.start();
+        frameIndex = 0;
+        elapsedTimer.start();
         decoder.next();
         return;
     } else if (interval > 1000)
@@ -78,4 +91,14 @@ void VideoPlayer::error(const QString &msg)
 {
     fflush(stderr);
     fprintf(stderr, "%s\n", msg.toStdString().c_str());
+}
+
+VideoProgressBar::VideoProgressBar(QWidget *parent) :
+    QWidget(parent)
+{
+}
+
+QSize VideoProgressBar::sizeHint() const
+{
+    return QSize(0, PROGRESS_BAR_HEIGHT);
 }
