@@ -3,23 +3,23 @@
 ## Project Status
 
 |&nbsp;&nbsp;&nbsp; Description &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-| ----------- |:--------:|
-| Windows Build | [![Build Status](https://ci.appveyor.com/api/projects/status/github/aeckardt/SimpleScript?branch=master&svg=true)](https://ci.appveyor.com/project/aeckardt/SimpleScript/branch/master)
-| MacOS Build | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript) |
-| Unit Tests | [![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript) |
+|----------- |:--------:|
+|Windows Build|[![Build Status](https://ci.appveyor.com/api/projects/status/github/aeckardt/SimpleScript?branch=master&svg=true)](https://ci.appveyor.com/project/aeckardt/SimpleScript/branch/master)|
+|MacOS Build|[![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/1)](https://travis-ci.org/aeckardt/SimpleScript)|
+|Unit Tests|[![Build Status](https://travis-matrix-badges.herokuapp.com/repos/aeckardt/SimpleScript/branches/master/2)](https://travis-ci.org/aeckardt/SimpleScript)|
 
 ## Goal of the project
 
 The goal of this project is to provide tools to capture screen information and effectively utilize it to automate testing or to log information.
 
 What you currently can do is to 
-* select an area on the screen,
-* make screenshots,
-* record an area of the screen at a certain framerate,
-* view the outcome,
-* save the outcome,
-* measure performance,
-* and make some calculations.
+  * select an area on the screen,
+  * make screenshots,
+  * record an area of the screen at a certain framerate,
+  * view the outcome,
+  * save the outcome,
+  * measure performance,
+  * and make some calculations.
 
 The function are explained in further detail down below in this readme.
 
@@ -39,32 +39,32 @@ and then you see the output in a textarea.
 
 Overview:
 
-* Int,
-* Float,
-* String,
-* Boolean,
-* Point,
-* Rect,
-* Datetime,
-* Image
-* Video
+  * Int,
+  * Float,
+  * String,
+  * Boolean,
+  * Point,
+  * Rect,
+  * Datetime,
+  * Image
+  * Video
 
 ## Functions
 
 Overview:
 
-* capture
-* loadImage
-* loadVideo
-* msecsbetween
-* now
-* print
-* record
-* save
-* select
-* sleep
-* str
-* view
+  * capture
+  * loadImage
+  * loadVideo
+  * msecsbetween
+  * now
+  * print
+  * record
+  * save
+  * select
+  * sleep
+  * str
+  * view
 
 ### select
 With this command, you can select a rectangular area of the screen. For instance, type the following:
@@ -157,18 +157,18 @@ You might have noticed that the script language is pretty much Python-like. The 
 
 ## Next steps
 
-* improve VideoPlayer, so it is actually somewhat useful!
+  * improve VideoPlayer, so it is actually somewhat useful!
 
-* implement 'match' function to search for an image on the screen using pattern matching
-  * I previously implemented a version of this function with OpenCV, but I didn't like the performance, so I'm trying to improve it or find another solution 
-  * it would probably make more sense to have multiple functions like this depending on the particular use-case
+  * implement 'match' function to search for an image on the screen using pattern matching
+    * I previously implemented a version of this function with OpenCV, but I didn't like the performance, so I'm trying to improve it or find another solution 
+    * it would probably make more sense to have multiple functions like this depending on the particular use-case
 
-* implement 'read' function to read text from the screen
-  * in order to do this a font has to be gathered and stored
-  * my solution so far has been to gather a font by contrasting the text with the background. Not a perfect solution, but good enough for now
+  * implement 'read' function to read text from the screen
+    * in order to do this a font has to be gathered and stored
+    * my solution so far has been to gather a font by contrasting the text with the background. Not a perfect solution, but good enough for now
   
-* give users the ability to store information in an xml file
-  * this should contain important variables, paths to images, positions and script functions
+  * give users the ability to store information in an xml file
+    * this should contain important variables, paths to images, positions and script functions
 
 With all that, you should be able to record a software while running, to gather all necessary information, like buttons, images and error texts. Then you can write a script and verify, at least in-part, that the script is working properly with your recording. Then you should be able to run the test with your scripted test-case.
 
