@@ -4,14 +4,14 @@
 
 ImageViewer::ImageViewer(QDialog *parent, Qt::WindowFlags f)
    : QDialog(parent, f)
-   , scalableImage(new ScalableImage)
-   , scrollArea(new QScrollArea)
-   , toolBar(new QToolBar)
-   , mainLayout(new QVBoxLayout(this))
-   , zoomToolButtons(new ZoomToolButtons(this))
-   , scaleEdit(new QLineEdit)
-   , scaleComboBox(new QComboBox)
-   , labelEventFilter(new LabelEventFilter(this))
+   , mainLayout(new QVBoxLayout(this)) // deleted by this
+   , labelEventFilter(new LabelEventFilter(this)) // deleted by this
+   , toolBar(new QToolBar) // deleted by mainLayout
+   , zoomToolButtons(new ZoomToolButtons(this)) // deleted by this
+   , scaleComboBox(new QComboBox) // deleted by toolBar
+   , scaleEdit(new QLineEdit) // deleted by scaleComboBox
+   , scrollArea(new QScrollArea) // deleted by mainLayout
+   , scalableImage(new ScalableImage(scrollArea)) // deleted by scrollArea
    , originalFactor(1.0)
    , zoomInOut(0)
    , scaleFactor(1.0)

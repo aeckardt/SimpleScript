@@ -12,7 +12,8 @@ QT_BEGIN_NAMESPACE
 class QVBoxLayout;
 QT_END_NAMESPACE
 
-class VideoProgressBar;
+class VideoCanvas;
+class ProgressBar;
 
 class VideoPlayer : public QDialog
 {
@@ -35,7 +36,9 @@ private slots:
 
 private:
     QVBoxLayout *mainLayout;
-    VideoProgressBar *progressBar;
+
+    VideoCanvas *videoCanvas;
+    ProgressBar *progressBar;
 
     DecoderThread decoder;
     QImage image;
@@ -46,12 +49,20 @@ private:
     QElapsedTimer elapsedTimer;
 };
 
-class VideoProgressBar : public QWidget
+class VideoCanvas : public QWidget
 {
     Q_OBJECT
 
 public:
-    VideoProgressBar(QWidget *parent = nullptr);
+    VideoCanvas(QWidget *parent = nullptr);
+};
+
+class ProgressBar : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ProgressBar(QWidget *parent = nullptr);
 
 protected:
     QSize sizeHint() const override;

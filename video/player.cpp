@@ -6,17 +6,32 @@
 
 #define PROGRESS_BAR_HEIGHT 35
 
+#ifdef QT_DEBUG
+#define LOG_DESTROYED(obj) connect(obj, &QObject::destroyed, []() { fprintf(stderr, "Destroyed pointer of %s\n", #obj); })
+#else
+#define LOG_DESTROYED(obj)
+#endif
+
 VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
     QDialog(parent, f)
   , mainLayout(new QVBoxLayout(this))
+  , videoCanvas(new VideoCanvas)
+  , progressBar(new ProgressBar)
 {
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
+    mainLayout->addWidget(videoCanvas);
+    mainLayout->addWidget(progressBar);
+    mainLayout->setAlignment(progressBar, Qt::AlignBottom);
 
     connect(&decoder, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
     connect(&decoder, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
 
     setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+
+    LOG_DESTROYED(mainLayout);
+    LOG_DESTROYED(videoCanvas);
+    LOG_DESTROYED(progressBar);
 }
 
 void VideoPlayer::paintEvent(QPaintEvent *)
@@ -93,12 +108,18 @@ void VideoPlayer::error(const QString &msg)
     fprintf(stderr, "%s\n", msg.toStdString().c_str());
 }
 
-VideoProgressBar::VideoProgressBar(QWidget *parent) :
+VideoCanvas::VideoCanvas(QWidget *parent) :
+    QWidget(parent)
+{
+
+}
+
+ProgressBar::ProgressBar(QWidget *parent) :
     QWidget(parent)
 {
 }
 
-QSize VideoProgressBar::sizeHint() const
+QSize ProgressBar::sizeHint() const
 {
     return QSize(0, PROGRESS_BAR_HEIGHT);
 }

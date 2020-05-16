@@ -46,14 +46,14 @@ private:
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     QImage image;
-    ScalableImage *scalableImage;
-    QScrollArea *scrollArea;
-    QToolBar *toolBar;
     QVBoxLayout *mainLayout;
-    ZoomToolButtons *zoomToolButtons;
-    QLineEdit *scaleEdit;
-    QComboBox *scaleComboBox;
     LabelEventFilter *labelEventFilter;
+    QToolBar *toolBar;
+    ZoomToolButtons *zoomToolButtons;
+    QComboBox *scaleComboBox;
+    QLineEdit *scaleEdit;
+    QScrollArea *scrollArea;
+    ScalableImage *scalableImage;
 
     double originalFactor;
     int zoomInOut;
@@ -87,7 +87,7 @@ class LabelEventFilter : public QObject
     Q_OBJECT
 
 public:
-    LabelEventFilter(ImageViewer *parent) : QObject() { this->parent = parent; }
+    LabelEventFilter(ImageViewer *parent) : QObject(parent) { this->parent = parent; }
 
 protected:
     bool eventFilter(QObject *, QEvent *) override;
