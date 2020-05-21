@@ -20,12 +20,11 @@ VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
 {
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
-    mainLayout->addWidget(videoCanvas);
+    mainLayout->addWidget(videoCanvas, 1);
     mainLayout->addWidget(progressBar);
     mainLayout->setAlignment(progressBar, Qt::AlignBottom);
 
-    connect(&decoder, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
-    connect(&decoder, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
+    progressBar->setFixedHeight(PROGRESS_BAR_HEIGHT);
 
     setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
@@ -34,27 +33,13 @@ VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
     LOG_DESTROYED(progressBar);
 }
 
-void VideoPlayer::paintEvent(QPaintEvent *)
-{
-    QPainter painter(this);
-    if (image != QImage())
-        painter.drawImage(QPoint(0, 0), image);
-}
-
 void VideoPlayer::runVideo(const VideoFile &video)
 {
-    decoder.setFile(video.fileName());
-    decoder.start();
-
-    firstFrame = true;
-    frameIndex = 0;
-
-    elapsedTimer.start();
+    videoCanvas->runVideo(video);
 
     setMinimumSize(QSize(0, PROGRESS_BAR_HEIGHT));
 
     show();
-
     exec();
 }
 
@@ -67,21 +52,56 @@ void VideoPlayer::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void VideoPlayer::resizeEvent(QResizeEvent *event)
+QSize VideoPlayer::sizeHint() const
 {
-    if (!firstFrame && isVisible())
-        decoder.resize(event->size() - QSize(0, PROGRESS_BAR_HEIGHT));
+    return QSize(400, 300 + PROGRESS_BAR_HEIGHT);
 }
 
-void VideoPlayer::receiveFrame(const Image *image)
+VideoCanvas::VideoCanvas(QWidget *parent) :
+    QWidget(parent)
+{
+    connect(&decoderThread, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
+    connect(&decoderThread, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
+}
+
+void VideoCanvas::runVideo(const VideoFile &video)
+{
+    decoderThread.setFile(video);
+    decoderThread.resize(QSize(400, 300));
+    decoderThread.start();
+
+    firstFrame = true;
+    frameIndex = 0;
+
+    elapsedTimer.start();
+}
+
+void VideoCanvas::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    if (image != QImage())
+        painter.drawImage(QPoint(0, 0), image);
+}
+
+void VideoCanvas::resizeEvent(QResizeEvent *event)
+{
+    decoderThread.resize(event->size());
+}
+
+QSize VideoCanvas::sizeHint() const
+{
+    return QSize(400, 300);
+}
+
+void VideoCanvas::receiveFrame(const Image *image)
 {
     // This just creates a representation as QImage
     // -> no copy is made!
     this->image = image->toQImage();
 
     if (firstFrame && isVisible()) {
-        resize(decoder.info().width, decoder.info().height + PROGRESS_BAR_HEIGHT);
-        frameRate = decoder.info().framerate;
+//        resize(decoder.info().width, decoder.info().height);
+        frameRate = decoderThread.info().framerate;
         firstFrame = false;
     }
 
@@ -95,23 +115,17 @@ void VideoPlayer::receiveFrame(const Image *image)
         // In case the player lags, reset the frame counter and timer
         frameIndex = 0;
         elapsedTimer.start();
-        decoder.next();
+        decoderThread.next();
         return;
     } else if (interval > 1000)
         interval = 1000;
-    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoder, &DecoderThread::next);
+    QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoderThread, &DecoderThread::next);
 }
 
-void VideoPlayer::error(const QString &msg)
+void VideoCanvas::error(const QString &msg)
 {
-    fflush(stderr);
     fprintf(stderr, "%s\n", msg.toStdString().c_str());
-}
-
-VideoCanvas::VideoCanvas(QWidget *parent) :
-    QWidget(parent)
-{
-
+    fflush(stderr);
 }
 
 ProgressBar::ProgressBar(QWidget *parent) :

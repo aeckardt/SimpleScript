@@ -79,6 +79,7 @@ public:
 
     inline const VideoInfo &info() const { return _info; }
 
+    inline bool isOpen() const { return !_eof && av_error == 0; }
     inline const Image &frame() const { return frame_rgb.image(); }
     inline bool eof() const { return _eof; }
 
@@ -119,6 +120,8 @@ private:
 
     bool _eof;
 
+    QSize initial_size;
+
     friend class DecoderThread;
 };
 
@@ -149,6 +152,7 @@ protected:
 
 private:
     const VideoFile *video;
+    QSize initial_size;
 
     VideoDecoder decoder;
     QSize new_size;

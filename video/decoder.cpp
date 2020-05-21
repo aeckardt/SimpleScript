@@ -41,8 +41,11 @@ void DecoderFrame::resize(int width, int height)
         this->width = width;
         this->height = height;
 
-        // Linesize alignment for scaled RGB32 frame should be 1 (or 4)
-        num_bytes = av_image_get_buffer_size(pix_fmt, width, height, 1);
+        if (width > 0 && height > 0)
+            // Linesize alignment for scaled RGB32 frame should be 1 (or 4)
+            num_bytes = av_image_get_buffer_size(pix_fmt, width, height, 1);
+        else
+            num_bytes = 0;
 
         size_t index;
         for (index = 0; index < cycles.size(); index++)
@@ -146,9 +149,11 @@ VideoDecoder::VideoDecoder() :
     codec(nullptr),
     _info({0, 0, 0, 0}),
     frame_(nullptr),
+    frame_rgb(0, 0),
     pkt(nullptr),
     sws_ctx(nullptr),
-    _eof(true)
+    _eof(true),
+    initial_size(QSize())
 {
     av_log_set_level(AV_LOG_ERROR);
 }
@@ -162,6 +167,7 @@ void VideoDecoder::cleanUp()
     _info = {0, 0, 0, 0};
     if (frame_ != nullptr)
         av_frame_free(&frame_);
+    frame_rgb.resizeHard(0, 0);
     if (pkt != nullptr)
         av_packet_free(&pkt);
     if (sws_ctx != nullptr) {
@@ -242,20 +248,35 @@ void VideoDecoder::open(const VideoFile &video_file)
         return;
     }
 
+
+    // Set width and height for scaling depending on
+    // if resize was called before open
+    // -> in that case, set the scaling size to that size
+    // -> otherwise, use the width and height of the video
+    QSize scaling_size;
+
+    if (initial_size == QSize())
+        scaling_size = QSize(codec_ctx->width, codec_ctx->height);
+    else
+        scaling_size = initial_size;
+
     // Allocate structure for scaled RGB frame
     // -> in RGB32 format with specified width and height
-    frame_rgb.resizeHard(codec_ctx->width, codec_ctx->height);
+    frame_rgb.resizeHard(scaling_size.width(), scaling_size.height());
     if (!frame_rgb.isValid()) {
         errorMsg("Could not initialize RGB frame");
         return;
     }
 
+    // Clean up initial_size in case 'open' is called again
+    initial_size = QSize();
+
     // Also initialize scaling context
     sws_ctx = sws_getContext(codec_ctx->width,
                              codec_ctx->height,
                              codec_ctx->pix_fmt,
-                             codec_ctx->width,
-                             codec_ctx->height,
+                             scaling_size.width(),
+                             scaling_size.height(),
                              AV_PIX_FMT_RGB32,
                              SWS_BILINEAR,
                              nullptr,
@@ -334,6 +355,11 @@ void VideoDecoder::swsScale()
 
 void VideoDecoder::resize(const QSize &size)
 {
+    if (!isOpen()) {
+        initial_size = size;
+        return;
+    }
+
     if (size == QSize(frame_rgb.width, frame_rgb.height))
         return;
 
@@ -384,6 +410,7 @@ void VideoDecoder::errorMsg(const char *msg)
 DecoderThread::DecoderThread(QObject *parent) :
     QThread(parent),
     video(nullptr),
+    initial_size(QSize(0, 0)),
     quit(false)
 {
 }

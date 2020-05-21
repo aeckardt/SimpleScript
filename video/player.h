@@ -22,31 +22,17 @@ class VideoPlayer : public QDialog
 public:
     VideoPlayer(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
-    void paintEvent(QPaintEvent *event) override;
-
     void runVideo(const VideoFile &video);
 
 protected:
     void keyPressEvent(QKeyEvent *) override;
-    void resizeEvent(QResizeEvent *) override;
-
-private slots:
-    void receiveFrame(const Image *image);
-    void error(const QString &msg);
+    QSize sizeHint() const override;
 
 private:
     QVBoxLayout *mainLayout;
 
     VideoCanvas *videoCanvas;
     ProgressBar *progressBar;
-
-    DecoderThread decoder;
-    QImage image;
-    bool firstFrame;
-    int frameIndex;
-    int frameRate;
-
-    QElapsedTimer elapsedTimer;
 };
 
 class VideoCanvas : public QWidget
@@ -55,6 +41,27 @@ class VideoCanvas : public QWidget
 
 public:
     VideoCanvas(QWidget *parent = nullptr);
+
+    void runVideo(const VideoFile &video);
+
+protected:
+    void paintEvent(QPaintEvent *) override;
+    void resizeEvent(QResizeEvent *event) override;
+    QSize sizeHint() const override;
+
+private slots:
+    void receiveFrame(const Image *img);
+    void error(const QString &msg);
+
+private:
+    QImage image;
+
+    DecoderThread decoderThread;
+    bool firstFrame;
+    int frameIndex;
+    int frameRate;
+
+    QElapsedTimer elapsedTimer;
 };
 
 class ProgressBar : public QWidget
