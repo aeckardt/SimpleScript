@@ -79,7 +79,7 @@ private:
     QRegion mainFrame;
     QRegion ellipseFrame[4];
 
-    void recalcDim();
+    void calculateDimensions();
 
     friend FocusDialog;
 };

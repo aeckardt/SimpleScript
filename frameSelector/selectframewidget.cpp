@@ -202,7 +202,7 @@ void SelectFrameWidget::paintEvent(QPaintEvent *)
     painter.restore();
 }
 
-void SelectFrameWidget::recalcDim()
+void SelectFrameWidget::calculateDimensions()
 {
     QPoint size = QPoint(
                 std::abs(startPosition.x() - endPosition.x()),
@@ -265,7 +265,7 @@ void SelectFrameWidget::recalcDim()
 
 void SelectFrameWidget::resizeEvent(QResizeEvent *)
 {
-    recalcDim();
+    calculateDimensions();
 
     QRegion maskedRegion = mainFrame + ellipseFrame[0] + ellipseFrame[1] + ellipseFrame[2] + ellipseFrame[3];
     setMask(maskedRegion);

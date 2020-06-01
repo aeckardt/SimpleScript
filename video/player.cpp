@@ -4,8 +4,6 @@
 #include <QPainter>
 #include <QtWidgets>
 
-#define PROGRESS_BAR_HEIGHT 35
-
 #ifdef QT_DEBUG
 #define LOG_DESTROYED(obj) connect(obj, &QObject::destroyed, []() { fprintf(stderr, "Destroyed pointer of %s\n", #obj); })
 #else
@@ -17,6 +15,7 @@ VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
   , mainLayout(new QVBoxLayout(this))
   , videoCanvas(new VideoCanvas)
   , progressBar(new ProgressBar)
+  , playing(false)
 {
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
@@ -28,14 +27,27 @@ VideoPlayer::VideoPlayer(QWidget *parent, Qt::WindowFlags f) :
 
     setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
-    LOG_DESTROYED(mainLayout);
-    LOG_DESTROYED(videoCanvas);
-    LOG_DESTROYED(progressBar);
+    connect(&decoderThread, &DecoderThread::newFrame, this, &VideoPlayer::receiveFrame);
+    connect(&decoderThread, &DecoderThread::error, this, &VideoPlayer::error);
+    connect(progressBar, &ProgressBar::changePosition, this, &VideoPlayer::moveSliderHandle);
+
+//    LOG_DESTROYED(mainLayout);
+//    LOG_DESTROYED(videoCanvas);
+//    LOG_DESTROYED(progressBar);
 }
 
 void VideoPlayer::runVideo(const VideoFile &video)
 {
-    videoCanvas->runVideo(video);
+    decoderThread.setFile(video);
+    decoderThread.resize(QSize(400, 300));
+    decoderThread.start();
+
+    firstFrame = true;
+    frameIndex = 0;
+
+    elapsedTimer.start();
+
+    playing = true;
 
     setMinimumSize(QSize(0, PROGRESS_BAR_HEIGHT));
 
@@ -46,10 +58,17 @@ void VideoPlayer::runVideo(const VideoFile &video)
 void VideoPlayer::keyPressEvent(QKeyEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
-        if (event->key() == Qt::Key_W)
+        if (event->key() == Qt::Key_W) {
             // Close when Ctrl+W is pressed
+            decoderThread.stop();
             close();
+        }
     }
+}
+
+void VideoPlayer::resizeEvent(QResizeEvent *event)
+{
+    decoderThread.resize(event->size() - QSize(0, PROGRESS_BAR_HEIGHT));
 }
 
 QSize VideoPlayer::sizeHint() const
@@ -57,57 +76,23 @@ QSize VideoPlayer::sizeHint() const
     return QSize(400, 300 + PROGRESS_BAR_HEIGHT);
 }
 
-VideoCanvas::VideoCanvas(QWidget *parent) :
-    QWidget(parent)
-{
-    connect(&decoderThread, SIGNAL(newFrame(const Image *)), this, SLOT(receiveFrame(const Image *)));
-    connect(&decoderThread, SIGNAL(error(const QString &)), this, SLOT(error(const QString &)));
-}
-
-void VideoCanvas::runVideo(const VideoFile &video)
-{
-    decoderThread.setFile(video);
-    decoderThread.resize(QSize(400, 300));
-    decoderThread.start();
-
-    firstFrame = true;
-    frameIndex = 0;
-
-    elapsedTimer.start();
-}
-
-void VideoCanvas::paintEvent(QPaintEvent *)
-{
-    QPainter painter(this);
-    if (image != QImage())
-        painter.drawImage(QPoint(0, 0), image);
-}
-
-void VideoCanvas::resizeEvent(QResizeEvent *event)
-{
-    decoderThread.resize(event->size());
-}
-
-QSize VideoCanvas::sizeHint() const
-{
-    return QSize(400, 300);
-}
-
-void VideoCanvas::receiveFrame(const Image *image)
+void VideoPlayer::receiveFrame(const Image *image)
 {
     // This just creates a representation as QImage
     // -> no copy is made!
-    this->image = image->toQImage();
+    videoCanvas->image = image->toQImage();
 
     if (firstFrame && isVisible()) {
 //        resize(decoder.info().width, decoder.info().height);
         frameRate = decoderThread.info().framerate;
         firstFrame = false;
+        progressBar->setSize(decoderThread.info().framecount);
     }
 
     frameIndex++;
 
-    update();
+    videoCanvas->update();
+    progressBar->setIndex(decoderThread.frameIndex());
 
     // Determine interval till next frame
     qint64 interval = frameIndex * 1000 / frameRate - elapsedTimer.elapsed();
@@ -122,18 +107,152 @@ void VideoCanvas::receiveFrame(const Image *image)
     QTimer::singleShot(static_cast<int>(interval), Qt::PreciseTimer, &decoderThread, &DecoderThread::next);
 }
 
-void VideoCanvas::error(const QString &msg)
+void VideoPlayer::error(const QString &msg)
 {
     fprintf(stderr, "%s\n", msg.toStdString().c_str());
     fflush(stderr);
 }
 
-ProgressBar::ProgressBar(QWidget *parent) :
-    QWidget(parent)
+void VideoPlayer::moveSliderHandle(int newPosition)
 {
+    decoderThread.seekFrame(newPosition);
 }
 
-QSize ProgressBar::sizeHint() const
+void VideoCanvas::paintEvent(QPaintEvent *)
 {
-    return QSize(0, PROGRESS_BAR_HEIGHT);
+    QPainter painter(this);
+    if (image != QImage())
+        painter.drawImage(QPoint(0, 0), image);
+}
+
+QSize VideoCanvas::sizeHint() const
+{
+    return QSize(400, 300);
+}
+
+ProgressBar::ProgressBar(QWidget *parent) :
+    QWidget(parent)
+  , layout(new QHBoxLayout(this))
+  , frameLabel(new QLabel)
+  , dragMode(false)
+{
+    layout->addWidget(frameLabel, 0, Qt::AlignRight);
+}
+
+void ProgressBar::setIndex(int current)
+{
+    this->current = current;
+    if (frameCount > 0) {
+        frameLabel->setText(QString().sprintf("%d / %d", current + 1, frameCount));
+        update();
+    } else if (frameLabel->text() != "")
+        frameLabel->setText("");
+}
+
+void ProgressBar::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() & Qt::LeftButton) {
+        if (!sliderClickRegion.isNull() && sliderClickRegion.contains(event->pos())) {
+            dragMode = true;
+            emitSliderPosition(event->pos().x());
+        }
+    }
+}
+
+void ProgressBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->button() & Qt::LeftButton && dragMode)
+        emitSliderPosition(event->pos().x());
+}
+
+void ProgressBar::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() & Qt::LeftButton && dragMode)
+        dragMode = false;
+}
+
+void ProgressBar::drawUpperBorder(QPainter &painter)
+{
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(127, 127, 127));
+
+    painter.save();
+    painter.drawRect(0, 0, width(), 1);
+    painter.restore();
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(255, 255, 255));
+
+    painter.save();
+    painter.drawRect(0, 1, width(), 1);
+    painter.restore();
+}
+
+void ProgressBar::drawSlider(QPainter &painter)
+{
+    calculateSliderDimensions();
+
+    if (frameCount > 0 && current >= 0 && sliderWidth > 0) {
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(159, 159, 159));
+
+        painter.save();
+        painter.drawRect(sliderRect);
+        painter.restore();
+
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(95, 95, 95));
+
+        painter.save();
+        painter.drawEllipse(sliderHandleRect);
+        painter.restore();
+
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QColor(255, 127, 127));
+
+        painter.save();
+        painter.drawEllipse(sliderHandleRect.adjusted(1, 1, -1, -1));
+        painter.restore();
+    }
+}
+
+void ProgressBar::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    drawUpperBorder(painter);
+    drawSlider(painter);
+}
+
+void ProgressBar::calculateSliderDimensions()
+{
+    sliderLeft = 60;
+    sliderTop = PROGRESS_BAR_HEIGHT / 2;
+    sliderWidth = width() - sliderLeft - 95; // leave space for the label
+    ellipseDiameter = 14;
+
+    sliderRect = {sliderLeft, sliderTop, sliderWidth, 1};
+
+    sliderPosition = sliderLeft + static_cast<int>(static_cast<double>(sliderWidth) *
+                                                   (static_cast<double>(current) /
+                                                   static_cast<double>(frameCount)));
+
+    sliderHandleRect = {sliderPosition + 2 - ellipseDiameter / 2,
+                        sliderTop + 2 - ellipseDiameter / 2,
+                        ellipseDiameter - 2,
+                        ellipseDiameter - 2};
+
+    if (sliderWidth > 0)
+        sliderClickRegion = QRegion(sliderRect.adjusted(-1, -1, 1, 1), QRegion::Rectangle) +
+                            QRegion(sliderHandleRect, QRegion::Ellipse);
+    else
+        sliderClickRegion = QRegion();
+}
+
+void ProgressBar::emitSliderPosition(int x)
+{
+    int newFrameIndex = std::min(frameCount - 1, std::max(0,
+                                 (x - sliderLeft) * frameCount / sliderWidth));
+    emit changePosition(newFrameIndex);
 }

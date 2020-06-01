@@ -143,7 +143,7 @@ VideoDecoder::VideoDecoder() :
     av_error(0),
     format_ctx(nullptr),
     video_stream(nullptr),
-    frame_counter(0),
+    frame_index(0),
     codec_par(nullptr),
     codec_ctx(nullptr),
     codec(nullptr),
@@ -175,7 +175,7 @@ void VideoDecoder::cleanUp()
         sws_ctx = nullptr;
     }
     video_stream = nullptr;
-    frame_counter = 0;
+    frame_index = 0;
     _eof = true;
 }
 
@@ -195,9 +195,11 @@ void VideoDecoder::open(const VideoFile &video_file)
         return;
     }
 
+    int stream_index;
+
     // Find the first video stream
-    for (frame_counter = 0; frame_counter < static_cast<int>(format_ctx->nb_streams); frame_counter++) {
-        const AVStream *stream = format_ctx->streams[frame_counter];
+    for (stream_index = 0; stream_index < static_cast<int>(format_ctx->nb_streams); stream_index++) {
+        const AVStream *stream = format_ctx->streams[stream_index];
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
             video_stream = stream;
             _info.width = stream->codecpar->width;
@@ -347,7 +349,7 @@ void VideoDecoder::swsScale()
                   frame_rgb.frame()->data, frame_rgb.frame()->linesize);
     }
 
-    frame_counter++;
+    frame_index++;
 
     // This finishes readFrame()
     av_packet_unref(pkt);
@@ -399,7 +401,7 @@ void VideoDecoder::seek(int n_frame)
     if (av_error < 0)
         return errorMsg("Error seeking frame");
 
-    frame_counter = n_frame;
+    frame_index = n_frame;
 }
 
 void VideoDecoder::errorMsg(const char *msg)
@@ -408,10 +410,9 @@ void VideoDecoder::errorMsg(const char *msg)
 }
 
 DecoderThread::DecoderThread(QObject *parent) :
-    QThread(parent),
-    video(nullptr),
-    initial_size(QSize(0, 0)),
-    quit(false)
+    QThread(parent)
+  , video(nullptr)
+  , initial_size(QSize(0, 0))
 {
 }
 
@@ -431,8 +432,12 @@ void DecoderThread::next()
 {
     QMutexLocker locker(&mutex);
 
-    continue_reading = true;
-    condition.wakeOne();
+    // Continue only, when end is not yet reached!
+    // In order to continue playing, use seekFrame!
+    if (!eof) {
+        continue_reading = true;
+        condition.wakeOne();
+    }
 }
 
 void DecoderThread::stop()
@@ -440,6 +445,15 @@ void DecoderThread::stop()
     QMutexLocker locker(&mutex);
 
     quit = true;
+    condition.wakeOne();
+}
+
+void DecoderThread::seekFrame(int index)
+{
+    QMutexLocker locker(&mutex);
+
+    seek_frame = index;
+    eof = false;
     condition.wakeOne();
 }
 
@@ -464,25 +478,45 @@ void DecoderThread::run()
         return;
     }
 
+    // Initialize values
     continue_reading = true;
+    eof = false;
+    quit = false;
+    seek_frame = -1;
 
-    while (!quit && decoder.readFrame()) {
-        mutex.lock();
-        if (!continue_reading && !quit)
-            condition.wait(&mutex);
+    while (!quit) {
+
+        while (!quit && !eof) {
+            if (seek_frame != -1) {
+                decoder.seek(seek_frame);
+                seek_frame = -1;
+            }
+            eof = !decoder.readFrame();
+            if (eof)
+                break;
+            mutex.lock();
+            if (!continue_reading && !quit)
+                condition.wait(&mutex);
+
+            if (!quit) {
+                decoder.swsScale();
+                mutex.unlock();
+
+                // Continue reading only when next() is called
+                // to avoid a race-condition for decoder.frame()
+                continue_reading = false;
+
+                emit newFrame(&decoder.frame());
+            } else
+                mutex.unlock();
+        }
+
+        emit finished();
 
         if (!quit) {
-            decoder.swsScale();
+            mutex.lock();
+            condition.wait(&mutex);
             mutex.unlock();
-
-            // Continue reading only when next() is called
-            // to avoid a race-condition for decoder.frame()
-            continue_reading = false;
-
-            emit newFrame(&decoder.frame());
-        } else
-            mutex.unlock();
+        }
     }
-
-    emit finished();
 }

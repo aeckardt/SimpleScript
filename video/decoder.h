@@ -102,7 +102,7 @@ private:
     struct AVFormatContext *format_ctx;
     const struct AVStream *video_stream;
 
-    int frame_counter;
+    int frame_index;
     struct AVCodecParameters *codec_par;
 
     struct AVCodecContext *codec_ctx;
@@ -136,9 +136,13 @@ public:
     void setFile(const VideoFile &video);
 
     const VideoInfo &info() const { return decoder.info(); }
+    int frameIndex() const { return decoder.frame_index; }
 
     void next();
     void stop();
+
+    void restart() { seekFrame(0); }
+    void seekFrame(int index);
 
     void resize(const QSize &size);
 
@@ -161,7 +165,10 @@ private:
     QWaitCondition condition;
 
     bool continue_reading;
+    bool eof;
     bool quit;
+
+    int seek_frame;
 };
 
 #endif // DECODER_H
